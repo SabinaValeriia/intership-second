@@ -2,7 +2,6 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import "./registerServiceWorker";
 import router from "./router";
-import "@/scss/styles.scss";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import { PiniaSharedState } from "pinia-shared-state";

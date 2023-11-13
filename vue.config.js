@@ -32,6 +32,9 @@ module.exports = defineConfig({
       sass: {
         additionalData: `
          @import '~@/scss/_colors.scss';
+         @import '~@/scss/_variables.scss';
+         @import '~@/scss/_media.scss';
+         @import '~@/scss/mixin/font.scss';
          `,
       },
     },
