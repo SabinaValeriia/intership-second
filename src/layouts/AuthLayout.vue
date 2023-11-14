@@ -11,9 +11,16 @@
   background: var(--white);
   width: 100%;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   &--block {
     z-index: 1;
     position: relative;
+    margin-bottom: 10%;
+    @include media_mobile {
+      margin-bottom: -5%;
+    }
   }
   .logo {
     position: absolute;
@@ -32,41 +39,39 @@
     }
   }
   .group-second {
-    background: url("../assets/img/group2.png");
+    background: url("../assets/img/group2.svg");
     position: absolute;
+    background-size: contain;
     top: 0;
     left: 0;
     width: 465px;
     height: 596px;
     @include media_tablet {
-      background-size: contain;
       top: -6px;
       left: -19px;
       width: 368px;
       height: 472px;
     }
     @include media_mobile {
-      background: url("../assets/img/group2-mobile.png");
       top: 0px;
       left: 0px;
-      width: 208px;
-      height: 270px;
+      width: 200px;
+      height: 256px;
     }
   }
   .group-first {
-    background: url("../assets/img/group1.png");
+    background: url("../assets/img/group1.svg");
+    background-size: contain;
     position: absolute;
     bottom: 0;
     right: 0;
     width: 532px;
     height: 507px;
     @include media_tablet {
-      background: url("../assets/img/group1-tablet.png");
       width: 384px;
       height: 372px;
     }
     @include media_mobile {
-      background: url("../assets/img/group1-mobile.png");
       width: 246px;
       height: 237px;
     }

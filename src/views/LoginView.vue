@@ -16,19 +16,20 @@
         span.error-message(v-else-if="$v.identifier.email.$invalid") Please enter a valid email address.
       .form-group(:class="getValidationClass($v, 'password')")
         label(for="password") Password
-        input#InputPassword(
-          v-model="form.password",
-          :type="passwordVisible ? 'text' : 'password'",
-          placeholder="*******",
-          @blur="$v.password.$touch()"
-        )
-        button.password-toggle(
-          @click.prevent="passwordVisible = !passwordVisible"
-        ) 
-          i(:class="[passwordVisible ? 'password-show' : 'password-hide']") 
+        .form-icon
+          input#InputPassword(
+            v-model="form.password",
+            :type="passwordVisible ? 'text' : 'password'",
+            placeholder="*******",
+            @blur="$v.password.$touch()"
+          )
+          button.password-toggle(
+            @click.prevent="passwordVisible = !passwordVisible"
+          ) 
+            i(:class="[passwordVisible ? 'password-show' : 'password-hide']") 
         span.error-message(v-if="$v.password.required.$invalid") This field is required.
         span.error-message(v-else-if="$v.password.minLength.$invalid") Password must be at least 8 characters long.
-      button.log-in Log in
+      common-button.log-in.btn_primary Log In
       p New user?
         a Sign up
 </template>
@@ -38,6 +39,7 @@ import { ref, computed } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { required, email, minLength } from "@vuelidate/validators";
 import { getValidationClass, checkValidation } from "@/types/authValidation";
+import CommonButton from "@/components/common/CommonButton.vue";
 
 const passwordVisible = ref(false);
 
@@ -76,19 +78,13 @@ const submit = () => {
 .log-in {
   h1 {
     text-align: center;
-    padding: 99px 0 8px;
-    margin: 0;
+    margin: 0 0 8px;
     @include font(60px, 800, 66px, var(--text));
     @include media_tablet {
-      padding: 129px 0 8px;
     }
     @include media_mobile {
       font-size: 50px;
       line-height: 54px;
-      padding: 228px 0 8px;
-    }
-    @include media_small_mobile {
-      padding: 127px 0 8px;
     }
   }
   h2 {
@@ -106,33 +102,18 @@ const submit = () => {
     box-shadow: var(--box-shadow-auth);
     padding: 32px 26px;
     max-width: 402px;
-    min-width: 402px;
     box-sizing: border-box;
     height: fit-content;
     display: block;
     margin: 0 auto;
     @include media_mobile {
       max-width: calc(100% - 20px);
-      min-width: calc(100% - 20px);
       padding: 24px 10px;
       margin: 0 10px;
     }
     form {
       .log-in {
-        border-radius: 4px;
-        background: var(--primary);
-        padding: 14px 24px;
-        border: none;
-        width: 100%;
-        margin-top: 36px;
-        @include font(16px, 500, 24px, var(--white));
-        cursor: pointer;
-        @include media_mobile {
-          padding: 12px 16px;
-          font-size: 14px;
-          line-height: 20px;
-          margin-top: 40px;
-        }
+        margin-top: 56px;
       }
       p {
         @include font(12px, 400, 20px, var(--text));
@@ -149,6 +130,13 @@ const submit = () => {
         display: flex;
         flex-direction: column;
         position: relative;
+        margin-bottom: 20px;
+        &:last-of-type {
+          margin-bottom: 0;
+        }
+        @include media_mobile {
+          margin-bottom: 16px;
+        }
         label {
           @include font(12px, 400, 18px, var(--text));
           margin-bottom: 8px;
@@ -162,19 +150,32 @@ const submit = () => {
           border: 1px solid var(--primary);
           background: var(--white);
           padding: 14px 16px;
-          margin-bottom: 20px;
           outline: none;
           height: 48px;
+          width: 100%;
           box-sizing: border-box;
           @include font(14px, 400, 20px, var(--text));
           @include media_mobile {
             padding: 12px;
-            margin-bottom: 16px;
             height: 40px;
           }
           &::placeholder {
             @include font(14px, 400, 20px, var(--placeholder));
           }
+          &:hover {
+            border-color: var(--primary_hover);
+          }
+          &:focus {
+            border-color: var(--primary_hover);
+          }
+
+          &.disabled {
+            background: var(--background_hover);
+            pointer-events: none;
+          }
+        }
+        .form-icon {
+          position: relative;
         }
         .error-message {
           display: none;
@@ -184,9 +185,9 @@ const submit = () => {
           border: none;
           background: none;
           position: absolute;
-          padding: 0;
-          top: 40px;
+          top: 14px;
           right: 16px;
+          padding: 0;
           i {
             display: block;
             width: 20px;
@@ -201,11 +202,11 @@ const submit = () => {
             }
           }
           @include media_mobile {
-            top: 33px;
+            top: 12px;
             right: 12px;
             i {
-              width: 18px;
-              height: 18px;
+              width: 16px;
+              height: 16px;
             }
           }
         }
@@ -216,10 +217,10 @@ const submit = () => {
           }
           span {
             display: block;
-            margin: 8px 0 20px;
+            margin: 8px 0 0;
             @include font(12px, 400, 18px, var(--error));
             @include media_mobile {
-              margin: 6px 0 16px;
+              margin: 6px 0 0;
             }
           }
         }
