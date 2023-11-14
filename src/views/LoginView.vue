@@ -29,7 +29,7 @@
             @click.prevent="passwordVisible = !passwordVisible"
           ) 
         span.error-message(v-if="$v.password.required.$invalid") This field is required.
-        span.error-message(v-else-if="$v.password.minLength.$invalid") Password must be at least 8 characters long.
+        span.error-message(v-else-if="$v.password.minLength.$invalid") Password must be at least 6 characters long.
       common-button.log-in.btn_primary Log In
       p New user?
         a Sign up
@@ -41,6 +41,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { required, email, minLength } from "@vuelidate/validators";
 import { getValidationClass, checkValidation } from "@/types/authValidation";
 import CommonButton from "@/components/common/CommonButton.vue";
+import { loginUser } from "@/services/api/userApi";
 
 const passwordVisible = ref(false);
 
@@ -61,7 +62,7 @@ const form = ref<LoginData>({
 const rules = computed(() => {
   const rules: any = {
     identifier: { required, email },
-    password: { required, minLength: minLength(8) },
+    password: { required, minLength: minLength(6) },
   };
   return rules;
 });
@@ -72,6 +73,11 @@ const submit = () => {
   if (checkValidation($v.value)) {
     return;
   }
+  loginUser(form.value).then(({ data }) => {
+    if (data) {
+      console.log(data);
+    }
+  });
 };
 </script>
 
