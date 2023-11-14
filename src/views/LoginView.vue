@@ -1,5 +1,6 @@
 <template lang="pug">
-.log-in 
+.log-in
+  img.logo(:src="require(`../assets/img/auth_logo.svg`)")
   h1 Welcome
   h2 Log in to your account
   .log-in--block
@@ -26,7 +27,9 @@
           button.password-toggle(
             @click.prevent="passwordVisible = !passwordVisible"
           ) 
-            i(:class="[passwordVisible ? 'password-show' : 'password-hide']") 
+            i.icon(
+              :class="[passwordVisible ? 'password-show' : 'password-hide']"
+            ) 
         span.error-message(v-if="$v.password.required.$invalid") This field is required.
         span.error-message(v-else-if="$v.password.minLength.$invalid") Password must be at least 8 characters long.
       common-button.log-in.btn_primary Log In
@@ -96,6 +99,13 @@ const submit = () => {
       line-height: 20px;
     }
   }
+  .logo {
+    display: none;
+    @include media_mobile {
+      display: block;
+      margin: 0 auto 16px;
+    }
+  }
   &--block {
     border-radius: 6px;
     background: var(--background);
@@ -124,105 +134,6 @@ const submit = () => {
           @include font(12px, 500, 20px, var(--text));
           text-decoration: underline;
           margin-left: 5px;
-        }
-      }
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        margin-bottom: 20px;
-        &:last-of-type {
-          margin-bottom: 0;
-        }
-        @include media_mobile {
-          margin-bottom: 16px;
-        }
-        label {
-          @include font(12px, 400, 18px, var(--text));
-          margin-bottom: 8px;
-          @include media_mobile {
-            line-height: 16px;
-            margin-bottom: 6px;
-          }
-        }
-        input {
-          border-radius: 4px;
-          border: 1px solid var(--primary);
-          background: var(--white);
-          padding: 14px 16px;
-          outline: none;
-          height: 48px;
-          width: 100%;
-          box-sizing: border-box;
-          @include font(14px, 400, 20px, var(--text));
-          @include media_mobile {
-            padding: 12px;
-            height: 40px;
-          }
-          &::placeholder {
-            @include font(14px, 400, 20px, var(--placeholder));
-          }
-          &:hover {
-            border-color: var(--primary_hover);
-          }
-          &:focus {
-            border-color: var(--primary_hover);
-          }
-
-          &.disabled {
-            background: var(--background_hover);
-            pointer-events: none;
-          }
-        }
-        .form-icon {
-          position: relative;
-        }
-        .error-message {
-          display: none;
-        }
-
-        .password-toggle {
-          border: none;
-          background: none;
-          position: absolute;
-          top: 14px;
-          right: 16px;
-          padding: 0;
-          i {
-            display: block;
-            width: 20px;
-            height: 20px;
-            background-size: cover;
-
-            &.password-hide {
-              background-image: url("../assets/img/visible-not.svg");
-            }
-            &.password-show {
-              background-image: url("../assets/img/visible.svg");
-            }
-          }
-          @include media_mobile {
-            top: 12px;
-            right: 12px;
-            i {
-              width: 16px;
-              height: 16px;
-            }
-          }
-        }
-        &.error {
-          input {
-            margin-bottom: 0;
-            border: 1px solid var(--error);
-          }
-          span {
-            display: block;
-            margin: 8px 0 0;
-            @include font(12px, 400, 18px, var(--error));
-            @include media_mobile {
-              margin: 6px 0 0;
-            }
-          }
         }
       }
     }

@@ -1,0 +1,24 @@
+.icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+    &:before {
+        content: "";
+        display: block;
+        mask-size: contain !important;
+        mask-repeat: no-repeat !important;
+        background: var(--text);
+        width: 100%;
+        height: 100%;
+    }
+    &.password-hide {
+        mask-image: url("../assets/img/visible-not.svg");
+    }
+    &.password-show {
+        mask-image: url("../assets/img/visible.svg");
+    }
+    @include media_mobile {
+        width: 16px;
+        height: 16px;
+    }
+}

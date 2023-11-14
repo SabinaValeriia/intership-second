@@ -19,7 +19,7 @@
     position: relative;
     margin-bottom: 10%;
     @include media_mobile {
-      margin-bottom: -5%;
+      margin-bottom: 20%;
     }
   }
   .logo {
@@ -30,12 +30,7 @@
       right: 36px;
     }
     @include media_mobile {
-      top: 132px;
-      left: 50%;
-      transform: translate(-50%, 0%);
-    }
-    @include media_small_mobile {
-      top: 31px;
+      display: none;
     }
   }
   .group-second {
@@ -65,7 +60,7 @@
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 532px;
+    width: 531px;
     height: 507px;
     @include media_tablet {
       width: 384px;
