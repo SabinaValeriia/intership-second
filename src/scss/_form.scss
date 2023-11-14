@@ -1,0 +1,78 @@
+.form-group {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    margin-bottom: 20px;
+    &:last-of-type {
+        margin-bottom: 0;
+    }
+    @include media_mobile {
+        margin-bottom: 16px;
+    }
+    label {
+        @include font(12px, 400, 18px, var(--text));
+        margin-bottom: 8px;
+        @include media_mobile {
+            line-height: 16px;
+            margin-bottom: 6px;
+        }
+    }
+    input {
+        border-radius: 4px;
+        border: 1px solid var(--primary);
+        background: var(--white);
+        padding: 14px 16px;
+        outline: none;
+        height: 48px;
+        width: 100%;
+        box-sizing: border-box;
+        @include font(14px, 400, 20px, var(--text));
+        @include media_mobile {
+            padding: 12px;
+            height: 40px;
+        }
+        &::placeholder {
+            @include font(14px, 400, 20px, var(--placeholder));
+        }
+        &:hover {
+            border-color: var(--primary_hover);
+        }
+        &:focus {
+            border-color: var(--primary_hover);
+        }
+
+        &.disabled {
+            background: var(--background_hover);
+            pointer-events: none;
+        }
+    }
+    .form-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .error-message {
+        display: none;
+    }
+
+    .password-toggle {
+        right: 16px;
+        @include media_mobile {
+            right: 12px;
+        }
+    }
+    &.error {
+        input {
+            margin-bottom: 0;
+            border: 1px solid var(--error);
+        }
+        span {
+            display: block;
+            margin: 8px 0 0;
+            @include font(12px, 400, 18px, var(--error));
+            @include media_mobile {
+                margin: 6px 0 0;
+            }
+        }
+    }
+}

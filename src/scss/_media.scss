@@ -36,7 +36,7 @@ $extra_small_width: 375px;
 }
 
 @mixin media_small_mobile {
-    @media only screen and (max-width: #{$extra_small_width - 1px}) {
+    @media only screen and (max-width: #{$extra_small_width}) {
         @content;
     }
 }
