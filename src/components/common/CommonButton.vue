@@ -39,12 +39,6 @@ button {
     font-size: 14px;
     line-height: 20px;
   }
-  &:hover {
-    transform: scale(1.1);
-  }
-  &:active {
-    transform: scale(1);
-  }
 
   &.btn_primary {
     background: var(--primary);

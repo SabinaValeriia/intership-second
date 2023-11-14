@@ -24,12 +24,10 @@
             placeholder="*******",
             @blur="$v.password.$touch()"
           )
-          button.password-toggle(
+          i.icon.password-toggle(
+            :class="[passwordVisible ? 'password-show' : 'password-hide']",
             @click.prevent="passwordVisible = !passwordVisible"
           ) 
-            i.icon(
-              :class="[passwordVisible ? 'password-show' : 'password-hide']"
-            ) 
         span.error-message(v-if="$v.password.required.$invalid") This field is required.
         span.error-message(v-else-if="$v.password.minLength.$invalid") Password must be at least 8 characters long.
       common-button.log-in.btn_primary Log In
@@ -83,8 +81,6 @@ const submit = () => {
     text-align: center;
     margin: 0 0 8px;
     @include font(60px, 800, 66px, var(--text));
-    @include media_tablet {
-    }
     @include media_mobile {
       font-size: 50px;
       line-height: 54px;
@@ -133,7 +129,7 @@ const submit = () => {
         a {
           @include font(12px, 500, 20px, var(--text));
           text-decoration: underline;
-          margin-left: 5px;
+          text-underline-offset: 5px;
         }
       }
     }

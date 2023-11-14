@@ -34,7 +34,7 @@
     }
   }
   .group-second {
-    background: url("../assets/img/group2.svg");
+    background: url("../assets/img/group2.svg") no-repeat;
     position: absolute;
     background-size: contain;
     top: 0;
@@ -55,7 +55,7 @@
     }
   }
   .group-first {
-    background: url("../assets/img/group1.svg");
+    background: url("../assets/img/group1.svg") no-repeat;
     background-size: contain;
     position: absolute;
     bottom: 0;
@@ -65,6 +65,7 @@
     @include media_tablet {
       width: 384px;
       height: 372px;
+      bottom: -7px;
     }
     @include media_mobile {
       width: 246px;

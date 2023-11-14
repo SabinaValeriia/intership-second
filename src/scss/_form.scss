@@ -48,20 +48,16 @@
     }
     .form-icon {
         position: relative;
+        display: flex;
+        align-items: center;
     }
     .error-message {
         display: none;
     }
 
     .password-toggle {
-        border: none;
-        background: none;
-        position: absolute;
-        top: 14px;
         right: 16px;
-        padding: 0;
         @include media_mobile {
-            top: 12px;
             right: 12px;
         }
     }

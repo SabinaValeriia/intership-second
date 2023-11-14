@@ -2,20 +2,21 @@
     width: 20px;
     height: 20px;
     display: block;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    position: absolute;
     &:before {
         content: "";
         display: block;
-        mask-size: contain !important;
-        mask-repeat: no-repeat !important;
         background: var(--text);
         width: 100%;
         height: 100%;
     }
     &.password-hide {
-        mask-image: url("../assets/img/visible-not.svg");
+        mask-image: url("../assets/img/icons/visible-not.svg");
     }
     &.password-show {
-        mask-image: url("../assets/img/visible.svg");
+        mask-image: url("../assets/img/icons/visible.svg");
     }
     @include media_mobile {
         width: 16px;
