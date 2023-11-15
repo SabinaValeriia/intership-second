@@ -77,7 +77,7 @@ import { notifications, removeNotification } from "@/composables/notification";
   }
   &.success {
     border: 1px solid var(--notify_success);
-    background: var(--green-green-light);
+    background: var(--harp);
     p {
       color: var(--notify_success);
       &::before {
@@ -93,7 +93,7 @@ import { notifications, removeNotification } from "@/composables/notification";
   }
   &.failed {
     border: 1px solid var(--error);
-    background: var(--red-red-light);
+    background: var(--provincial-pink);
 
     p {
       color: var(--error);
@@ -110,7 +110,7 @@ import { notifications, removeNotification } from "@/composables/notification";
   }
   &.warning {
     border: 1px solid var(--notify_warning);
-    background: var(--primary-primary-light);
+    background: var(--bridesmaid);
 
     p {
       color: var(--notify_warning);

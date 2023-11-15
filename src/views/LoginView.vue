@@ -79,7 +79,6 @@ const submit = () => {
       text: "Invalid identifier or password",
       type: NotificationType.Failed,
       key: `key${notifications.value.length}`,
-      duration: 5000,
     });
     return;
   }

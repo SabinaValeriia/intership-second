@@ -17,13 +17,14 @@ export enum NotificationType {
 
 export const pushNotification = (notification: Notification) => {
   const newNotification = { ...notification };
-  newNotification.duration = 50000 || newNotification.duration;
+  newNotification.duration = newNotification.duration
+    ? newNotification.duration
+    : 5000;
   notifications.value.push(newNotification);
 
   setTimeout(() => {
     removeNotification(newNotification.key);
-    console.log(newNotification.duration);
-  }, notification.duration);
+  }, newNotification.duration);
 };
 
 export const removeNotification = (key: string) => {
