@@ -93,7 +93,6 @@ const submit = () => {
           type: NotificationType.Success,
           key: `key${notifications.value.length}`,
         });
-        console.log(userStore.accessToken);
       }
     })
     .catch((error) => {

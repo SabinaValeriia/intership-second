@@ -1,34 +1,44 @@
-import axios, { AxiosRequestConfig } from "axios";
-function getJwtToken(): any {
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+const getJwtToken = () => {
   const jwt = localStorage.getItem("isAuthenticated");
   if (jwt) {
     return jwt;
   } else {
     return "";
   }
-}
+};
 const axiosInstance = axios.create({
   baseURL: "http://localhost:1337/api",
   timeout: 1000,
 });
 
-export const get = (resource: any, config?: AxiosRequestConfig) => {
-  return axiosInstance.get(resource, config);
-};
-export const post = (
-  resource: any,
-  data?: any,
+export const get = <T>(
+  resource: string,
   config?: AxiosRequestConfig
-) => {
-  return axiosInstance.post(resource, data, config);
+): Promise<AxiosResponse<T>> => {
+  return axiosInstance.get<T>(resource, config);
+};
+export const post = <T>(
+  resource: string,
+  data?: T,
+  config?: AxiosRequestConfig
+): Promise<AxiosResponse<T>> => {
+  return axiosInstance.post<T>(resource, data, config);
 };
 
-export const put = (resource: any, data: any, config?: AxiosRequestConfig) => {
-  return axiosInstance.put(resource, data, config);
+export const put = <T>(
+  resource: string,
+  data: T,
+  config?: AxiosRequestConfig
+): Promise<AxiosResponse<T>> => {
+  return axiosInstance.put<T>(resource, data, config);
 };
 
-export const deleted = (resource: any, config?: AxiosRequestConfig) => {
-  return axiosInstance.delete(resource, config);
+export const deleted = <T>(
+  resource: string,
+  config?: AxiosRequestConfig
+): Promise<AxiosResponse<T>> => {
+  return axiosInstance.delete<T>(resource, config);
 };
 
 export default axiosInstance;
