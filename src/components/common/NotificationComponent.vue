@@ -140,20 +140,15 @@ import { notifications, removeNotification } from "@/composables/notification";
     }
   }
   button {
-    right: 12px;
-    width: 16px;
-    height: 16px;
+    right: 13px;
+    width: 12px;
+    height: 12px;
 
     border: none;
 
     background-color: var(--notify_info);
     &::before {
       background-color: var(--notify_info);
-    }
-    @include media_mobile {
-      width: 13px;
-      height: 13px;
-      right: 13px;
     }
   }
 }
