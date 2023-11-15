@@ -13,10 +13,13 @@
         height: 100%;
     }
     &.password-hide {
-        mask-image: url("../assets/img/icons/visible-not.svg");
+        mask-image: url("../assets/icons/visible-not.svg");
     }
     &.password-show {
-        mask-image: url("../assets/img/icons/visible.svg");
+        mask-image: url("../assets/icons/visible.svg");
+    }
+    &.close {
+        mask-image: url("../assets/icons/close.svg");
     }
     @include media_mobile {
         width: 16px;

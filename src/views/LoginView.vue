@@ -41,6 +41,11 @@ import { useVuelidate } from "@vuelidate/core";
 import { required, email, minLength } from "@vuelidate/validators";
 import { getValidationClass, checkValidation } from "@/types/authValidation";
 import CommonButton from "@/components/common/CommonButton.vue";
+import {
+  pushNotification,
+  notifications,
+  NotificationType,
+} from "@/composables/notification";
 
 const passwordVisible = ref(false);
 
@@ -70,6 +75,12 @@ const $v = useVuelidate(rules, form);
 
 const submit = () => {
   if (checkValidation($v.value)) {
+    pushNotification({
+      text: "Invalid identifier or password",
+      type: NotificationType.Failed,
+      key: `key${notifications.value.length}`,
+      duration: 5000,
+    });
     return;
   }
 };
