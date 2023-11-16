@@ -29,7 +29,7 @@
             @click.prevent="passwordVisible = !passwordVisible"
           ) 
         span.error-message(v-if="$v.password.required.$invalid") This field is required.
-        span.error-message(v-else-if="$v.password.minLength.$invalid") Password must be at least 8 characters long.
+        span.error-message(v-else-if="$v.password.minLength.$invalid") Password must be at least 6 characters long.
       common-button.log-in.btn_primary Log In
       p New user?
         a Sign up
@@ -41,11 +41,13 @@ import { useVuelidate } from "@vuelidate/core";
 import { required, email, minLength } from "@vuelidate/validators";
 import { getValidationClass, checkValidation } from "@/types/authValidation";
 import CommonButton from "@/components/common/CommonButton.vue";
+import { loginUser } from "@/services/api/userApi";
 import {
   pushNotification,
   notifications,
   NotificationType,
 } from "@/composables/notification";
+import { useUserStore } from "@/store/user";
 
 const passwordVisible = ref(false);
 
@@ -63,10 +65,12 @@ const form = ref<LoginData>({
   ...defaultState,
 });
 
+const userStore = useUserStore();
+
 const rules = computed(() => {
   const rules: any = {
     identifier: { required, email },
-    password: { required, minLength: minLength(8) },
+    password: { required, minLength: minLength(6) },
   };
   return rules;
 });
@@ -75,13 +79,29 @@ const $v = useVuelidate(rules, form);
 
 const submit = () => {
   if (checkValidation($v.value)) {
-    pushNotification({
-      text: "Invalid identifier or password",
-      type: NotificationType.Failed,
-      key: `key${notifications.value.length}`,
-    });
     return;
   }
+  loginUser(form.value)
+    .then(({ data }) => {
+      if (data) {
+        if (data.jwt) {
+          userStore.setTokens({ accessToken: data.jwt });
+          userStore.login(data.user);
+        }
+        pushNotification({
+          text: "Login sussessful",
+          type: NotificationType.Success,
+          key: `key${notifications.value.length}`,
+        });
+      }
+    })
+    .catch((error) => {
+      pushNotification({
+        text: "Invalid identifier or password",
+        type: NotificationType.Failed,
+        key: `key${notifications.value.length}`,
+      });
+    });
 };
 </script>
 
