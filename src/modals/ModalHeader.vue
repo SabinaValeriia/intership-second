@@ -28,9 +28,6 @@ import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import { useVuelidate } from "@vuelidate/core";
 import { useUserStore } from "@/store/user";
 import router from "@/router/routes";
-const closePopup = () => {
-  openModal(EnumModalKeys.ModalHeader);
-};
 const userStore = useUserStore();
 const logOut = () => {
   userStore.clear();

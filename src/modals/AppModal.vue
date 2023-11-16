@@ -1,24 +1,27 @@
 <template lang="pug">
 teleport(to="body")
   .modal
-    .modal--backdrop(@click="close")
+    .modal--backdrop(@click="close", :class="{ hide: hide }")
     transition(name="block", appear)
-      .modal--container(v-if="isOpen(currentKey)", :class="currentKey")
+      .modal--container(v-if="isOpen(currentKey)", :class="{ hide: hide }")
         .modal--wrapper
           .modal--close(@click="close") Close
           slot(name="content")
 </template>
 
 <script lang="ts" setup>
-import { onBeforeUnmount, defineEmits } from "vue";
+import { onBeforeUnmount, defineEmits, ref } from "vue";
 
 import useDisableScroll from "@/features/useDisableScroll";
 import { isOpen, currentKey, openModal } from "@/composables/modalActions";
-
+const hide = ref(false);
 const close = () => {
+  hide.value = true;
   if (isOpen(currentKey.value)) {
-    openModal(currentKey.value);
-    emit("onClose");
+    setTimeout(() => {
+      openModal(currentKey.value);
+      emit("onClose");
+    }, 200);
   }
 };
 const emit = defineEmits(["onClose"]);
@@ -66,7 +69,7 @@ onBeforeUnmount(() => {
 
     width: 100%;
 
-    border-radius: 25px;
+    border-radius: 25px 25px 0 0;
     background-color: var(--accent_hover);
   }
 
@@ -109,15 +112,6 @@ onBeforeUnmount(() => {
       }
     }
   }
-  // .fade-enter-active,
-  // .fade-leave-active {
-  //   transition: opacity 0.5s ease;
-  // }
-
-  // .fade-enter-from,
-  // .fade-leave-to {
-  //   opacity: 0;
-  // }
   .block {
     &-enter {
       &-from {
@@ -145,6 +139,10 @@ onBeforeUnmount(() => {
         transition: all 0.5s ease;
       }
     }
+  }
+  .hide {
+    transform: translateY(100%);
+    transition: all 0.5s ease;
   }
 }
 </style>
