@@ -19,6 +19,19 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
   },
+  {
+    path: "/",
+    name: "Main",
+    component: () => import("../layouts/MainLayout.vue"),
+    redirect: "/projects",
+    children: [
+      {
+        path: "projects",
+        name: "projects",
+        component: () => import("../views/ProjectsView.vue"),
+      },
+    ],
+  },
 ];
 
 const router = createRouter({

@@ -5,6 +5,7 @@
     mask-size: contain;
     mask-repeat: no-repeat;
     position: absolute;
+    cursor: pointer;
     &:before {
         content: "";
         display: block;
@@ -20,6 +21,33 @@
     }
     &.close {
         mask-image: url("../assets/icons/close.svg");
+    }
+    &.search {
+        mask-image: url("@/assets/icons/search.svg");
+    }
+    &.home {
+        mask-image: url("@/assets/icons/home.svg");
+    }
+    &.projects {
+        mask-image: url("@/assets/icons/projects.svg");
+    }
+    &.tasks {
+        mask-image: url("@/assets/icons/tasks.svg");
+    }
+    &.user {
+        mask-image: url("@/assets/icons/user.svg");
+    }
+    &.info {
+        mask-image: url("@/assets/icons/info_2.svg");
+    }
+    &.setting {
+        mask-image: url("@/assets/icons/setting.svg");
+    }
+    &.logout {
+        mask-image: url("@/assets/icons/logout.svg");
+    }
+    &.arrow {
+        mask-image: url("@/assets/icons/arrow.svg");
     }
     @include media_mobile {
         width: 16px;

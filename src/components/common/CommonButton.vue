@@ -46,8 +46,18 @@ button {
     &:hover {
       background: var(--primary_hover);
     }
-    &.desabled {
+    &.disabled {
       background: var(--primary_disable);
+    }
+  }
+  &.btn-secondary {
+    background: var(--accent, #5418c3);
+    border: none;
+    &:hover {
+      background: var(--accent_hover, #3d1c7b);
+    }
+    &.disabled {
+      background: var(--accent_disable, #786c8e);
     }
   }
 }

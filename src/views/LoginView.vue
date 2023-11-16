@@ -48,6 +48,7 @@ import {
   NotificationType,
 } from "@/composables/notification";
 import { useUserStore } from "@/store/user";
+import router from "@/router/routes";
 
 const passwordVisible = ref(false);
 
@@ -93,6 +94,7 @@ const submit = () => {
           type: NotificationType.Success,
           key: `key${notifications.value.length}`,
         });
+        router.push("/projects");
       }
     })
     .catch((error) => {

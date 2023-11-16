@@ -21,6 +21,12 @@ export const useUserStore = defineStore("user", () => {
     accessToken.value = payload.accessToken;
   };
 
+  const clear = () => {
+    data.value = {};
+    user.value = { ...defaultUser };
+    accessToken.value = "";
+  };
+
   return {
     data,
     user,
@@ -28,5 +34,6 @@ export const useUserStore = defineStore("user", () => {
     accessToken,
     setTokens,
     login,
+    clear,
   };
 });
