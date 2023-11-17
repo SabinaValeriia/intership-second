@@ -49,6 +49,20 @@
     &.arrow {
         mask-image: url("@/assets/icons/arrow.svg");
     }
+    &.logo_header {
+        background: url("@/assets/icons/logo_header.svg");
+        width: 55px;
+        height: 72px;
+        &::before {
+            background: transparent;
+        }
+    }
+    &.info_second {
+        mask-image: url("@/assets/icons/info_2.svg");
+        &::before {
+            background-color: var(--text);
+        }
+    }
     @include media_mobile {
         width: 16px;
         height: 16px;

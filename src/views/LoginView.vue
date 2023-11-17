@@ -94,7 +94,7 @@ const submit = () => {
           type: NotificationType.Success,
           key: `key${notifications.value.length}`,
         });
-        router.push("/projects");
+        router.push("/dashboard/projects");
       }
     })
     .catch((error) => {

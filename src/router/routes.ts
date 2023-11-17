@@ -20,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
-    path: "/",
+    path: "/dashboard",
     name: "Main",
     component: () => import("../layouts/MainLayout.vue"),
     redirect: "/projects",

@@ -1,7 +1,8 @@
 <template lang="pug">
 .header 
   .header-block__left 
-    img(:src="require(`@/assets/icons/logo_header.svg`)")
+    a
+      i.icon.logo_header
     ul
       li Your work
       li Projects
@@ -10,17 +11,25 @@
   .header-block__right
     .form-group
       .form-icon
-        input(placeholder="placeholder")
+        input(placeholder="Placeholder")
         i.icon.search
-    img.tablet(:src="require(`@/assets/icons/search.svg`)")
-    img.header_icon(:src="require(`@/assets/icons/info_2.svg`)")
-    img.header_icon(:src="require(`@/assets/icons/setting.svg`)")
-    img.avatar(:src="require(`@/assets/icons/avatar.svg`)")
+    i.icon.search.tablet
+    i.icon.info_second.header_icon
+    i.icon.setting.header_icon
+    img.avatar(
+      v-if="userStore.user.image",
+      :src="userStore.user.image",
+      :alt="'avatar'"
+    )
+    .header__avatar.avatar(v-else) {{ logoName }}
   .header__mobile
     img.avatar(
-      :src="require(`@/assets/icons/avatar.svg`)",
+      v-if="userStore.user.image",
+      :src="userStore.user.image",
+      :alt="'avatar'",
       @click="openModal(EnumModalKeys.ModalHeader)"
     )
+    .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
     button Create issue
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
 </template>
@@ -30,6 +39,19 @@ import CommonButton from "./common/CommonButton.vue";
 import { isOpen, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
+import { computed } from "vue";
+import { useUserStore } from "../store/user";
+const userStore = useUserStore();
+const fullName = computed(() => {
+  const username = userStore.user.username || "";
+  return username;
+});
+
+const logoName = computed(() => {
+  const fullNameValue = fullName.value;
+  console.log(fullNameValue);
+  return fullNameValue ? fullNameValue.charAt(0).toUpperCase() : 0;
+});
 </script>
 
 <style scoped lang="scss">
@@ -40,6 +62,21 @@ import ModalHeader from "@/modals/ModalHeader.vue";
   display: flex;
   align-items: center;
   justify-content: space-between;
+  &__avatar {
+    height: 40px;
+    width: 40px;
+    border: 2px solid var(--secondary);
+    background: var(--background);
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @include font(16px, 600, 20px, var(--text));
+    &:hover {
+      outline: 8px solid var(--secondary);
+      border: none;
+    }
+  }
   @include media_tablet {
     padding: 4px 20px;
   }
@@ -81,8 +118,11 @@ import ModalHeader from "@/modals/ModalHeader.vue";
       @include media_mobile {
         display: none;
       }
-      img {
-        margin-right: 56px;
+      a {
+        margin-right: 46px;
+        width: 55px;
+        height: 72px;
+        cursor: pointer;
         @include media_tablet {
           margin-right: 26px;
         }
@@ -97,10 +137,11 @@ import ModalHeader from "@/modals/ModalHeader.vue";
           @include font(16px, 500, 22px, var(--text));
           display: flex;
           align-items: center;
-          margin-right: 20px;
+          margin-right: 12px;
+          padding: 6px 8px;
           cursor: pointer;
           @include media_tablet {
-            margin-right: 16px;
+            margin-right: 10px;
           }
           &::after {
             content: "";
@@ -114,7 +155,8 @@ import ModalHeader from "@/modals/ModalHeader.vue";
           &:hover {
             border-radius: 4px;
             background: var(--primary-light);
-            padding: 6px 8px;
+            margin-right: 18px;
+            margin-left: -9px;
           }
           &:active {
             text-decoration: underline;
@@ -127,6 +169,7 @@ import ModalHeader from "@/modals/ModalHeader.vue";
         font-size: 14px;
         line-height: 20px;
         margin-left: 10px;
+        width: 77px;
       }
     }
     &__right {
@@ -142,9 +185,13 @@ import ModalHeader from "@/modals/ModalHeader.vue";
         border: 1px solid var(--accent);
         margin-right: 30px;
         min-width: 280px;
+        &::placeholder {
+          color: var(--text);
+        }
       }
-      @include media_tablet {
-        .form-group {
+      .form-group {
+        margin-bottom: 0;
+        @include media_tablet {
           display: none;
         }
       }
@@ -158,6 +205,8 @@ import ModalHeader from "@/modals/ModalHeader.vue";
           width: 26px;
           height: 26px;
           margin-right: 20px;
+          left: 0;
+          position: relative;
         }
       }
       .header_icon {
@@ -165,19 +214,22 @@ import ModalHeader from "@/modals/ModalHeader.vue";
         height: 32px;
         margin-right: 16px;
         cursor: pointer;
+        position: relative;
+        left: 0;
         @include media_tablet {
           margin-right: 12px;
         }
       }
       .avatar {
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
         border-radius: 25px;
-        outline: 2px solid var(--secondary);
+        border: 2px solid var(--secondary);
         margin-left: 14px;
         cursor: pointer;
         &:hover {
           outline: 8px solid var(--secondary);
+          border: none;
         }
 
         @include media_tablet {

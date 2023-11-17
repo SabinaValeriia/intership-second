@@ -2,13 +2,18 @@
 app-modal
   template(v-slot:content)
     .modal-header
-      img(:src="require(`@/assets/icons/logo_modal.svg`)")
+      img(:src="require(`@/assets/icons/logo_modal.svg`)", alt="header_logo")
     .modal-body
       .modal-body__right 
-        h2 Yurii Kovalenko
-        p Developer
-        h3 yurii.kovalenko@gmail.com
-      img(:src="require(`@/assets/icons/avatar.svg`)")
+        h2 {{ fullName }}
+        p {{ userStore.user.department || "" }}
+        h3 {{ userStore.user.email || "" }}
+      img.profile--avatar--icon(
+        v-if="userStore.user.image",
+        :src="userStore.user.image",
+        :alt="'avatar'"
+      )
+      .modal__avatar(v-else) {{ logoName }}
     .modal-footer
       ul
         li 
@@ -28,11 +33,22 @@ import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import { useVuelidate } from "@vuelidate/core";
 import { useUserStore } from "@/store/user";
 import router from "@/router/routes";
+import { computed } from "vue";
 const userStore = useUserStore();
 const logOut = () => {
   userStore.clear();
   router.push("/login");
 };
+const fullName = computed(() => {
+  const username = userStore.user.username || "";
+  return username;
+});
+
+const logoName = computed(() => {
+  const fullNameValue = fullName.value;
+  console.log(fullNameValue);
+  return fullNameValue ? fullNameValue.charAt(0).toUpperCase() : 0;
+});
 </script>
 
 <style lang="scss" scoped>
@@ -67,6 +83,21 @@ const logOut = () => {
     height: 60px;
     border-radius: 32px;
     margin: 0;
+  }
+  .modal__avatar {
+    height: 60px;
+    width: 60px;
+    border: 2px solid var(--secondary);
+    background: var(--background);
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @include font(16px, 600, 20px, var(--text));
+    &:hover {
+      outline: 8px solid var(--secondary);
+      border: none;
+    }
   }
 }
 .modal-footer {

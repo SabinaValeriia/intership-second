@@ -29,6 +29,17 @@
     display: flex;
     align-items: center;
     flex-direction: column;
+    &:hover {
+      color: var(--background);
+
+      i::before {
+        background-color: var(--background);
+      }
+
+      p {
+        color: var(--background);
+      }
+    }
     i {
       width: 26px;
       height: 26px;
@@ -36,19 +47,11 @@
       &::before {
         background-color: var(--primary);
       }
-      &:hover {
-        &::before {
-          background-color: var(--background);
-        }
-      }
     }
     p {
       margin: 30px 0 0 0;
       @include font(12px, 500, 14px, var(--primary));
       cursor: pointer;
-      &:hover {
-        color: var(--background);
-      }
     }
   }
 }

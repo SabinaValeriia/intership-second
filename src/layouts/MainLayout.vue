@@ -1,7 +1,6 @@
 <template lang="pug">
 header-component
-transition(name="fade", mode="out-in")
-  router-view
+router-view
 footer-component.footer
 </template>
 
