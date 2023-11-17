@@ -46,7 +46,6 @@ const fullName = computed(() => {
 
 const logoName = computed(() => {
   const fullNameValue = fullName.value;
-  console.log(fullNameValue);
   return fullNameValue ? fullNameValue.charAt(0).toUpperCase() : 0;
 });
 </script>
@@ -94,6 +93,7 @@ const logoName = computed(() => {
     align-items: center;
     justify-content: center;
     @include font(16px, 600, 20px, var(--text));
+    box-sizing: border-box;
     &:hover {
       outline: 8px solid var(--secondary);
       border: none;

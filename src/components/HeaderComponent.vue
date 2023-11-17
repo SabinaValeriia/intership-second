@@ -4,9 +4,13 @@
     a
       i.icon.logo_header
     ul
-      li Your work
-      li Projects
-      li Teams
+      li 
+        a Your work
+      li 
+        a Projects
+      li 
+        a Teams
+        span
     common-button.btn-secondary Create
   .header-block__right
     .form-group
@@ -49,7 +53,6 @@ const fullName = computed(() => {
 
 const logoName = computed(() => {
   const fullNameValue = fullName.value;
-  console.log(fullNameValue);
   return fullNameValue ? fullNameValue.charAt(0).toUpperCase() : 0;
 });
 </script>
@@ -72,6 +75,7 @@ const logoName = computed(() => {
     align-items: center;
     justify-content: center;
     @include font(16px, 600, 20px, var(--text));
+    box-sizing: border-box;
     &:hover {
       outline: 8px solid var(--secondary);
       border: none;
@@ -134,33 +138,40 @@ const logoName = computed(() => {
         padding: 0;
         li {
           text-wrap: nowrap;
-          @include font(16px, 500, 22px, var(--text));
           display: flex;
           align-items: center;
           margin-right: 12px;
           padding: 6px 8px;
           cursor: pointer;
+          a {
+            @include font(16px, 500, 22px, var(--text));
+            width: 100%;
+            height: auto;
+            margin-right: 0;
+            text-decoration: none;
+            &::after {
+              content: "";
+              display: inline-block;
+              width: 12px;
+              height: 6px;
+              background: url("@/assets/icons/arrow.svg") no-repeat;
+              background-size: contain;
+              margin-left: 6px;
+            }
+            &:active {
+              text-underline-offset: 28px;
+              text-decoration: underline;
+              text-decoration-color: var(--text);
+              text-decoration-thickness: 2px;
+            }
+          }
+
           @include media_tablet {
             margin-right: 10px;
-          }
-          &::after {
-            content: "";
-            display: inline-block;
-            width: 12px;
-            height: 6px;
-            background: url("@/assets/icons/arrow.svg") no-repeat;
-            background-size: contain;
-            margin-left: 6px;
           }
           &:hover {
             border-radius: 4px;
             background: var(--primary-light);
-            margin-right: 18px;
-            margin-left: -9px;
-          }
-          &:active {
-            text-decoration: underline;
-            text-underline-offset: 25px;
           }
         }
       }
@@ -227,6 +238,7 @@ const logoName = computed(() => {
         border: 2px solid var(--secondary);
         margin-left: 14px;
         cursor: pointer;
+        box-sizing: border-box;
         &:hover {
           outline: 8px solid var(--secondary);
           border: none;

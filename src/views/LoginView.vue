@@ -90,7 +90,7 @@ const submit = () => {
           userStore.login(data.user);
         }
         pushNotification({
-          text: "Login sussessful",
+          text: "Login successful",
           type: NotificationType.Success,
           key: `key${notifications.value.length}`,
         });
