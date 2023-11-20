@@ -94,10 +94,6 @@ const logoName = computed(() => {
     justify-content: center;
     @include font(16px, 600, 20px, var(--text));
     box-sizing: border-box;
-    &:hover {
-      outline: 8px solid var(--secondary);
-      border: none;
-    }
   }
 }
 .modal-footer {

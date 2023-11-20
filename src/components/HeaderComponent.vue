@@ -6,8 +6,8 @@
     ul
       li 
         a Your work
-      li 
-        a Projects
+      li
+        router-link(to="projects", active-class="active") Projects
       li 
         a Teams
         span
@@ -65,9 +65,11 @@ const logoName = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 80px;
+  box-sizing: border-box;
   &__avatar {
-    height: 40px;
-    width: 40px;
+    height: 44px;
+    width: 44px;
     border: 2px solid var(--secondary);
     background: var(--background);
     border-radius: 25px;
@@ -143,12 +145,17 @@ const logoName = computed(() => {
           margin-right: 12px;
           padding: 6px 8px;
           cursor: pointer;
+          height: 34px;
+          box-sizing: border-box;
+
           a {
             @include font(16px, 500, 22px, var(--text));
             width: 100%;
             height: auto;
             margin-right: 0;
             text-decoration: none;
+            display: flex;
+            align-items: center;
             &::after {
               content: "";
               display: inline-block;
@@ -158,11 +165,9 @@ const logoName = computed(() => {
               background-size: contain;
               margin-left: 6px;
             }
-            &:active {
-              text-underline-offset: 28px;
-              text-decoration: underline;
-              text-decoration-color: var(--text);
-              text-decoration-thickness: 2px;
+            &.active {
+              padding: 25px 8px;
+              border-bottom: 2px solid black;
             }
           }
 
@@ -232,8 +237,8 @@ const logoName = computed(() => {
         }
       }
       .avatar {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         border-radius: 25px;
         border: 2px solid var(--secondary);
         margin-left: 14px;

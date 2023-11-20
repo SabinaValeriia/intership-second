@@ -49,7 +49,11 @@ router.beforeEach((to, from, next) => {
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (isAuthenticated) {
-      next();
+      if (to.path === "/login") {
+        next("/dashboard");
+      } else {
+        next();
+      }
     } else {
       next("/login");
     }
