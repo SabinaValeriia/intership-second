@@ -1,3 +1,4 @@
+import { useUserStore } from "@/store/user";
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
 const routes: Array<RouteRecordRaw> = [
@@ -19,11 +20,46 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
   },
+  {
+    path: "/dashboard",
+    name: "Main",
+    component: () => import("../layouts/MainLayout.vue"),
+    redirect: "/dashboard/projects",
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "projects",
+        name: "projects",
+        component: () => import("../views/ProjectsView.vue"),
+      },
+    ],
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore();
+  const isAuthenticated = userStore.accessToken;
+
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (isAuthenticated) {
+      if (to.path === "/login") {
+        next("/dashboard");
+      } else {
+        next();
+      }
+    } else {
+      next("/login");
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

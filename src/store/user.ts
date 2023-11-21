@@ -6,27 +6,40 @@ export const defaultUser = {
   username: "",
   email: "",
 };
-export const useUserStore = defineStore("user", () => {
-  const data = ref({});
-  const user = ref({ ...defaultUser } as UserInterface);
-  const accessToken = ref("");
+export const useUserStore = defineStore(
+  "user",
+  () => {
+    const data = ref({});
+    const user = ref({ ...defaultUser } as UserInterface);
+    const accessToken = ref("");
 
-  const isAuthorized = computed(() => !!user.value.id && !!accessToken.value);
+    const isAuthorized = computed(() => !!user.value.id && !!accessToken.value);
 
-  const login = (data: UserInterface) => {
-    user.value = data;
-  };
+    const login = (data: UserInterface) => {
+      user.value = data;
+    };
 
-  const setTokens = (payload: { accessToken: string }) => {
-    accessToken.value = payload.accessToken;
-  };
+    const setTokens = (payload: { accessToken: string }) => {
+      accessToken.value = payload.accessToken;
+    };
 
-  return {
-    data,
-    user,
-    isAuthorized,
-    accessToken,
-    setTokens,
-    login,
-  };
-});
+    const clear = () => {
+      data.value = {};
+      user.value = { ...defaultUser };
+      accessToken.value = "";
+    };
+
+    return {
+      data,
+      user,
+      isAuthorized,
+      accessToken,
+      setTokens,
+      login,
+      clear,
+    };
+  },
+  {
+    persist: true,
+  }
+);

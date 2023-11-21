@@ -48,6 +48,7 @@ import {
   NotificationType,
 } from "@/composables/notification";
 import { useUserStore } from "@/store/user";
+import router from "@/router/routes";
 
 const passwordVisible = ref(false);
 
@@ -89,10 +90,11 @@ const submit = () => {
           userStore.login(data.user);
         }
         pushNotification({
-          text: "Login sussessful",
+          text: "Login successful",
           type: NotificationType.Success,
           key: `key${notifications.value.length}`,
         });
+        router.push("/dashboard/projects");
       }
     })
     .catch((error) => {

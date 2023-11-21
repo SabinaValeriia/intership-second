@@ -26,6 +26,7 @@
         height: 48px;
         width: 100%;
         box-sizing: border-box;
+        cursor: pointer;
         @include font(14px, 400, 20px, var(--text));
         @include media_mobile {
             padding: 12px;
