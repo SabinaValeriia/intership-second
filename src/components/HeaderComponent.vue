@@ -67,6 +67,9 @@ const logoName = computed(() => {
   justify-content: space-between;
   height: 80px;
   box-sizing: border-box;
+  @include media_mobile {
+    height: 56px;
+  }
   &__avatar {
     height: 44px;
     width: 44px;
@@ -166,7 +169,7 @@ const logoName = computed(() => {
               margin-left: 6px;
             }
             &.active {
-              padding: 25px 8px;
+              padding: 25px 0;
               border-bottom: 2px solid black;
             }
           }
