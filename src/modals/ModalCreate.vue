@@ -25,7 +25,7 @@ app-modal
               placeholder="TestP",
               type="text",
               @blur="$v.key.$touch()",
-              v-model="key"
+              v-model="form.key"
             )
             span.error-message(v-if="$v.key.required.$invalid") This field is required.
           .form-group(:class="getValidationClass($v, 'image')")
@@ -70,7 +70,7 @@ app-modal
           .form-group
             .position
               label.tag Tags:
-              .tags(v-for="(tag, index) in form.tags", :key="index") {{ tag }}
+              .tags(v-for="(tag, index) in form.tags", :key="index") {{ tag.tag }}
                 i.icon.close(@click="deleteTag(tag)")
               common-button.btn_icon.btn_primary(@click="add", v-if="showAdd") Add
             dropdown-component.tag(
@@ -87,7 +87,7 @@ app-modal
                 img(
                   v-if="form.lead.logo",
                   :src="JSON.parse(form.lead.logo.name)",
-                  :alt="logo_name",
+                  alt="logo",
                   :class="{ show: showLead }"
                 )
                 .grey-circle(v-else, :class="{ show: showLead }")
@@ -118,7 +118,6 @@ app-modal
                   @click="membersShow = !membersShow",
                   v-model="form.members"
                 )
-                p {{ form.members }}
                 i.icon.arrow(
                   :class="({ active: membersShow }, { show: showMembers })"
                 )
@@ -135,21 +134,19 @@ app-modal
       common-button.save.btn-secondary(@click="save") Create
 </template>
 <script setup lang="ts">
-import { openModal, currentKey, isOpen } from "@/composables/modalActions";
 import DropdownComponent from "@/components/common/DropdownComponent.vue";
 import AppModal from "./AppModal.vue";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import { useVuelidate } from "@vuelidate/core";
-import { useUserStore } from "@/store/user";
 import CommonButton from "@/components/common/CommonButton.vue";
-import router from "@/router/routes";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { ImageInterface } from "@/types/ImageInterface";
 import { showTags } from "@/services/api/tagsApi";
-import { registerUser, showUsers } from "@/services/api/userApi";
+import { showUsers } from "@/services/api/userApi";
 import { required } from "@vuelidate/validators";
 import { getValidationClass, checkValidation } from "@/types/authValidation";
-import { projectPost, showProjects } from "@/services/api/projectApi";
+import { projectPost } from "@/services/api/projectApi";
+
 const userImage = ref<ImageInterface[]>([]);
 const tagsShow = ref(false);
 const showAdd = ref(true);
@@ -158,7 +155,6 @@ const membersShow = ref(false);
 const tagNames = ref([]);
 const members = ref([]);
 const tags = ref([]);
-const userLogos = ref([]);
 const leadNames = ref([]);
 const membersNames = ref([]);
 const showTitle = ref(false);
@@ -167,19 +163,7 @@ const showLogo = ref(false);
 const showDesc = ref(false);
 const showLead = ref(false);
 const showMembers = ref(false);
-const key = computed(() => {
-  if (form.value.key) {
-    return form.value.key;
-  } else if (form.value.title) {
-    const words = form.value.title.split(" ");
-    return words
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase();
-  } else {
-    return "";
-  }
-});
+
 const selectedItem = (tag: string) => {
   if (leadShow.value) {
     form.value.lead = tag;
@@ -190,6 +174,7 @@ const selectedItem = (tag: string) => {
       showAdd.value = false;
       tagsShow.value = false;
     }
+    tags.value.push(tag.id.toString());
   } else {
     const leadName = tag.leadName;
     form.value.members = form.value.members.includes(leadName)
@@ -272,8 +257,6 @@ const form = ref<ProjectData>({
   ...defaultState,
 });
 
-const userStore = useUserStore();
-
 const rules = computed(() => {
   const rules: any = {
     title: { required },
@@ -290,6 +273,18 @@ const rules = computed(() => {
 
 const $v = useVuelidate(rules, form);
 
+const updateFormKey = () => {
+  if (form.value.title) {
+    const words = form.value.title.split(" ");
+    form.value.key = words
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
+  }
+};
+
+watch(() => form.value.title, updateFormKey);
+
 const save = () => {
   if (checkValidation($v.value)) {
     return;
@@ -302,8 +297,9 @@ const save = () => {
       logo: {
         name: form.value.image,
       },
-      lead: form.value.lead.id,
+      lead: form.value.lead.id.toString(),
       members: Array.from(members.value),
+      tags: Array.from(tags.value),
     },
   };
   projectPost(dataProject).then(({ data }) => {
@@ -317,9 +313,11 @@ const close = () => {
 
 onMounted(() => {
   showTags().then(({ data }) => {
-    tagNames.value = data.data.map(
-      (item: { attributes: { name: string } }) => item.attributes.name
-    );
+    tagNames.value = data.data.map((item) => ({
+      tag: item.attributes.name,
+      id: item.id,
+    }));
+    console.log(data);
   });
   showUsers().then(({ data }) => {
     leadNames.value = data.map((item) => ({

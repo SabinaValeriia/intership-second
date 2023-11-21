@@ -18,12 +18,12 @@
         )
         .grey-circle(v-else)
         p {{ item.leadName }}
-    ul(v-else)
+    ul(v-else) 
       li(
         v-for="(item, index) in filteredItems",
         :key="index",
         @click="selectItem(item)"
-      ) {{ item }}
+      ) {{ item.tag }}
 </template>
 
 <script setup lang="ts">
@@ -85,9 +85,15 @@ const selectItem = (item: string) => {
   &.lead {
     input {
       width: 240px;
+      @include media_mobile {
+        width: 100%;
+      }
     }
     ul {
       width: 238px;
+      @include media_mobile {
+        width: calc(100% - 2px);
+      }
     }
   }
   &--section {
