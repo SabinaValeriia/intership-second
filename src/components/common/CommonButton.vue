@@ -51,13 +51,44 @@ button {
     }
   }
   &.btn-secondary {
-    background: var(--accent, #5418c3);
+    background: var(--accent);
     border: none;
     &:hover {
-      background: var(--accent_hover, #3d1c7b);
+      background: var(--accent_hover);
     }
     &.disabled {
-      background: var(--accent_disable, #786c8e);
+      background: var(--accent_disable);
+    }
+  }
+  &.btn-secondary-line {
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    &:hover {
+      border-color: var(--accent_hover);
+    }
+    &.disabled {
+      border-color: var(--accent_disable);
+    }
+  }
+
+  &.btn_icon {
+    &.disabled {
+      background: var(--primary_disable);
+    }
+    &::before {
+      content: "";
+      display: block;
+      width: 20px;
+      height: 20px;
+      mask-position: center;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      margin-right: 8px;
+      @include media_mobile {
+        width: 16px;
+        height: 16px;
+      }
     }
   }
 }

@@ -1,11 +1,16 @@
 <template lang="pug">
 teleport(to="body")
-  .modal
-    .modal--backdrop(@click="close", :class="{ hide: hide }")
+  .modal(:class="{ create: create }")
+    .modal--backdrop(@click="close", :class="{ backdrop: hide }")
     transition(name="block", appear)
-      .modal--container(v-if="isOpen(currentKey)", :class="{ hide: hide }")
+      .modal--container.create(
+        v-if="isOpen(currentKey)",
+        :class="{ hide: hide }"
+      )
         .modal--wrapper
-          .modal--close(@click="close") Close
+          .modal--close(v-if="!create", @click="close") Close
+          .modal--close(v-else, @click="close") 
+            i.icon.close.mobile
           slot(name="content")
 </template>
 
@@ -15,6 +20,12 @@ import { onBeforeUnmount, defineEmits, ref } from "vue";
 import useDisableScroll from "@/features/useDisableScroll";
 import { isOpen, currentKey, openModal } from "@/composables/modalActions";
 const hide = ref(false);
+const props = defineProps({
+  create: {
+    type: Boolean,
+    required: false,
+  },
+});
 const close = () => {
   hide.value = true;
   if (isOpen(currentKey.value)) {
@@ -50,6 +61,27 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: center;
+  &.create {
+    .modal--container {
+      position: relative;
+      height: auto;
+      overflow: initial;
+      padding: 24px;
+      z-index: 11;
+
+      width: 100%;
+      max-width: 660px;
+      box-sizing: border-box;
+      border-radius: 16px;
+      background-color: #ffffff;
+      @include media_mobile {
+        height: calc(100% - 40px);
+        margin-top: 40px;
+        border-radius: 25px 25px 0 0;
+        padding: 12px;
+      }
+    }
+  }
 
   &--backdrop {
     width: 100%;
@@ -104,11 +136,15 @@ onBeforeUnmount(() => {
     display: block;
     @include font(14px, 500, 20px, var(--background));
 
-    .icon {
-      &-close {
-        mask-size: contain;
-        mask-image: url("@/assets/icons/close.svg");
-        -webkit-mask-size: contain;
+    .icon.close {
+      width: 18px;
+      height: 18px;
+      top: -3px;
+      right: -5px;
+      @include media_mobile {
+        &.mobile {
+          display: none;
+        }
       }
     }
   }
@@ -142,6 +178,10 @@ onBeforeUnmount(() => {
   }
   .hide {
     transform: translateY(100%);
+    transition: all 0.5s ease;
+  }
+  .backdrop {
+    opacity: 0;
     transition: all 0.5s ease;
   }
 }

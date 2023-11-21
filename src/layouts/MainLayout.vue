@@ -10,16 +10,6 @@ import FooterComponent from "@/components/FooterComponent.vue";
 </script>
 
 <style lang="scss" scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.1s;
-}
-
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-
 .footer {
   display: none;
   @include media_mobile {

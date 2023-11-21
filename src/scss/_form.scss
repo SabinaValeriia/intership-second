@@ -41,10 +41,47 @@
         &:focus {
             border-color: var(--primary_hover);
         }
+        &:active {
+            border-color: var(--primary_hover);
+        }
 
         &.disabled {
             background: var(--background_hover);
             pointer-events: none;
+        }
+    }
+    textarea {
+        border: 1px solid var(--primary);
+        border-radius: 4px;
+        outline: none;
+        padding: 12px 16px;
+        color: var(--text);
+        min-height: 77px;
+        box-sizing: border-box;
+        resize: vertical;
+        cursor: pointer;
+        &.show {
+            display: none;
+        }
+        &::placeholder {
+            @include font(14px, 400, 20px, var(--placeholder));
+        }
+        &:hover {
+            border-color: var(--primary_hover);
+        }
+        &:focus {
+            border-color: var(--primary_hover);
+        }
+
+        &.disabled {
+            background: var(--background_hover);
+            pointer-events: none;
+        }
+        &.error {
+            border: 1px solid var(--error);
+        }
+        @include media_mobile {
+            min-height: 58px;
         }
     }
     .form-icon {
@@ -74,6 +111,12 @@
             @include media_mobile {
                 margin: 6px 0 0;
             }
+        }
+        .form-item {
+            border: 1px solid var(--error) !important;
+        }
+        textarea {
+            border: 1px solid var(--error) !important;
         }
     }
 }

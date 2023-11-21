@@ -11,7 +11,7 @@
       li 
         a Teams
         span
-    common-button.btn-secondary Create
+    common-button.btn-secondary(@click="openModal(EnumModalKeys.ModalCreate)") Create
   .header-block__right
     .form-group
       .form-icon
@@ -34,8 +34,13 @@
       @click="openModal(EnumModalKeys.ModalHeader)"
     )
     .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
-    button Create issue
+    button(@click="openModal(EnumModalKeys.ModalCreate)") Create issue
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
+modal-create(
+  v-if="isOpen(EnumModalKeys.ModalCreate)",
+  @close="close",
+  :create="true"
+)
 </template>
 
 <script lang="ts" setup>
@@ -43,6 +48,7 @@ import CommonButton from "./common/CommonButton.vue";
 import { isOpen, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
+import ModalCreate from "@/modals/ModalCreate.vue";
 import { computed } from "vue";
 import { useUserStore } from "../store/user";
 const userStore = useUserStore();
@@ -55,6 +61,11 @@ const logoName = computed(() => {
   const fullNameValue = fullName.value;
   return fullNameValue ? fullNameValue.charAt(0).toUpperCase() : 0;
 });
+
+const close = () => {
+  console.log("close");
+  openModal(EnumModalKeys.ModalCreate);
+};
 </script>
 
 <style scoped lang="scss">
