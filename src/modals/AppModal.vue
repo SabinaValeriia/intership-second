@@ -1,12 +1,9 @@
 <template lang="pug">
 teleport(to="body")
-  .modal(:class="{ create: create }")
+  .modal(:class="{ create }")
     .modal--backdrop(@click="close", :class="{ backdrop: hide }")
     transition(name="block", appear)
-      .modal--container.create(
-        v-if="isOpen(currentKey)",
-        :class="{ hide: hide }"
-      )
+      .modal--container.create(v-if="isOpen(currentKey)", :class="{ hide }")
         .modal--wrapper
           .modal--close(v-if="!create", @click="close") Close
           .modal--close(v-else, @click="close") 
@@ -19,13 +16,14 @@ import { onBeforeUnmount, defineEmits, ref } from "vue";
 
 import useDisableScroll from "@/features/useDisableScroll";
 import { isOpen, currentKey, openModal } from "@/composables/modalActions";
-const hide = ref(false);
 const props = defineProps({
   create: {
     type: Boolean,
     required: false,
   },
 });
+const emit = defineEmits(["onClose"]);
+const hide = ref(false);
 const close = () => {
   hide.value = true;
   if (isOpen(currentKey.value)) {
@@ -35,7 +33,6 @@ const close = () => {
     }, 200);
   }
 };
-const emit = defineEmits(["onClose"]);
 
 const keyPress = (event: KeyboardEvent) => {
   if (event && event.code === "Escape") {
@@ -50,7 +47,7 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .modal {
   width: 100%;
   height: 100%;
@@ -79,6 +76,37 @@ onBeforeUnmount(() => {
         margin-top: 40px;
         border-radius: 25px 25px 0 0;
         padding: 12px;
+      }
+    }
+    .modal-footer.create {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+      button {
+        width: 100px;
+        @include media_mobile {
+          width: fit-content;
+        }
+        &.cancel {
+          @include media_mobile {
+            position: absolute;
+            top: 12px;
+            left: 22px;
+            color: var(--notify_info);
+            padding: 0;
+            border: none;
+          }
+        }
+        &.save {
+          @include media_mobile {
+            position: absolute;
+            top: 12px;
+            right: 22px;
+            color: var(--text);
+            padding: 0;
+            background: none;
+          }
+        }
       }
     }
   }

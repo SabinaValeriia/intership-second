@@ -13,10 +13,11 @@
         span
     common-button.btn-secondary(@click="openModal(EnumModalKeys.ModalCreate)") Create
   .header-block__right
-    .form-group
-      .form-icon
-        input(placeholder="Placeholder")
-        i.icon.search
+    form
+      .form-group
+        .form-icon
+          input.header--input(placeholder="Placeholder")
+          i.icon.search
     i.icon.search.tablet
     i.icon.info_second.header_icon
     i.icon.setting.header_icon
@@ -63,7 +64,6 @@ const logoName = computed(() => {
 });
 
 const close = () => {
-  console.log("close");
   openModal(EnumModalKeys.ModalCreate);
 };
 </script>
@@ -209,12 +209,14 @@ const close = () => {
       @include media_mobile {
         display: none;
       }
-      input {
+      input.header--input {
         padding: 14px 16px 14px 48px;
         background: transparent;
         border: 1px solid var(--accent);
         margin-right: 30px;
         min-width: 280px;
+        box-sizing: border-box;
+        border-radius: 4px;
         &::placeholder {
           color: var(--text);
         }

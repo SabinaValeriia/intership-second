@@ -8,6 +8,6 @@ export const loginUser = (
   return axiosInstance.post("auth/local", payload);
 };
 
-export const showUsers = (): Promise<AxiosResponse> => {
+export const showUsers = (): Promise<AxiosResponse<ResUser>> => {
   return axiosInstance.get("users?populate=*");
 };

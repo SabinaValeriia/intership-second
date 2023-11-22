@@ -1,14 +1,13 @@
-import { AuthUserInterface, ResUser } from "@/types/userApiInterface";
 import { AxiosResponse } from "axios";
 import axiosInstance from ".";
+import { ProjectInterface, ResProject } from "@/types/projectApiInterface";
 
 export const projectPost = (
-  payload: any,
-  headers?: any
-): Promise<AxiosResponse<any>> => {
-  return axiosInstance.post("projects?populate=*", payload, headers);
+  payload: ProjectInterface
+): Promise<AxiosResponse<ResProject>> => {
+  return axiosInstance.post("projects?populate=*", payload);
 };
 
-export const showProjects = (): Promise<AxiosResponse> => {
+export const showProjects = (): Promise<AxiosResponse<ResProject>> => {
   return axiosInstance.get("projects?populate=*");
 };

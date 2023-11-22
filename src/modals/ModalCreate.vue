@@ -4,170 +4,225 @@ app-modal
     .modal-header
       h1 Create project
     .modal-body
-      .modal-body__block 
-        form(@submit.prevent="submit")
+      form.create
+        .modal-body__block 
           .form-group.title(:class="getValidationClass($v, 'title')")
             label(for="title") Title
-            i.icon.arrow.mobile(@click="showTitle = !showTitle")
+            i.icon.arrow.mobile(@click="toggleBlock('title')")
             input(
-              :class="{ show: showTitle }",
               placeholder="Test project",
               type="text",
               @blur="$v.title.$touch()",
-              v-model="form.title"
+              v-model="form.title",
+              :class="{ show: showInput === 'title' }"
             )
             span.error-message(v-if="$v.title.required.$invalid") This field is required.
           .form-group.key(:class="getValidationClass($v, 'key')")
             label(for="key") Key
-            i.icon.arrow.mobile(@click="showKey = !showKey")
+            i.icon.arrow.mobile(@click="toggleBlock('key')")
             input(
-              :class="{ show: showKey }",
               placeholder="TestP",
               type="text",
               @blur="$v.key.$touch()",
-              v-model="form.key"
+              v-model="form.key",
+              :class="{ show: showInput === 'key' }"
             )
             span.error-message(v-if="$v.key.required.$invalid") This field is required.
-          .form-group(:class="getValidationClass($v, 'image')")
-            label(for="logo") Image logo
-            i.icon.arrow.mobile(@click="showLogo = !showLogo")
-            .form-item(
-              v-if="!userImage.length",
-              :class="(getValidationClass($v, 'image'), { show: showLogo })"
+        .form-group(:class="getValidationClass($v, 'image')")
+          label(for="logo") Image logo
+          i.icon.arrow.mobile(@click="toggleBlock('image')")
+          .form-item(
+            v-if="!userImage.length",
+            :class="(getValidationClass($v, 'image'), { show: showLogo }, { show: showInput === 'image' })"
+          )
+            input.img(
+              type="file",
+              name="expense",
+              accept="image/*",
+              @change="onFileChange($event)"
             )
-              input(
-                type="file",
-                name="expense",
-                accept="image/*",
-                @change="onFileChange($event)"
+            label.label
+              .foto
+              | Upload a check image (click or drag)
+              br
+              | JPG, PNG, WEBP (up to 1 mb)
+          span.error-message(
+            v-if="$v.image.required.$invalid && !userImage.length"
+          ) This field is required.
+          .image--blocks(
+            v-if="userImage.length",
+            :class="{ show: showInput === 'image' }"
+          )
+            .image--block(v-for="(image, index) in userImage", :key="index")
+              img.image(
+                :src="JSON.parse(image.base64)",
+                :alt="`image_${index}`"
               )
-              label.label
-                | Upload a check image (click or drag)
-                br
-                | JPG, PNG, WEBP (up to 5 mb)
-            span.error-message(
-              v-if="$v.image.required.$invalid && !userImage.length"
-            ) This field is required.
-            .image--blocks(v-if="userImage.length")
-              .image--block(v-for="(image, index) in userImage", :key="index")
-                img.image(
-                  :src="JSON.parse(image.base64)",
-                  :alt="`image_${index}`"
-                )
-                button.close(@click="deleteImage(image)")
-                  i.icon.icon-close
-          .form-group.desc(:class="getValidationClass($v, 'description')")
-            label(for="description") Description
-            i.icon.arrow.mobile(@click="showDesc = !showDesc")
-            textarea(
-              rows="4",
-              cols="50",
-              placeholder="Enter description",
-              v-model="form.description",
-              :class="(getValidationClass($v, 'description'), { show: showDesc })"
+              button.close(@click="deleteImage(image)")
+                i.icon.icon-close
+        .form-group.desc(:class="getValidationClass($v, 'description')")
+          label(for="description") Description
+          i.icon.arrow.mobile(@click="toggleBlock('description')")
+          textarea(
+            rows="4",
+            cols="50",
+            placeholder="Enter description",
+            v-model="form.description",
+            :class="(getValidationClass($v, 'description'), { show: showInput === 'description' })"
+          )
+          span.error-message(v-if="$v.description.required.$invalid") This field is required.
+        .form-group
+          .position
+            label.tag Tags:
+            .tags(v-for="(tag, index) in form.tags", :key="index") {{ tag.tag }}
+              i.icon.close(@click="deleteTag(tag)")
+            common-button.btn_icon.btn_primary(
+              @click.prevent="add",
+              v-if="showAdd"
+            ) Add
+          dropdown-component.tag(
+            v-if="tagsShow",
+            :data="tagNames",
+            @selectedItem="selectedItem",
+            @closed="closed",
+            :tags="true"
+          )
+        .position.mobile
+          .position-dropdown
+            base-input(
+              :class="getValidationClass($v, 'lead')",
+              :type="`lead`",
+              :withIcon="true",
+              :value-input="form.lead.leadName",
+              @open="toggleInput('lead')"
             )
-            span.error-message(v-if="$v.description.required.$invalid") This field is required.
-          .form-group
-            .position
-              label.tag Tags:
-              .tags(v-for="(tag, index) in form.tags", :key="index") {{ tag.tag }}
-                i.icon.close(@click="deleteTag(tag)")
-              common-button.btn_icon.btn_primary(@click="add", v-if="showAdd") Add
-            dropdown-component.tag(
-              v-if="tagsShow",
-              :data="tagNames",
+              template(v-slot:errors, v-if="$v.lead.required.$invalid")
+                span This field is required.
+            dropdown-component.lead(
+              v-if="showDropdown === 'lead'",
+              :data="leadNames",
               @selectedItem="selectedItem",
-              @closed="closed"
+              @closed="closed",
+              :iconHere="true"
             )
-          .position.mobile
-            .form-group.lead(:class="getValidationClass($v, 'lead')")
-              label Lead
-              i.icon.arrow.mobile(@click="showLead = !showLead")
-              .form-icon
-                img(
-                  v-if="form.lead.logo",
-                  :src="JSON.parse(form.lead.logo.name)",
-                  alt="logo",
-                  :class="{ show: showLead }"
-                )
-                .grey-circle(v-else, :class="{ show: showLead }")
-                input(
-                  :class="{ show: showLead }",
-                  placeholder="Yurii Kovalenko",
-                  v-model="form.lead.leadName",
-                  @click="leadShow = !leadShow"
-                )
-                i.icon.arrow(
-                  :class="({ active: leadShow }, { show: showLead })"
-                )
-              dropdown-component.lead(
-                v-if="leadShow",
-                :data="leadNames",
-                @selectedItem="selectedItem",
-                @closed="closed",
-                :iconHere="true"
-              )
-              span.error-message(v-if="$v.lead.required.$invalid") This field is required.
-            .form-group.members(:class="getValidationClass($v, 'members')")
-              label Members
-              i.icon.arrow.mobile(@click="showMembers = !showMembers")
-              .form-icon
-                input(
-                  :class="{ show: showMembers }",
-                  placeholder="Yurii Kovalenko",
-                  @click="membersShow = !membersShow",
-                  v-model="form.members"
-                )
-                i.icon.arrow(
-                  :class="({ active: membersShow }, { show: showMembers })"
-                )
-              dropdown-component.lead(
-                v-if="membersShow",
-                :data="membersNames",
-                @selectedItem="selectedItem",
-                @closed="closed",
-                :iconHere="true"
-              )
-              span.error-message(v-if="$v.members.required.$invalid") This field is required.
-    .modal-footer
+          .position-dropdown
+            base-input(
+              :class="getValidationClass($v, 'members')",
+              :type="`members`",
+              :withIcon="true",
+              :value-input="form.members",
+              @open="toggleInput('members')"
+            )
+              template(v-slot:errors, v-if="$v.members.required.$invalid")
+                span This field is required.
+            dropdown-component.lead(
+              v-if="showDropdown === 'members'",
+              :data="membersNames",
+              @selectedItem="selectedItem",
+              @closed="closed",
+              :iconHere="true"
+            )
+    .modal-footer.create
       common-button.cancel.btn-secondary-line(@click="close") Cancel
       common-button.save.btn-secondary(@click="save") Create
 </template>
 <script setup lang="ts">
-import DropdownComponent from "@/components/common/DropdownComponent.vue";
+import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import AppModal from "./AppModal.vue";
-import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import { useVuelidate } from "@vuelidate/core";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { ImageInterface } from "@/types/ImageInterface";
-import { showTags } from "@/services/api/tagsApi";
 import { showUsers } from "@/services/api/userApi";
 import { required } from "@vuelidate/validators";
 import { getValidationClass, checkValidation } from "@/types/authValidation";
 import { projectPost } from "@/services/api/projectApi";
+import BaseInput from "@/components/common/BaseInput.vue";
+import {
+  NotificationType,
+  notifications,
+  pushNotification,
+} from "@/composables/notification";
+import { ProjectInterface } from "@/types/projectApiInterface";
+import { showTag, tagNames } from "@/composables/tagActions";
+
+interface ProjectData {
+  title: string;
+  key: string;
+  description: string;
+  lead: string;
+  members: string;
+  image: string;
+  tags: any;
+}
+
+const emit = defineEmits(["close"]);
 
 const userImage = ref<ImageInterface[]>([]);
 const tagsShow = ref(false);
 const showAdd = ref(true);
-const leadShow = ref(false);
-const membersShow = ref(false);
-const tagNames = ref([]);
 const members = ref([]);
 const tags = ref([]);
 const leadNames = ref([]);
 const membersNames = ref([]);
-const showTitle = ref(false);
-const showKey = ref(false);
-const showLogo = ref(false);
-const showDesc = ref(false);
-const showLead = ref(false);
-const showMembers = ref(false);
+const showDropdown = ref("");
+const showInput = ref("");
+
+const defaultState: ProjectData = {
+  title: "",
+  key: "",
+  description: "",
+  lead: "",
+  image: "",
+  members: "",
+  tags: [],
+};
+
+const form = ref<ProjectData>({
+  ...defaultState,
+});
+
+watch(
+  () => form.value.title,
+  (newTitle, oldTitle) => {
+    if (newTitle) {
+      const words = newTitle.split(" ");
+      form.value.key = words
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase();
+    }
+  }
+);
+
+const rules = computed(() => {
+  const rules: any = {
+    title: { required },
+    key: { required },
+    description: { required },
+    lead: { required },
+    image: {
+      required,
+    },
+    members: { required },
+  };
+  return rules;
+});
+
+const $v = useVuelidate(rules, form);
+
+const toggleInput = (inputType: string) => {
+  showDropdown.value = showDropdown.value === inputType ? "" : inputType;
+};
+
+const toggleBlock = (inputType: string) => {
+  showInput.value = showInput.value === inputType ? "" : inputType;
+};
 
 const selectedItem = (tag: string) => {
-  if (leadShow.value) {
+  if (showDropdown.value === "lead") {
     form.value.lead = tag;
-    leadShow.value = false;
+    toggleInput("lead");
   } else if (tagsShow.value) {
     form.value.tags.push(tag);
     if (form.value.tags.length === tagNames.value.length) {
@@ -181,23 +236,16 @@ const selectedItem = (tag: string) => {
       ? form.value.members.filter((member) => member !== leadName)
       : [...form.value.members, leadName];
     if (form.value.members.length === membersNames.value.length) {
-      membersShow.value = false;
+      toggleInput("members");
     }
     members.value.push(tag.id.toString());
   }
 };
 
-const deleteTag = (tag) => {
+const deleteTag = (tag: { tag: ""; id: "" }) => {
   form.value.tags.splice(tag, 1);
-  if (form.value.tags.length !== tagNames.value.length) {
-    showAdd.value = true;
-  }
 };
-const closed = () => {
-  tagsShow.value = false;
-  showAdd.value = false;
-  leadShow.value = false;
-};
+
 const onFileChange = ($event: Event) => {
   const target = $event.target as HTMLInputElement;
   if (target && target.files && target.files.length) {
@@ -230,66 +278,14 @@ const deleteImage = (image: ImageInterface) => {
 };
 
 const add = () => {
-  tagsShow.value = true;
+  tagsShow.value = !tagsShow.value;
 };
-
-interface ProjectData {
-  title: string;
-  key: string;
-  description: string;
-  lead: string;
-  members: string;
-  image: string;
-  tags: any;
-}
-
-const defaultState: ProjectData = {
-  title: "",
-  key: "",
-  description: "",
-  lead: "",
-  image: "",
-  members: "",
-  tags: [],
-};
-
-const form = ref<ProjectData>({
-  ...defaultState,
-});
-
-const rules = computed(() => {
-  const rules: any = {
-    title: { required },
-    key: { required },
-    description: { required },
-    lead: { required },
-    image: {
-      required,
-    },
-    members: { required },
-  };
-  return rules;
-});
-
-const $v = useVuelidate(rules, form);
-
-const updateFormKey = () => {
-  if (form.value.title) {
-    const words = form.value.title.split(" ");
-    form.value.key = words
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase();
-  }
-};
-
-watch(() => form.value.title, updateFormKey);
 
 const save = () => {
   if (checkValidation($v.value)) {
     return;
   }
-  const dataProject = {
+  const dataProject: ProjectInterface = {
     data: {
       title: form.value.title,
       key: form.value.key,
@@ -302,29 +298,45 @@ const save = () => {
       tags: Array.from(tags.value),
     },
   };
-  projectPost(dataProject).then(({ data }) => {
-    close();
-  });
+  projectPost(dataProject)
+    .then(({ data }) => {
+      close();
+      pushNotification({
+        text: "The project has been added successfully",
+        type: NotificationType.Success,
+        key: `key${notifications.value.length}`,
+      });
+    })
+    .catch((error) => {
+      pushNotification({
+        text: "The project has not been added successfully",
+        type: NotificationType.Failed,
+        key: `key${notifications.value.length}`,
+      });
+    });
 };
-const emit = defineEmits(["close"]);
+
 const close = () => {
   emit("close");
 };
 
 onMounted(() => {
-  showTags().then(({ data }) => {
-    tagNames.value = data.data.map((item) => ({
-      tag: item.attributes.name,
-      id: item.id,
-    }));
-    console.log(data);
-  });
+  showTag();
+
   showUsers().then(({ data }) => {
-    leadNames.value = data.map((item) => ({
-      leadName: item.username,
-      logo: item.logo,
-      id: item.id,
-    }));
+    leadNames.value = data.map(
+      (item: {
+        leadName: string;
+        logo: {
+          name: string;
+        };
+        id: number;
+      }) => ({
+        leadName: item.username,
+        logo: item.logo,
+        id: item.id,
+      })
+    );
     membersNames.value = leadNames.value;
   });
 });
@@ -346,287 +358,16 @@ onMounted(() => {
 .modal-body {
   &__block {
     display: flex;
-  }
-  form {
-    display: flex;
     flex-wrap: wrap;
-    width: 100%;
-    i.arrow {
-      right: 16px;
-      top: 20px;
-      width: 14px;
-      height: 14px;
-      @include media_mobile {
-        top: 17px;
-      }
-      &.show {
-        display: none;
-      }
-      &.active {
-        transform: rotate(180deg);
-        top: 14px;
-        @include media_mobile {
-          top: 11px;
-        }
-      }
-    }
-    .position {
-      display: flex;
-      align-items: center;
-      &.mobile {
-        @include media_mobile {
-          flex-direction: column;
-          width: 100%;
-        }
-      }
-    }
-    .form-item {
-      margin-bottom: 0;
-      &.show {
-        display: none;
-      }
-    }
-    .form-group {
-      width: 100%;
-      margin-bottom: 16px;
-      @include media_mobile {
-        margin-bottom: 10px;
-      }
-      .grey-circle {
-        width: 20px;
-        height: 20px;
-        border-radius: 10px;
-        margin-right: 8px;
-        background: var(--placeholder);
-        position: absolute;
-        top: 14px;
-        left: 16px;
-        @include media_mobile {
-          top: 12px;
-          left: 12px;
-        }
-        &.show {
-          display: none;
-        }
-      }
-      img {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        border-radius: 10px;
-        margin-right: 8px;
-        top: 14px;
-        left: 16px;
-        @include media_mobile {
-          top: 10px;
-          left: 12px;
-        }
-        &.show {
-          display: none;
-        }
-      }
-      label {
-        font-size: 14px;
-        line-height: 20px;
-        display: flex;
-        align-items: center;
-        @include media_mobile {
-          font-size: 12px;
-          line-height: 16px;
-        }
-      }
-      i.arrow.mobile {
-        width: 12px;
-        height: 12px;
-        right: 0;
-        top: 5px;
-        display: none;
-        @include media_mobile {
-          display: block;
-        }
-      }
-      label.tag {
-        &::before {
-          display: none;
-        }
-      }
-      input {
-        &.show {
-          display: none;
-        }
-      }
-      &.lead {
-        margin-right: 16px;
-        input {
-          padding: 14px 16px 14px 44px;
-          width: 224px;
-          @include media_mobile {
-            padding: 12px 12px 12px 40px;
-          }
-        }
-        @include media_mobile {
-          margin-right: 0;
-          input {
-            width: 100%;
-          }
-        }
-      }
-      &.members {
-        input {
-          width: 372px;
-          @include media_mobile {
-            width: 100%;
-          }
-        }
-      }
-      label.tag {
-        margin-bottom: 0;
-      }
-
-      button.close {
-        width: 22px;
-        height: 22px;
-      }
-
-      button {
-        padding: 10px 8px;
-        width: 62px;
-        height: 32px;
-        box-sizing: border-box;
-        font-size: 14px;
-        line-height: 20px;
-        margin-left: 8px;
-        &:before {
-          mask-image: url("@/assets/icons/plus.svg");
-          background: var(--white);
-        }
-        @include media_mobile {
-          padding: 4px 8px;
-          width: 54px;
-          height: 24px;
-          font-size: 12px;
-          line-height: 16px;
-        }
-      }
-      .tags {
-        position: relative;
-        display: flex;
-        align-items: center;
-        padding: 6px 8px 6px 22px;
-        border-radius: 8px;
-        border: none;
-        background: var(--accent);
-        @include font(14px, 400, 20px, var(--white));
-        margin-left: 8px;
-        i.close {
-          top: 11px;
-          left: 8px;
-          width: 10px;
-          height: 10px;
-          &::before {
-            background: var(--white);
-          }
-        }
-      }
-      &.desc {
-        input {
-          height: 78px;
-          &::placeholder {
-            position: absolute;
-            top: 12px;
-          }
-        }
-      }
-    }
-    .title {
-      width: 396px;
-      margin-right: 16px;
-      @include media_mobile {
-        width: 100%;
-        margin-right: 0;
-      }
-    }
-    .key {
-      width: 200px;
-      @include media_mobile {
-        width: 100%;
-      }
-    }
-  }
-  .form-item {
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    height: 120px;
-    padding: 40px 16px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    border: 1px dashed var(--primary);
-    background: var(--white);
-    box-sizing: border-box;
-    &:hover {
-      background: var(--white_shadow);
-    }
-    &.error {
-      border-color: var(--error);
-    }
-    @include media_mobile {
-      height: 64px;
-      padding: 12px;
-      box-sizing: border-box;
-    }
-    input {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-      opacity: 0;
-      filter: alpha(opacity=0);
-    }
-    label.label {
-      display: flex;
-      gap: 12px;
-
-      @include font(14px, 400, 20px, var(--text));
-      text-align: left;
-
-      @include media_mobile {
-        flex-direction: column;
-        align-items: center;
-        margin: 0;
-
-        font-size: 10px;
-        line-height: 14px;
-        color: var(--placeholder);
-        text-align: left;
-        margin-left: 44px;
-        margin-bottom: 0;
-      }
-      &::before {
-        content: "";
-        display: inline-block;
-        background: url("@/assets/icons/foto.svg");
-        background-size: cover;
-        width: 40px;
-        height: 40px;
-        @include media_mobile {
-          position: absolute;
-          top: 15px;
-          left: 65px;
-          width: 32px;
-          height: 32px;
-        }
-      }
-    }
   }
   .image--blocks {
     display: flex;
     gap: 8px;
+    @include media_mobile {
+      &.show {
+        display: none;
+      }
+    }
     .image--block {
       position: relative;
       height: 120px;
@@ -663,38 +404,6 @@ onMounted(() => {
         &.icon-close::before {
           background: var(--primary);
         }
-      }
-    }
-  }
-}
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-  button {
-    width: 100px;
-    @include media_mobile {
-      width: fit-content;
-    }
-    &.cancel {
-      margin-right: 12px;
-      @include media_mobile {
-        position: absolute;
-        top: 12px;
-        left: 22px;
-        color: var(--notify_info);
-        padding: 0;
-        border: none;
-      }
-    }
-    &.save {
-      @include media_mobile {
-        position: absolute;
-        top: 12px;
-        right: 22px;
-        color: var(--text);
-        padding: 0;
-        background: none;
       }
     }
   }
