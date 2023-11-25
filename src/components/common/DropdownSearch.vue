@@ -1,11 +1,21 @@
 <template lang="pug">
-.drop-down(:class="{ disdefault: disableDefault }")
+.drop-down(:class="{ disdefault: disableDefault }", v-if="isOpen")
   .drop-down--section
     form
       .form-group
-        input(v-model="searchText", placeholder="Placeholder")
+        input(
+          v-model="searchText",
+          placeholder="Placeholder",
+          :class="{ list: className }"
+        )
         i.icon.search
-    dropdown-list(:data="data", @selectedItem="onSelectedItem", :tags="tags")
+    dropdown-list(
+      :data="data",
+      @selectedItem="onSelectedItem",
+      :tags="tags",
+      :clear="clear",
+      :class="{ list: className }"
+    )
 </template>
 
 <script setup lang="ts">
@@ -16,6 +26,9 @@ const props = defineProps({
   data: { type: Array },
   disableDefault: { type: Boolean, default: false },
   tags: { type: Boolean, default: false },
+  clear: { type: Boolean, default: false },
+  isOpen: Boolean,
+  className: { type: Boolean, default: false },
 });
 const emit = defineEmits(["selectedItem"]);
 
@@ -31,7 +44,7 @@ const onSelectedItem = (selectedItem: selectedItemInterface) => {
   background: white;
   color: var(--black);
   border: 1px solid var(--grey-line);
-  z-index: 1;
+  z-index: 2;
   position: relative;
   &.tag {
     input {

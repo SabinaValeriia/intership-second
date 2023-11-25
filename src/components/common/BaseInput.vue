@@ -21,7 +21,6 @@ const props = defineProps({
   withIcon: { type: Boolean, default: false },
   valueInput: {
     type: String,
-    required: true,
   },
 });
 

@@ -12,27 +12,35 @@ ul(v-if="!tags")
     )
     .grey-block(v-else)
     p {{ item.leadName }}
-ul(v-else)
+ul(v-else, :className="{ list: className }")
+  .clear-block(v-if="clear")
+    p Project tags
+    .button-block
+      button(@click.prevent="selectAll") Select All
+      button(@click.prevent="clearAll") Clear
   li(
     v-for="(item, index) in filteredItems",
     :key="index",
     @click="selectItem(item)"
   )
+    button.checkbox(
+      @click.prevent="toggleSelect(item)",
+      :class="{ active: isActive }"
+    )
+      i.check.icon
     p {{ item.tag }}
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, ref, onMounted } from "vue";
+import { ref, computed, onMounted, defineEmits, isReactive } from "vue";
 
-const props = defineProps({
-  data: { type: Array },
-  tags: { type: Boolean, default: false },
-});
-
+const props = defineProps(["data", "tags", "clear", "className"]);
 const emit = defineEmits(["selectedItem"]);
 
 const searchText = ref("");
 const selectedItems = ref<string[]>([]);
+const isActive = ref(false);
+
 const filteredItems = computed(() => {
   if (!searchText.value.trim()) {
     return props.data.filter(
@@ -55,6 +63,24 @@ const selectItem = (item) => {
   selectedItems.value.push(item);
   emit("selectedItem", item);
 };
+
+const selectAll = () => {
+  isActive.value = true;
+};
+
+const clearAll = () => {
+  isActive.value = false;
+};
+
+const toggleSelect = (item) => {
+  if (selectedItems.value.includes(item)) {
+    selectedItems.value = selectedItems.value.filter(
+      (selectedItem) => selectedItem !== item
+    );
+  } else {
+    selectedItems.value = [...selectedItems.value, item];
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -68,7 +94,33 @@ ul {
   top: 44px;
   padding: 0;
   margin: 0;
-  width: calc(100% - 2px);
+  width: 238px;
+
+  &.list {
+    width: 238px;
+  }
+
+  .clear-block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--primary);
+    p {
+      text-wrap: nowrap;
+      @include font(14px, 400, 20px, var(--text));
+    }
+    .button-block {
+      display: flex;
+      gap: 8px;
+      button {
+        @include font(12px, 600, 16px, var(--blue));
+        background: none;
+        border: none;
+        padding: 0;
+      }
+    }
+  }
   &.tag {
     z-index: 1;
     input {
@@ -91,6 +143,39 @@ ul {
     @include font(16px, 400, 24px, var(--text));
     display: flex;
     align-items: center;
+    &:hover {
+      background: var(--background_hover);
+      .checkbox {
+        border-color: var(--accent);
+      }
+    }
+    .checkbox {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--primary);
+      border-radius: 6px;
+      margin-right: 12px;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      &.active {
+        background: var(--accent);
+        border: none;
+        i.icon.check {
+          display: block;
+        }
+      }
+      i.icon.check {
+        display: none;
+        width: 8px;
+        height: 8px;
+        &::before {
+          background: var(--white);
+        }
+      }
+    }
     &:last-of-type {
       border: none;
     }

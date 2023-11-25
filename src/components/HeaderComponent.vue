@@ -5,9 +5,19 @@
       i.icon.logo_header
     ul
       li 
-        a Your work
-      li
-        router-link(to="projects", active-class="active") Projects
+        a(@click="toggleDropdown('work')") Your work
+      li.projects
+        router-link(
+          to="/dashboard/projects",
+          active-class="active",
+          @click="toggleDropdown('project')"
+        ) Projects
+        dropdown-menu(
+          :isOpen="dropdownStates.project.isOpen",
+          title="Starred",
+          subtitle="Recent",
+          :project="true"
+        )
       li 
         a Teams
         span
@@ -45,18 +55,28 @@ modal-create(
 </template>
 
 <script lang="ts" setup>
+import DropdownMenu from "./common/DropdownMenu.vue";
 import CommonButton from "./common/CommonButton.vue";
 import { isOpen, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
 import ModalCreate from "@/modals/ModalCreate.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useUserStore } from "../store/user";
 const userStore = useUserStore();
 const fullName = computed(() => {
   const username = userStore.user.username || "";
   return username;
 });
+const dropdownStates = ref({
+  work: { isOpen: false },
+  project: { isOpen: false },
+});
+
+const toggleDropdown = (dropdownName) => {
+  dropdownStates.value[dropdownName].isOpen =
+    !dropdownStates.value[dropdownName].isOpen;
+};
 
 const logoName = computed(() => {
   const fullNameValue = fullName.value;
@@ -161,6 +181,10 @@ const close = () => {
           cursor: pointer;
           height: 34px;
           box-sizing: border-box;
+
+          &.projects {
+            position: relative;
+          }
 
           a {
             @include font(16px, 500, 22px, var(--text));

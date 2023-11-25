@@ -73,6 +73,11 @@ button {
   }
 
   &.btn_icon {
+    @include media_mobile {
+      padding: 9px 10px;
+      font-size: 12px;
+      line-height: 16px;
+    }
     &.disabled {
       background: var(--primary_disable);
     }
@@ -86,8 +91,8 @@ button {
       mask-repeat: no-repeat;
       margin-right: 8px;
       @include media_mobile {
-        width: 16px;
-        height: 16px;
+        width: 13px;
+        height: 13px;
       }
     }
   }

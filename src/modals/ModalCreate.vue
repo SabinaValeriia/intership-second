@@ -30,7 +30,7 @@ app-modal
             span.error-message(v-if="$v.key.required.$invalid") This field is required.
         .form-group(:class="getValidationClass($v, 'image')")
           label(for="logo") Image logo
-          i.icon.arrow.mobile(@click="toggleBlock('image')")
+          i.icon.arrow.mobile(@click="x('image')")
           .form-item(
             v-if="!userImage.length",
             :class="(getValidationClass($v, 'image'), { show: showLogo }, { show: showInput === 'image' })"
@@ -77,11 +77,11 @@ app-modal
             .tags(v-for="(tag, index) in form.tags", :key="index") {{ tag.tag }}
               i.icon.close(@click="deleteTag(tag)")
             common-button.btn_icon.btn_primary(
-              @click.prevent="add",
+              @click.prevent="toggleDropdown('tags')",
               v-if="showAdd"
             ) Add
           dropdown-component.tag(
-            v-if="tagsShow",
+            :isOpen="dropdownStates.tags.isOpen",
             :data="tagNames",
             @selectedItem="selectedItem",
             @closed="closed",
@@ -94,12 +94,12 @@ app-modal
               :type="`lead`",
               :withIcon="true",
               :value-input="form.lead.leadName",
-              @open="toggleInput('lead')"
+              @open="toggleDropdown('lead')"
             )
               template(v-slot:errors, v-if="$v.lead.required.$invalid")
                 span This field is required.
             dropdown-component.lead(
-              v-if="showDropdown === 'lead'",
+              :isOpen="dropdownStates.lead.isOpen",
               :data="leadNames",
               @selectedItem="selectedItem",
               @closed="closed",
@@ -111,12 +111,12 @@ app-modal
               :type="`members`",
               :withIcon="true",
               :value-input="form.members",
-              @open="toggleInput('members')"
+              @open="toggleDropdown('members')"
             )
               template(v-slot:errors, v-if="$v.members.required.$invalid")
                 span This field is required.
             dropdown-component.lead(
-              v-if="showDropdown === 'members'",
+              :isOpen="dropdownStates.members.isOpen",
               :data="membersNames",
               @selectedItem="selectedItem",
               @closed="closed",
@@ -145,6 +145,7 @@ import {
 } from "@/composables/notification";
 import { ProjectInterface } from "@/types/projectApiInterface";
 import { showTag, tagNames } from "@/composables/tagActions";
+import { showProject } from "@/composables/projectsAction";
 
 interface ProjectData {
   title: string;
@@ -211,6 +212,17 @@ const rules = computed(() => {
 
 const $v = useVuelidate(rules, form);
 
+const dropdownStates = ref({
+  tags: { isOpen: false },
+  lead: { isOpen: false },
+  members: { isOpen: false },
+});
+
+const toggleDropdown = (dropdownName) => {
+  dropdownStates.value[dropdownName].isOpen =
+    !dropdownStates.value[dropdownName].isOpen;
+};
+
 const toggleInput = (inputType: string) => {
   showDropdown.value = showDropdown.value === inputType ? "" : inputType;
 };
@@ -220,14 +232,13 @@ const toggleBlock = (inputType: string) => {
 };
 
 const selectedItem = (tag: string) => {
-  if (showDropdown.value === "lead") {
+  if (dropdownStates.value.lead.isOpen) {
     form.value.lead = tag;
-    toggleInput("lead");
-  } else if (tagsShow.value) {
+    dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
+  } else if (dropdownStates.value.tags.isOpen) {
     form.value.tags.push(tag);
     if (form.value.tags.length === tagNames.value.length) {
-      showAdd.value = false;
-      tagsShow.value = false;
+      dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
     }
     tags.value.push(tag.id.toString());
   } else {
@@ -322,6 +333,7 @@ const close = () => {
 
 onMounted(() => {
   showTag();
+  showProject();
 
   showUsers().then(({ data }) => {
     leadNames.value = data.map(
@@ -348,17 +360,34 @@ onMounted(() => {
     @include font(24px, 500, 28px, var(--text));
     margin: 0 0 16px;
     @include media_mobile {
-      font-size: 14px;
-      line-height: 20px;
-      margin: 0 0 14px;
+      font-size: 16px;
+      line-height: 26px;
+      margin: 0;
       text-align: center;
     }
+  }
+  @include media_mobile {
+    margin: 0 0 14px;
   }
 }
 .modal-body {
   &__block {
     display: flex;
     flex-wrap: wrap;
+    @include media_mobile {
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
+  }
+  .form-group {
+    i.icon.arrow {
+      @include media_mobile {
+        width: 12px;
+        height: 12px;
+        right: 0px;
+        top: 4px;
+      }
+    }
   }
   .image--blocks {
     display: flex;

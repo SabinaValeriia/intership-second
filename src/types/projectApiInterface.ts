@@ -13,7 +13,9 @@ export interface ProjectInterface {
 }
 
 export interface ResProject {
+  [x: string]: any;
   data: {
+    [x: string]: any;
     attributes: {
       title: string;
       key: string;

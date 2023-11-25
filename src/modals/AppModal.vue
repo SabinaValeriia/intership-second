@@ -90,7 +90,7 @@ onBeforeUnmount(() => {
         &.cancel {
           @include media_mobile {
             position: absolute;
-            top: 12px;
+            top: 15px;
             left: 22px;
             color: var(--notify_info);
             padding: 0;
@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
         &.save {
           @include media_mobile {
             position: absolute;
-            top: 12px;
+            top: 15px;
             right: 22px;
             color: var(--text);
             padding: 0;

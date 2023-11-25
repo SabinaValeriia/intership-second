@@ -11,12 +11,16 @@ export const useUserStore = defineStore(
   () => {
     const data = ref({});
     const user = ref({ ...defaultUser } as UserInterface);
+    const project = ref();
     const accessToken = ref("");
 
     const isAuthorized = computed(() => !!user.value.id && !!accessToken.value);
 
     const login = (data: UserInterface) => {
       user.value = data;
+    };
+    const projectsShow = (data: any) => {
+      project.value = data;
     };
 
     const setTokens = (payload: { accessToken: string }) => {
@@ -36,6 +40,7 @@ export const useUserStore = defineStore(
       accessToken,
       setTokens,
       login,
+      projectsShow,
       clear,
     };
   },
