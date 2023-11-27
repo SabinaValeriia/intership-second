@@ -130,7 +130,7 @@ interface ProjectData {
   key: string;
   description: string;
   lead: string;
-  members: string;
+  members: string[];
   image: string;
   tags: string[];
 }
@@ -150,7 +150,7 @@ const defaultState: ProjectData = {
   description: "",
   lead: "",
   image: "",
-  members: "",
+  members: [],
   tags: [],
 };
 
