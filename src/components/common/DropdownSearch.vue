@@ -1,11 +1,17 @@
 <template lang="pug">
-.drop-down(:class="{ disdefault: disableDefault }")
+.drop-down(v-if="isOpen")
   .drop-down--section
     form
       .form-group
         input(v-model="searchText", placeholder="Placeholder")
         i.icon.search
-    dropdown-list(:data="data", @selectedItem="onSelectedItem", :tags="tags")
+    dropdown-list(
+      :data="data",
+      @selectedItem="onSelectedItem",
+      :tags="tags",
+      :type="type",
+      :class="{ tags }"
+    )
 </template>
 
 <script setup lang="ts">
@@ -14,8 +20,9 @@ import DropdownList from "@/components/common/DropdownList.vue";
 import { selectedItemInterface } from "@/types/selectedItemInterface";
 const props = defineProps({
   data: { type: Array },
-  disableDefault: { type: Boolean, default: false },
   tags: { type: Boolean, default: false },
+  type: { type: String },
+  isOpen: { type: Boolean },
 });
 const emit = defineEmits(["selectedItem"]);
 
@@ -28,19 +35,32 @@ const onSelectedItem = (selectedItem: selectedItemInterface) => {
 .drop-down {
   width: 100%;
   border-radius: 8px;
-  background: white;
   color: var(--black);
   border: 1px solid var(--grey-line);
   z-index: 1;
-  position: relative;
+  position: absolute;
+  top: 90px;
+  @include media_mobile {
+    top: 69px;
+  }
   &.tag {
+    top: 32px;
+    @include media_mobile {
+      top: 16px;
+    }
     input {
       width: 220px;
       top: 8px;
+      @include media_mobile {
+        width: 100%;
+      }
     }
     ul {
       width: 218px;
       top: 60px;
+      @include media_mobile {
+        width: calc(100% - 2px);
+      }
     }
     i.search {
       top: 23px;
@@ -56,7 +76,7 @@ const onSelectedItem = (selectedItem: selectedItemInterface) => {
     ul {
       width: 238px;
       @include media_mobile {
-        width: 100%;
+        width: calc(100% - 2px);
       }
     }
   }

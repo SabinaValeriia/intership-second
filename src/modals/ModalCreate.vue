@@ -6,63 +6,34 @@ app-modal
     .modal-body
       form.create
         .modal-body__block 
-          .form-group.title(:class="getValidationClass($v, 'title')")
-            label(for="title") Title
-            i.icon.arrow.mobile(@click="toggleBlock('title')")
-            input(
-              placeholder="Test project",
-              type="text",
-              @blur="$v.title.$touch()",
-              v-model="form.title",
-              :class="{ show: showInput === 'title' }"
-            )
-            span.error-message(v-if="$v.title.required.$invalid") This field is required.
-          .form-group.key(:class="getValidationClass($v, 'key')")
-            label(for="key") Key
-            i.icon.arrow.mobile(@click="toggleBlock('key')")
-            input(
-              placeholder="TestP",
-              type="text",
-              @blur="$v.key.$touch()",
-              v-model="form.key",
-              :class="{ show: showInput === 'key' }"
-            )
-            span.error-message(v-if="$v.key.required.$invalid") This field is required.
-        .form-group(:class="getValidationClass($v, 'image')")
-          label(for="logo") Image logo
-          i.icon.arrow.mobile(@click="toggleBlock('image')")
-          .form-item(
-            v-if="!userImage.length",
-            :class="(getValidationClass($v, 'image'), { show: showLogo }, { show: showInput === 'image' })"
+          base-input(
+            :class="getValidationClass($v, 'title')",
+            :type="`title`",
+            :value-input="form.title",
+            :is-error="$v.title.required.$invalid",
+            @set-data="form.title = $event"
           )
-            input.img(
-              type="file",
-              name="expense",
-              accept="image/*",
-              @change="onFileChange($event)"
-            )
-            label.label
-              .foto
-              | Upload a check image (click or drag)
-              br
-              | JPG, PNG, WEBP (up to 1 mb)
-          span.error-message(
-            v-if="$v.image.required.$invalid && !userImage.length"
-          ) This field is required.
-          .image--blocks(
-            v-if="userImage.length",
-            :class="{ show: showInput === 'image' }"
+            template(v-slot:errors, v-if="$v.title.required.$invalid")
+              span This field is required.
+          base-input(
+            :class="getValidationClass($v, 'key')",
+            :type="`key`",
+            :value-input="form.key",
+            :is-error="$v.key.required.$invalid",
+            @set-data="form.key = $event"
           )
-            .image--block(v-for="(image, index) in userImage", :key="index")
-              img.image(
-                :src="JSON.parse(image.base64)",
-                :alt="`image_${index}`"
-              )
-              button.close(@click="deleteImage(image)")
-                i.icon.icon-close
+            template(v-slot:errors, v-if="$v.key.required.$invalid")
+              span This field is required.
+        image-input(@file="addFile", :class="getValidationClass($v, 'image')")
+          template(v-slot:errors, v-if="$v.image.required.$invalid")
+            span This field is required.
         .form-group.desc(:class="getValidationClass($v, 'description')")
-          label(for="description") Description
-          i.icon.arrow.mobile(@click="toggleBlock('description')")
+          .label-group
+            label(for="description") Description
+            i.icon.arrow.mobile(
+              @click="toggleBlock('description')",
+              :class="{ active: showInput === 'description' }"
+            )
           textarea(
             rows="4",
             cols="50",
@@ -74,52 +45,59 @@ app-modal
         .form-group
           .position
             label.tag Tags:
-            .tags(v-for="(tag, index) in form.tags", :key="index") {{ tag.tag }}
+            .tags(v-for="(tag, index) in form.tags", :key="index") {{ tag.name }}
               i.icon.close(@click="deleteTag(tag)")
             common-button.btn_icon.btn_primary(
-              @click.prevent="add",
-              v-if="showAdd"
+              @click.prevent="toggleDropdown('tags')"
             ) Add
           dropdown-component.tag(
-            v-if="tagsShow",
+            :isOpen="dropdownStates.tags.isOpen",
             :data="tagNames",
-            @selectedItem="selectedItem",
-            @closed="closed",
-            :tags="true"
+            @selectedItem="selectedItem"
           )
         .position.mobile
           .position-dropdown
             base-input(
               :class="getValidationClass($v, 'lead')",
-              :type="`lead`",
-              :withIcon="true",
-              :value-input="form.lead.leadName",
-              @open="toggleInput('lead')"
+              :type="'lead'",
+              :value-input="form.lead.name",
+              @click="toggleDropdown('lead')",
+              :withIcon="true"
             )
+              template(v-slot:icon)
+                img.logo(
+                  v-if="form.lead.logo",
+                  :src="JSON.parse(form.lead.logo.name)",
+                  alt="name"
+                )
+                .grey-circle(v-else)
               template(v-slot:errors, v-if="$v.lead.required.$invalid")
                 span This field is required.
+              template(v-slot:arrow)
+                i.icon.arrow(:class="{ active: dropdownStates.lead.isOpen }")
             dropdown-component.lead(
-              v-if="showDropdown === 'lead'",
+              :isOpen="dropdownStates.lead.isOpen",
               :data="leadNames",
               @selectedItem="selectedItem",
-              @closed="closed",
-              :iconHere="true"
+              :type="'lead'"
             )
           .position-dropdown
             base-input(
               :class="getValidationClass($v, 'members')",
               :type="`members`",
-              :withIcon="true",
               :value-input="form.members",
-              @open="toggleInput('members')"
+              @click="toggleDropdown('members')"
             )
+              template(v-slot:arrow)
+                i.icon.arrow(
+                  :class="{ active: dropdownStates.members.isOpen }"
+                )
               template(v-slot:errors, v-if="$v.members.required.$invalid")
                 span This field is required.
             dropdown-component.lead(
-              v-if="showDropdown === 'members'",
+              :isOpen="dropdownStates.members.isOpen",
               :data="membersNames",
               @selectedItem="selectedItem",
-              @closed="closed",
               :iconHere="true"
             )
     .modal-footer.create
@@ -132,12 +110,12 @@ import AppModal from "./AppModal.vue";
 import { useVuelidate } from "@vuelidate/core";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { computed, onMounted, ref, watch } from "vue";
-import { ImageInterface } from "@/types/ImageInterface";
 import { showUsers } from "@/services/api/userApi";
 import { required } from "@vuelidate/validators";
 import { getValidationClass, checkValidation } from "@/types/authValidation";
 import { projectPost } from "@/services/api/projectApi";
 import BaseInput from "@/components/common/BaseInput.vue";
+import ImageInput from "@/components/common/ImageInput.vue";
 import {
   NotificationType,
   notifications,
@@ -157,10 +135,6 @@ interface ProjectData {
 }
 
 const emit = defineEmits(["close"]);
-
-const userImage = ref<ImageInterface[]>([]);
-const tagsShow = ref(false);
-const showAdd = ref(true);
 const members = ref([]);
 const tags = ref([]);
 const leadNames = ref([]);
@@ -182,6 +156,12 @@ const form = ref<ProjectData>({
   ...defaultState,
 });
 
+const dropdownStates = ref({
+  tags: { isOpen: false },
+  lead: { isOpen: false },
+  members: { isOpen: false },
+});
+
 watch(
   () => form.value.title,
   (newTitle, oldTitle) => {
@@ -191,6 +171,8 @@ watch(
         .map((word) => word[0])
         .join("")
         .toUpperCase();
+    } else {
+      form.value.key = "";
     }
   }
 );
@@ -211,33 +193,42 @@ const rules = computed(() => {
 
 const $v = useVuelidate(rules, form);
 
-const toggleInput = (inputType: string) => {
-  showDropdown.value = showDropdown.value === inputType ? "" : inputType;
-};
-
 const toggleBlock = (inputType: string) => {
   showInput.value = showInput.value === inputType ? "" : inputType;
 };
 
+const toggleDropdown = (dropdownName: string) => {
+  Object.keys(dropdownStates.value).forEach((name) => {
+    if (name !== dropdownName) {
+      dropdownStates.value[name].isOpen = false;
+    }
+  });
+  dropdownStates.value[dropdownName].isOpen =
+    !dropdownStates.value[dropdownName].isOpen;
+};
+
 const selectedItem = (tag: string) => {
-  if (showDropdown.value === "lead") {
+  if (dropdownStates.value.lead.isOpen) {
     form.value.lead = tag;
-    toggleInput("lead");
-  } else if (tagsShow.value) {
+    dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
+  } else if (dropdownStates.value.tags.isOpen) {
     form.value.tags.push(tag);
     if (form.value.tags.length === tagNames.value.length) {
-      showAdd.value = false;
-      tagsShow.value = false;
+      dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
     }
     tags.value.push(tag.id.toString());
   } else {
-    const leadName = tag.leadName;
+    const leadName = tag.name;
+
     form.value.members = form.value.members.includes(leadName)
-      ? form.value.members.filter((member) => member !== leadName)
+      ? form.value.members.filter((member: string) => member !== leadName)
       : [...form.value.members, leadName];
+
     if (form.value.members.length === membersNames.value.length) {
-      toggleInput("members");
+      dropdownStates.value.members.isOpen =
+        !dropdownStates.value.members.isOpen;
     }
+
     members.value.push(tag.id.toString());
   }
 };
@@ -246,39 +237,8 @@ const deleteTag = (tag: { tag: ""; id: "" }) => {
   form.value.tags.splice(tag, 1);
 };
 
-const onFileChange = ($event: Event) => {
-  const target = $event.target as HTMLInputElement;
-  if (target && target.files && target.files.length) {
-    const toBase64 = (file: File) =>
-      new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-      });
-
-    toBase64(target.files[0]).then((res) => {
-      userImage.value = [];
-      if (target && target.files && target.files.length) {
-        userImage.value.push({
-          base64: JSON.stringify(res),
-          blob: target.files[0],
-        });
-        form.value.image = userImage.value[0].base64;
-      }
-    });
-  }
-};
-
-const deleteImage = (image: ImageInterface) => {
-  const indexToDelete = userImage.value.findIndex((index) => index === image);
-  if (indexToDelete !== -1) {
-    userImage.value.splice(indexToDelete, 1);
-  }
-};
-
-const add = () => {
-  tagsShow.value = !tagsShow.value;
+const addFile = (userImage) => {
+  form.value.image = userImage.value[0].base64;
 };
 
 const save = () => {
@@ -326,13 +286,13 @@ onMounted(() => {
   showUsers().then(({ data }) => {
     leadNames.value = data.map(
       (item: {
-        leadName: string;
+        name: string;
         logo: {
           name: string;
         };
         id: number;
       }) => ({
-        leadName: item.username,
+        name: item.username,
         logo: item.logo,
         id: item.id,
       })
@@ -348,8 +308,8 @@ onMounted(() => {
     @include font(24px, 500, 28px, var(--text));
     margin: 0 0 16px;
     @include media_mobile {
-      font-size: 14px;
-      line-height: 20px;
+      font-size: 16px;
+      line-height: 26px;
       margin: 0 0 14px;
       text-align: center;
     }
@@ -360,49 +320,184 @@ onMounted(() => {
     display: flex;
     flex-wrap: wrap;
   }
-  .image--blocks {
-    display: flex;
-    gap: 8px;
+  i.arrow {
+    right: 16px;
+    height: 11px;
     @include media_mobile {
-      &.show {
-        display: none;
-      }
+      right: 12px;
     }
-    .image--block {
-      position: relative;
-      height: 120px;
+    &.active {
+      transform: rotate(180deg);
     }
-    img.image {
-      width: 120px;
-      height: 120px;
-      border-radius: 6px;
-      object-fit: cover;
-      position: relative;
-      top: 0;
-      left: 0;
+    &.mobile {
+      display: none;
     }
-    button {
-      border-radius: 16px;
-      border: none;
-      background: var(--white);
-      box-shadow: 0px 4px 8px 0px rgba(61, 55, 52, 0.08),
-        0px 2px 4px 0px rgba(61, 55, 52, 0.08),
-        0px 0px 2px 0px rgba(61, 55, 52, 0.16);
-
-      width: 22px;
-      height: 22px;
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      cursor: pointer;
+  }
+  form {
+    width: 100%;
+    &.create {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      i {
-        width: 9px;
-        height: 9px;
-        &.icon-close::before {
-          background: var(--primary);
+      flex-wrap: wrap;
+      width: 100%;
+      @include media_mobile {
+        display: block;
+      }
+      .position {
+        display: flex;
+        align-items: center;
+        &.mobile {
+          @include media_mobile {
+            flex-direction: column;
+          }
+        }
+        &-dropdown {
+          width: 100%;
+          position: relative;
+        }
+      }
+      .form-group {
+        width: 100%;
+        margin-bottom: 16px;
+        @include media_mobile {
+          margin-bottom: 10px;
+        }
+        &.title {
+          width: 396px;
+          margin-right: 16px;
+          @include media_mobile {
+            width: 100%;
+            margin-right: 0;
+          }
+        }
+        &.key {
+          width: 200px;
+          @include media_mobile {
+            width: 100%;
+            margin-bottom: 10px;
+          }
+        }
+        img {
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          border-radius: 10px;
+          margin-right: 8px;
+          top: 14px;
+          left: 16px;
+          @include media_mobile {
+            top: 10px;
+            left: 12px;
+          }
+        }
+        label {
+          font-size: 14px;
+          line-height: 20px;
+          display: flex;
+          align-items: center;
+          @include media_mobile {
+            font-size: 12px;
+            line-height: 16px;
+          }
+        }
+        label.tag {
+          &::before {
+            display: none;
+          }
+        }
+        @include media_mobile {
+          input {
+            &.show {
+              display: none;
+            }
+          }
+        }
+        &.lead {
+          margin: 0 16px 0 0;
+          width: 224px;
+          @include media_mobile {
+            margin: 0 0 10px 0;
+            width: 100%;
+            input {
+              width: 100%;
+            }
+          }
+        }
+        &.members {
+          margin: 0;
+          width: 372px;
+          @include media_mobile {
+            width: 100%;
+          }
+          input {
+            width: 372px;
+            @include media_mobile {
+              width: 100%;
+            }
+          }
+        }
+        &.tag {
+          input {
+            width: 224px;
+          }
+        }
+        label.tag {
+          margin-bottom: 0;
+        }
+
+        button.close {
+          width: 22px;
+          height: 22px;
+        }
+
+        button {
+          padding: 10px 8px;
+          width: 62px;
+          height: 32px;
+          box-sizing: border-box;
+          font-size: 14px;
+          line-height: 20px;
+          margin-left: 8px;
+          border-radius: 8px;
+          &:before {
+            mask-image: url("@/assets/icons/plus.svg");
+            background: var(--white);
+          }
+          @include media_mobile {
+            padding: 4px 8px;
+            width: 54px;
+            height: 24px;
+            font-size: 12px;
+            line-height: 16px;
+          }
+        }
+        .tags {
+          position: relative;
+          display: flex;
+          align-items: center;
+          padding: 6px 8px 6px 22px;
+          border-radius: 8px;
+          border: none;
+          background: var(--accent);
+          @include font(14px, 400, 20px, var(--white));
+          margin-left: 8px;
+          i.close {
+            top: 11px;
+            left: 8px;
+            width: 10px;
+            height: 10px;
+            &::before {
+              background: var(--white);
+            }
+          }
+        }
+        &.desc {
+          input {
+            height: 78px;
+            &::placeholder {
+              position: absolute;
+              top: 12px;
+            }
+          }
         }
       }
     }

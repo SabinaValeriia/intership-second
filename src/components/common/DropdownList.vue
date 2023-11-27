@@ -1,57 +1,31 @@
 <template lang="pug">
-ul(v-if="!tags")
-  li(
-    v-for="(item, index) in filteredItems",
-    :key="index",
-    @click="selectItem(item)"
-  ) 
-    img.logo(
-      v-if="item.logo !== null || item.logo",
-      :src="JSON.parse(item.logo.name)",
-      alt="name"
-    )
-    .grey-block(v-else)
-    p {{ item.leadName }}
-ul(v-else)
-  li(
-    v-for="(item, index) in filteredItems",
-    :key="index",
-    @click="selectItem(item)"
-  )
-    p {{ item.tag }}
+ul(v-if="data.length")
+  li(v-for="(item, index) in data", :key="index", @click="selectItem(item)")
+    div(v-if="type === 'lead'")
+      img.logo(
+        v-if="item.logo !== null || item.logo",
+        :src="JSON.parse(item.logo.name)",
+        alt="name"
+      )
+      .grey-block(v-else)
+    p {{ item.name }}
+ul.not-founds(v-else)
+  li 
+    i.icon.user
+    p Not results
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, ref, onMounted } from "vue";
+import { defineProps, ref } from "vue";
 
 const props = defineProps({
   data: { type: Array },
-  tags: { type: Boolean, default: false },
+  type: { type: String },
 });
-
 const emit = defineEmits(["selectedItem"]);
-
-const searchText = ref("");
 const selectedItems = ref<string[]>([]);
-const filteredItems = computed(() => {
-  if (!searchText.value.trim()) {
-    return props.data.filter(
-      (item) =>
-        !selectedItems.value.some((selectedItem) => selectedItem.id === item.id)
-    );
-  }
 
-  const searchTerm = searchText.value.trim().toLowerCase();
-  return props.data.filter((item) => {
-    const searchItem = item.leadName.toLowerCase();
-    return (
-      searchItem.includes(searchTerm) &&
-      !selectedItems.value.some((selectedItem) => selectedItem.id === item.id)
-    );
-  });
-});
-
-const selectItem = (item) => {
+const selectItem = (item: { name: string; id: number }) => {
   selectedItems.value.push(item);
   emit("selectedItem", item);
 };
@@ -69,10 +43,22 @@ ul {
   padding: 0;
   margin: 0;
   width: calc(100% - 2px);
+  max-height: 200px;
+  overflow-x: scroll;
+
+  &.not-founds {
+    height: fit-content;
+    p {
+      margin-left: 30px;
+    }
+  }
   &.tag {
     z-index: 1;
     input {
       width: 220px;
+      @include media_mobile {
+        width: 100%;
+      }
     }
   }
   &.lead {
@@ -93,6 +79,11 @@ ul {
     align-items: center;
     &:last-of-type {
       border: none;
+    }
+    @include media_mobile {
+      font-size: 12px;
+      line-height: 16px;
+      padding: 12px 12px;
     }
     img.logo {
       width: 20px;
