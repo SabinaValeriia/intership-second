@@ -1,13 +1,19 @@
 <template lang="pug">
 ul(v-if="data.length")
   li(v-for="(item, index) in data", :key="index", @click="selectItem(item)")
-    div(v-if="type === 'lead'")
+    .image-item(v-if="type === 'lead'")
       img.logo(
         v-if="item.logo !== null || item.logo",
         :src="JSON.parse(item.logo.name)",
         alt="name"
       )
       .grey-block(v-else)
+    button.checkbox(
+      v-else-if="type === 'checkbox'",
+      @click.prevent="toggleSelect(item)",
+      :class="{ active: isActive }"
+    )
+      i.check.icon
     p {{ item.name }}
 ul.not-founds(v-else)
   li 
@@ -24,10 +30,29 @@ const props = defineProps({
 });
 const emit = defineEmits(["selectedItem"]);
 const selectedItems = ref<string[]>([]);
+const isActive = ref(true);
 
 const selectItem = (item: { name: string; id: number }) => {
   selectedItems.value.push(item);
   emit("selectedItem", item);
+};
+
+const selectAll = () => {
+  isActive.value = true;
+};
+
+const clearAll = () => {
+  isActive.value = false;
+};
+
+const toggleSelect = (item) => {
+  if (selectedItems.value.includes(item)) {
+    selectedItems.value = selectedItems.value.filter(
+      (selectedItem) => selectedItem !== item
+    );
+  } else {
+    selectedItems.value = [...selectedItems.value, item];
+  }
 };
 </script>
 
@@ -45,6 +70,10 @@ ul {
   width: calc(100% - 2px);
   max-height: 200px;
   overflow-x: scroll;
+
+  @include media_mobile {
+    top: 32px;
+  }
 
   &.not-founds {
     height: fit-content;
@@ -80,10 +109,53 @@ ul {
     &:last-of-type {
       border: none;
     }
+    .image-item {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+    .checkbox {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--primary);
+      border-radius: 6px;
+      margin-right: 12px;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      &.active {
+        background: var(--accent);
+        border: none;
+        i.icon.check {
+          display: block;
+          &::before {
+            background: var(--white);
+          }
+        }
+      }
+      i.icon.check {
+        display: none;
+        width: 8px;
+        height: 8px;
+        &::before {
+          background: var(--white);
+        }
+      }
+    }
+    &:hover {
+      background: var(--background_hover);
+      .checkbox {
+        border-color: var(--accent);
+      }
+    }
     @include media_mobile {
       font-size: 12px;
       line-height: 16px;
-      padding: 12px 12px;
+      padding: 12px;
+      height: 40px;
+      box-sizing: border-box;
     }
     img.logo {
       width: 20px;

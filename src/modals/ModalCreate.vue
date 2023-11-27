@@ -60,11 +60,11 @@ app-modal
             base-input(
               :class="getValidationClass($v, 'lead')",
               :type="'lead'",
-              :value-input="form.lead.name",
+              :value-input="dropdownStates.lead.isOpen ? form.lead.name : leadName",
               @click="toggleDropdown('lead')",
               :withIcon="true"
             )
-              template(v-slot:icon)
+              template(v-slot:prefix)
                 img.logo(
                   v-if="form.lead.logo",
                   :src="JSON.parse(form.lead.logo.name)",
@@ -73,7 +73,7 @@ app-modal
                 .grey-circle(v-else)
               template(v-slot:errors, v-if="$v.lead.required.$invalid")
                 span This field is required.
-              template(v-slot:arrow)
+              template(v-slot:suffix)
                 i.icon.arrow(:class="{ active: dropdownStates.lead.isOpen }")
             dropdown-component.lead(
               :isOpen="dropdownStates.lead.isOpen",
@@ -88,7 +88,7 @@ app-modal
               :value-input="form.members",
               @click="toggleDropdown('members')"
             )
-              template(v-slot:arrow)
+              template(v-slot:suffix)
                 i.icon.arrow(
                   :class="{ active: dropdownStates.members.isOpen }"
                 )
@@ -110,7 +110,7 @@ import AppModal from "./AppModal.vue";
 import { useVuelidate } from "@vuelidate/core";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { computed, onMounted, ref, watch } from "vue";
-import { showUsers } from "@/services/api/userApi";
+import { showMe, showUsers } from "@/services/api/userApi";
 import { required } from "@vuelidate/validators";
 import { getValidationClass, checkValidation } from "@/types/authValidation";
 import { projectPost } from "@/services/api/projectApi";
@@ -123,6 +123,7 @@ import {
 } from "@/composables/notification";
 import { ProjectInterface } from "@/types/projectApiInterface";
 import { showTag, tagNames } from "@/composables/tagActions";
+import { ImageInterface } from "../types/ImageInterface";
 
 interface ProjectData {
   title: string;
@@ -131,7 +132,7 @@ interface ProjectData {
   lead: string;
   members: string;
   image: string;
-  tags: any;
+  tags: string[];
 }
 
 const emit = defineEmits(["close"]);
@@ -141,6 +142,7 @@ const leadNames = ref([]);
 const membersNames = ref([]);
 const showDropdown = ref("");
 const showInput = ref("");
+const leadName = ref("");
 
 const defaultState: ProjectData = {
   title: "",
@@ -212,19 +214,14 @@ const selectedItem = (tag: string) => {
     form.value.lead = tag;
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   } else if (dropdownStates.value.tags.isOpen) {
-    form.value.tags.push(tag);
-    if (form.value.tags.length === tagNames.value.length) {
+    if (!form.value.tags.includes(tag)) {
+      form.value.tags.push(tag);
       dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
     }
     tags.value.push(tag.id.toString());
   } else {
-    const leadName = tag.name;
-
-    form.value.members = form.value.members.includes(leadName)
-      ? form.value.members.filter((member: string) => member !== leadName)
-      : [...form.value.members, leadName];
-
-    if (form.value.members.length === membersNames.value.length) {
+    if (!form.value.members.includes(tag.name)) {
+      form.value.members.push(tag.name);
       dropdownStates.value.members.isOpen =
         !dropdownStates.value.members.isOpen;
     }
@@ -233,11 +230,11 @@ const selectedItem = (tag: string) => {
   }
 };
 
-const deleteTag = (tag: { tag: ""; id: "" }) => {
+const deleteTag = (tag: { tag: string; id: number }) => {
   form.value.tags.splice(tag, 1);
 };
 
-const addFile = (userImage) => {
+const addFile = (userImage: ImageInterface) => {
   form.value.image = userImage.value[0].base64;
 };
 
@@ -298,6 +295,9 @@ onMounted(() => {
       })
     );
     membersNames.value = leadNames.value;
+  });
+  showMe().then(({ data }) => {
+    leadName.value = data.username;
   });
 });
 </script>

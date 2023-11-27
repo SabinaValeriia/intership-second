@@ -53,7 +53,6 @@ const onFileChange = ($event: Event) => {
           base64: JSON.stringify(res),
           blob: target.files[0],
         });
-        console.log(userImage);
         emit("file", userImage);
       }
     });

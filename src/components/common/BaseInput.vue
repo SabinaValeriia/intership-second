@@ -4,7 +4,7 @@
     label {{ capitalizeFirstLetter(`${type}`) }}
     i.icon.arrow.mobile(:class="{ active: open }")
   .form-icon(v-if="open")
-    slot(name="icon")
+    slot(name="prefix")
     input(
       :type="type",
       :placeholder="capitalizeFirstLetter(`${type}`)",
@@ -12,7 +12,7 @@
       @focus="isFocused = true",
       :class="{ withIcon }"
     )
-    slot(name="arrow")
+    slot(name="suffix")
   slot(name="errors")
 </template>
 

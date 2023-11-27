@@ -11,3 +11,7 @@ export const loginUser = (
 export const showUsers = (): Promise<AxiosResponse<ResUser>> => {
   return axiosInstance.get("users?populate=*");
 };
+
+export const showMe = (): Promise<AxiosResponse<ResUser>> => {
+  return axiosInstance.get("users/me");
+};

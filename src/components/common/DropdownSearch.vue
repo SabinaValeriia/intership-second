@@ -60,10 +60,15 @@ const onSelectedItem = (selectedItem: selectedItemInterface) => {
       top: 60px;
       @include media_mobile {
         width: calc(100% - 2px);
+        top: 48px;
       }
     }
     i.search {
       top: 23px;
+      @include media_mobile {
+        top: 19px;
+        left: 12px;
+      }
     }
   }
   &.lead {
@@ -97,6 +102,10 @@ const onSelectedItem = (selectedItem: selectedItemInterface) => {
       position: absolute;
       top: -8px;
       border-radius: 4px 4px 0 0;
+      @include media_mobile {
+        padding: 12px 12px 12px 39px;
+        height: 40px;
+      }
     }
   }
 }
