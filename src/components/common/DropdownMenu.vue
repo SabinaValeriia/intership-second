@@ -1,7 +1,7 @@
 <template lang="pug">
 .menu(v-if="isOpen")
-  h2 {{ title }}
-  div(v-if="project")
+  div(v-if="project && totalProjects")
+    h2 {{ title }}
     .menu-project(
       v-for="(project, index) in projects.slice(0, 2)",
       :key="index"
@@ -13,27 +13,19 @@
       )
       div
         h3 {{ project.title }} ({{ project.key }})
-        p(v-for="(item, index) in tagNames", :key="index") {{ index === 0 ? item.tag : "" }}
+        p {{ project.tags.data[0].attributes.name }}
+      i.icon.unchecked
+      i.icon.star
     h2 {{ subtitle }}
-    .menu-project(
-      v-for="(project, index) in projects.slice(0, 2)",
-      :key="index"
-    ) 
-      img.logo(
-        v-if="project.logo !== null || project.logo",
-        :src="JSON.parse(project.logo.name)",
-        alt="name"
-      )
-      div
-        h3 {{ project.title }} ({{ project.key }})
-        p(v-for="(item, index) in tagNames", :key="index") {{ index === 0 ? item.tag : "" }}
-    router-link(to="/projects") View all projects
+  div(v-if="project && !totalProjects")
+    no-results.menu-no(:noData="true")
+  router-link(to="/dashboard/projects") View all projects
 </template>
 
 <script setup lang="ts">
-import { showTag, tagNames } from "@/composables/tagActions";
 import { showProjects } from "@/services/api/projectApi";
 import { onMounted, ref } from "vue";
+import NoResults from "../NoResults.vue";
 
 const props = defineProps({
   type: { type: String },
@@ -44,11 +36,12 @@ const props = defineProps({
   project: Boolean,
 });
 const projects = ref([]);
+const totalProjects = ref();
 onMounted(() => {
-  showProjects().then(({ data }) => {
+  showProjects("").then(({ data }) => {
     projects.value = data.data.map((project: any) => project.attributes);
+    totalProjects.value = projects.value.length;
   });
-  showTag();
 });
 </script>
 
@@ -62,7 +55,6 @@ onMounted(() => {
   box-sizing: border-box;
   min-width: 351px;
   z-index: 1;
-  //   display: none;
 
   a {
     @include font(16px, 500, 24px, var(--text));
@@ -72,6 +64,7 @@ onMounted(() => {
 
   &-project {
     display: flex;
+    align-items: center;
     padding: 10px 16px;
     cursor: pointer;
     position: relative;
@@ -79,31 +72,27 @@ onMounted(() => {
       border-bottom: 1px solid var(--primary);
       margin-bottom: 16px;
     }
-    &:hover {
-      background: var(--white-shadow);
-      &::after {
-        content: "";
-        display: block;
-        background: url("@/assets/icons/unchecked_star.svg");
-        background-size: contain;
-        height: 20px;
-        width: 20px;
-        position: absolute;
-        right: 26px;
-        top: 20px;
+    i.icon {
+      right: 26px;
+      &.unchecked {
+        display: none;
+      }
+      &.star {
+        display: none;
+        &::before {
+          background: var(--notify_warning);
+        }
       }
     }
-    :active {
-      &::after {
-        content: "";
+    &:hover {
+      background: var(--white-shadow);
+      i.icon.unchecked {
         display: block;
-        background: url("@/assets/icons/star-notify.svg");
-        background-size: contain;
-        height: 20px;
-        width: 20px;
-        position: absolute;
-        right: 26px;
-        top: 20px;
+      }
+    }
+    &.active {
+      i.icon.star {
+        display: block;
       }
     }
     img {

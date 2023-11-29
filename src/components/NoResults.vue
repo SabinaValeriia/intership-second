@@ -1,20 +1,16 @@
 <template lang="pug">
-.no-results(v-if="noData")
-  img(:src="require(`@/assets/icons/no-search.svg`)")
-  h2 Wait!
-  p You have no projects created,
-    br
-    | please create new one.
-  common-button.btn-secondary Create
-.no-results(v-else-if="noResults")
-  img(:src="require(`@/assets/icons/no-data.svg`)")
-  p No results found, try to reset filters
-  common-button.btn-secondary(@click="reset") Reset
+.no-results
+  img(:src="require(`@/assets/icons/${noData ? 'no-search' : 'no-data'}.svg`)")
+  h2(v-if="noData") Wait!
+  p {{ noData ? "You have no projects created, please create new one." : "No results found, try to reset filters" }}
+  common-button.btn-secondary(@click="noData ? create() : reset()") {{ noData ? "Create" : "Reset" }}
 </template>
 
 <script setup lang="ts">
+import { openModal } from "@/composables/modalActions";
 import CommonButton from "./common/CommonButton.vue";
 import { defineEmits, defineProps } from "vue";
+import { EnumModalKeys } from "@/constants/EnumModalKeys";
 const props = defineProps({
   noResults: {
     type: Boolean,
@@ -31,6 +27,9 @@ const emit = defineEmits(["reset"]);
 const reset = () => {
   emit("reset");
 };
+const create = () => {
+  openModal(EnumModalKeys.ModalCreate);
+};
 </script>
 <style lang="scss" scoped>
 .no-results {
@@ -38,6 +37,34 @@ const reset = () => {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  &.menu-no {
+    border-bottom: 1px solid var(--primary);
+    margin-bottom: 16px;
+    img {
+      width: 140px;
+      height: 120px;
+      margin-top: 27px;
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-size: 20px;
+      line-height: 28px;
+    }
+    p {
+      font-size: 14px;
+      line-height: 20px;
+      width: 200px;
+    }
+    button {
+      font-size: 14px;
+      line-height: 20px;
+      padding: 12px 16px;
+      width: 77px;
+      height: 44px;
+      box-sizing: border-box;
+      margin: 12px 0 35px 0;
+    }
+  }
   img {
     margin-top: 74px;
     margin-bottom: 24px;

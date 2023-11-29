@@ -1,89 +1,89 @@
 <template lang="pug">
-ul(v-if="!tags")
-  li(
-    v-for="(item, index) in filteredItems",
-    :key="index",
-    @click="selectItem(item)"
-  ) 
-    img.logo(
-      v-if="item.logo !== null || item.logo",
-      :src="JSON.parse(item.logo.name)",
-      alt="name"
-    )
-    .grey-block(v-else)
-    p {{ item.leadName }}
-ul(v-else, :className="{ list: className }")
-  .clear-block(v-if="clear")
-    p Project tags
-    .button-block
-      button(@click.prevent="selectAll") Select All
-      button(@click.prevent="clearAll") Clear
-  li(
-    v-for="(item, index) in filteredItems",
-    :key="index",
-    @click="selectItem(item)"
-  )
+.checkbox-block(v-if="type === 'checkbox'")
+  p {{ title }}
+  div
+    button(@click.prevent="selectAll") Select All
+    button(@click.prevent="clearAll") Clear
+ul(v-if="data.length", :class="({ checkbox: type === 'checkbox' }, type)")
+  li(v-for="(item, index) in data", :key="index", @click="selectItem(item)")
+    .image-item(v-if="type === 'lead'")
+      img.logo(
+        v-if="item.logo !== null || item.logo",
+        :src="JSON.parse(item.logo.name)",
+        alt="name"
+      )
+      .grey-block(v-else)
     button.checkbox(
+      v-if="type === 'checkbox'",
       @click.prevent="toggleSelect(item)",
       :class="{ active: isActive }"
     )
       i.check.icon
-    p {{ item.tag }}
+    p {{ item.name }}
+ul.not-founds(v-else)
+  li 
+    i.icon.user
+    p Not results
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineEmits, isReactive } from "vue";
+import { defineProps, ref } from "vue";
 
-const props = defineProps(["data", "tags", "clear", "className"]);
+const props = defineProps({
+  data: { type: Array },
+  type: { type: String },
+  title: { type: String },
+});
 const emit = defineEmits(["selectedItem"]);
-
-const searchText = ref("");
 const selectedItems = ref<string[]>([]);
 const isActive = ref(false);
 
-const filteredItems = computed(() => {
-  if (!searchText.value.trim()) {
-    return props.data.filter(
-      (item) =>
-        !selectedItems.value.some((selectedItem) => selectedItem.id === item.id)
-    );
-  }
-
-  const searchTerm = searchText.value.trim().toLowerCase();
-  return props.data.filter((item) => {
-    const searchItem = item.leadName.toLowerCase();
-    return (
-      searchItem.includes(searchTerm) &&
-      !selectedItems.value.some((selectedItem) => selectedItem.id === item.id)
-    );
-  });
-});
-
-const selectItem = (item) => {
+const selectItem = (item: { name: string; id: number }) => {
   selectedItems.value.push(item);
   emit("selectedItem", item);
 };
 
 const selectAll = () => {
   isActive.value = true;
+  selectedItems.value.push(props.data);
+  emit("selectedItem", props.data);
 };
 
 const clearAll = () => {
   isActive.value = false;
 };
-
-const toggleSelect = (item) => {
-  if (selectedItems.value.includes(item)) {
-    selectedItems.value = selectedItems.value.filter(
-      (selectedItem) => selectedItem !== item
-    );
-  } else {
-    selectedItems.value = [...selectedItems.value, item];
-  }
-};
 </script>
 
 <style lang="scss" scoped>
+.checkbox-block {
+  height: 44px;
+  width: 100%;
+  position: absolute;
+  top: 44px;
+  background: var(--white);
+  border-style: solid;
+  border-width: 0 1px 1px 1px;
+  border-color: var(--primary);
+  padding: 0 16px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @include media_mobile {
+    top: 32px;
+    width: 343px;
+  }
+  p {
+    @include font(14px, 400, 20px, var(--text));
+    text-wrap: nowrap;
+  }
+  button {
+    background: transparent;
+    border: none;
+    @include font(12px, 16px, 600, var(--blue));
+    text-decoration: underline;
+  }
+}
 ul {
   border-style: solid;
   border-width: 0 1px 1px 1px;
@@ -94,37 +94,73 @@ ul {
   top: 44px;
   padding: 0;
   margin: 0;
-  width: 238px;
+  max-height: 200px;
+  overflow-x: scroll;
 
-  &.list {
-    width: 238px;
+  @include media_mobile {
+    top: 32px;
   }
 
-  .clear-block {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    border-bottom: 1px solid var(--primary);
-    p {
-      text-wrap: nowrap;
-      @include font(14px, 400, 20px, var(--text));
+  &.not-founds {
+    width: calc(100% - 2px);
+    i.user {
+      left: 16px;
     }
-    .button-block {
-      display: flex;
-      gap: 8px;
-      button {
-        @include font(12px, 600, 16px, var(--blue));
-        background: none;
-        border: none;
-        padding: 0;
-      }
+  }
+
+  &.tags {
+    width: 218px;
+    top: 60px;
+    @include media_mobile {
+      width: calc(100% - 2px);
+      top: 48px;
+    }
+  }
+
+  &.members {
+    width: 238px;
+    top: 44px;
+    @include media_mobile {
+      width: calc(100% - 2px);
+      top: 32px;
+    }
+  }
+
+  &.checkbox {
+    top: 88px;
+    width: calc(100% - 2px);
+    @include media_mobile {
+      top: 76px;
+      width: 341px;
+    }
+  }
+  &.lead-block {
+    width: 238px;
+    @include media_mobile {
+      width: 343px;
+    }
+  }
+
+  &.lead {
+    width: 238px;
+    @include media_mobile {
+      width: calc(100% - 2px);
+    }
+  }
+
+  &.not-founds {
+    height: fit-content;
+    p {
+      margin-left: 30px;
     }
   }
   &.tag {
     z-index: 1;
     input {
       width: 220px;
+      @include media_mobile {
+        width: 100%;
+      }
     }
   }
   &.lead {
@@ -143,11 +179,13 @@ ul {
     @include font(16px, 400, 24px, var(--text));
     display: flex;
     align-items: center;
-    &:hover {
-      background: var(--background_hover);
-      .checkbox {
-        border-color: var(--accent);
-      }
+    &:last-of-type {
+      border: none;
+    }
+    .image-item {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
     }
     .checkbox {
       width: 16px;
@@ -165,19 +203,43 @@ ul {
         border: none;
         i.icon.check {
           display: block;
+          &::before {
+            background: var(--white);
+          }
+        }
+      }
+      &:active {
+        background: var(--accent);
+        border: none;
+        i.icon.check {
+          display: block;
+          &::before {
+            background: var(--white);
+          }
         }
       }
       i.icon.check {
         display: none;
         width: 8px;
         height: 8px;
+        left: 20px;
         &::before {
           background: var(--white);
         }
       }
     }
-    &:last-of-type {
-      border: none;
+    &:hover {
+      background: var(--background_hover);
+      .checkbox {
+        border-color: var(--accent);
+      }
+    }
+    @include media_mobile {
+      font-size: 12px;
+      line-height: 16px;
+      padding: 12px;
+      height: 40px;
+      box-sizing: border-box;
     }
     img.logo {
       width: 20px;

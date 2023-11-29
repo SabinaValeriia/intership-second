@@ -7,15 +7,10 @@
       li 
         a(@click="toggleDropdown('work')") Your work
       li.projects
-        router-link(
-          to="/dashboard/projects",
-          active-class="active",
-          @click="toggleDropdown('project')"
-        ) Projects
+        a(active-class="active", @click="toggleDropdown('project')") Projects
         dropdown-menu(
           :isOpen="dropdownStates.project.isOpen",
           title="Starred",
-          subtitle="Recent",
           :project="true"
         )
       li 

@@ -12,37 +12,25 @@
 }
 .loader {
   position: relative;
-  &::before,
-  ::after {
-    content: "";
-    position: absolute;
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 26px 0 var(--accent);
-    left: 0;
-    top: 0;
-    animation: ballMoveX 1s linear infinite;
-  }
-  &::after {
-    content: "";
-    position: absolute;
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 26px 0 var(--accent);
-    left: 0;
-    top: 0;
-    animation: ballMoveX 1s linear infinite;
-  }
-  &::after {
-    box-shadow: none;
-    transform-origin: 40px 0;
-    transform: rotate(210deg);
-    animation: rotateLoader 1s linear infinite;
-  }
+}
+.loader:before,
+.loader:after {
+  content: "";
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 26px 0 var(--accent);
+  left: 0;
+  top: 0;
+  animation: ballMoveX 1s linear infinite;
+}
+.loader:after {
+  box-shadow: none;
+  transform-origin: 34px 0;
+  transform: rotate(210deg);
+  animation: rotateLoader 1s linear infinite;
 }
 
 @keyframes rotateLoader {
@@ -58,7 +46,7 @@
 @keyframes ballMoveX {
   0%,
   10% {
-    transform: translateX(30px);
+    transform: translateX(26px);
   }
   90%,
   100% {

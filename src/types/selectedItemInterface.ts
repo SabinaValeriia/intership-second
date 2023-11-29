@@ -1,6 +1,6 @@
 export interface selectedItemInterface {
   id?: number;
-  leadName: string;
+  name: string;
   logo: {
     name: string;
   };

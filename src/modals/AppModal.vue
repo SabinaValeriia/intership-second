@@ -78,33 +78,39 @@ onBeforeUnmount(() => {
         padding: 12px;
       }
     }
-    .modal-footer.create {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 16px;
-      button {
-        width: 100px;
-        @include media_mobile {
-          width: fit-content;
-        }
-        &.cancel {
+    .modal-footer {
+      &.header {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      &.create {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 32px;
+        button {
+          width: 100px;
           @include media_mobile {
-            position: absolute;
-            top: 15px;
-            left: 22px;
-            color: var(--notify_info);
-            padding: 0;
-            border: none;
+            width: fit-content;
           }
-        }
-        &.save {
-          @include media_mobile {
-            position: absolute;
-            top: 15px;
-            right: 22px;
-            color: var(--text);
-            padding: 0;
-            background: none;
+          &.cancel {
+            @include media_mobile {
+              position: absolute;
+              top: 14px;
+              left: 22px;
+              color: var(--notify_info);
+              padding: 0;
+              border: none;
+            }
+          }
+          &.save {
+            @include media_mobile {
+              position: absolute;
+              top: 14px;
+              right: 22px;
+              color: var(--text);
+              padding: 0;
+              background: none;
+            }
           }
         }
       }

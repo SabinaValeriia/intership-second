@@ -1,7 +1,7 @@
 export interface ResTags {
   data: {
     map(
-      arg0: (item: { tag: string; id: number }) => { tag: any; id: number }
+      arg0: (item: { name: string; id: number }) => { name: any; id: number }
     ): never[];
     id: number;
     attributes: {

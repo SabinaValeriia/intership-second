@@ -10,8 +10,8 @@ export const deleteTag = (tag: number) => {
 export const showTag = () => {
   showTags().then(({ data }) => {
     tagNames.value = data.data.map(
-      (item: { [x: string]: any; tag: string; id: number }) => ({
-        tag: item.attributes.name,
+      (item: { [x: string]: any; name: string; id: number }) => ({
+        name: item.attributes.name,
         id: item.id,
       })
     );

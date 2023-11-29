@@ -10,7 +10,7 @@
       v-for="pageNumber in totalPages",
       :key="pageNumber",
       @click="changePage(pageNumber)",
-      :class="{ active: pageNumber === currentPage }"
+      :class="{ active: currentPage === pageNumber }"
     ) {{ pageNumber }}
     li(
       @click="changePage(currentPage + 1)",
@@ -19,40 +19,23 @@
       i.icon.arrow
 </template>
 
-<script>
-export default {
-  props: {
-    totalItems: {
-      type: Number,
-      required: true,
-    },
-    itemsPerPage: {
-      type: Number,
-      required: true,
-    },
-    onPageChange: {
-      type: Function,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      currentPage: 1,
-    };
-  },
-  computed: {
-    totalPages() {
-      return Math.ceil(this.totalItems / this.itemsPerPage);
-    },
-  },
-  methods: {
-    changePage(newPage) {
-      if (newPage >= 1 && newPage <= this.totalPages) {
-        this.currentPage = newPage;
-        this.onPageChange(newPage);
-      }
-    },
-  },
+<script setup lang="ts">
+import { computed, defineProps, ref } from "vue";
+
+const props = defineProps(["totalItems", "itemsPerPage", "onPageChange"]);
+
+const emit = defineEmits(["onPageChange"]);
+
+const currentPage = ref(1);
+
+const totalPages = computed(() =>
+  Math.ceil(props.totalItems / props.itemsPerPage)
+);
+const changePage = (newPage: number) => {
+  if (newPage >= 1 && newPage <= totalPages.value) {
+    currentPage.value = newPage;
+    emit("onPageChange", newPage);
+  }
 };
 </script>
 

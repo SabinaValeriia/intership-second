@@ -1,32 +1,34 @@
 <template lang="pug">
 .form-group(:class="type")
-  label {{ capitalizeFirstLetter(`${type}`) }}
-  .form-icon(@click="toggleInput(type)", v-if="withIcon")
-    .grey-circle(v-if="type === 'lead'")
+  .label-group
+    label {{ capitalizeFirstLetter(`${type}`) }}
+    i.icon.arrow.mobile(:class="{ active: open }", @click="toggleInput")
+  .form-icon(v-if="open")
+    slot(name="prefix")
     input(
       :type="type",
       :placeholder="capitalizeFirstLetter(`${type}`)",
       v-model="inputVal",
-      @focus="isFocused = true"
+      @focus="isFocused = true",
+      :class="{ withIcon }"
     )
-    i.icon.arrow
+    slot(name="suffix")
   slot(name="errors")
 </template>
 
 <script setup lang="ts">
-import { getValidationClass, checkValidation } from "@/types/authValidation";
 import { defineProps, defineEmits, computed, ref } from "vue";
 const props = defineProps({
   type: { type: String },
-  withIcon: { type: Boolean, default: false },
   valueInput: {
     type: String,
   },
+  withIcon: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["open", "setData"]);
+const emit = defineEmits(["setData"]);
 
-const open = ref(false);
+const open = ref(true);
 
 const inputVal = computed({
   get() {
@@ -36,10 +38,11 @@ const inputVal = computed({
     emit("setData", val);
   },
 });
-const capitalizeFirstLetter = (word) => {
+
+const capitalizeFirstLetter = (word: string) => {
   return word.charAt(0).toUpperCase() + word.slice(1);
 };
-const toggleInput = (type) => {
-  emit("open", type);
+const toggleInput = () => {
+  open.value = !open.value;
 };
 </script>

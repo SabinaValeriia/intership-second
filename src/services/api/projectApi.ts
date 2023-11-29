@@ -8,6 +8,9 @@ export const projectPost = (
   return axiosInstance.post("projects?populate=*", payload);
 };
 
-export const showProjects = (): Promise<AxiosResponse<ResProject>> => {
-  return axiosInstance.get("projects?populate=*");
+export const showProjects = (
+  queryParam: string
+): Promise<AxiosResponse<ResProject>> => {
+  const url = `projects?populate=*&${queryParam}`;
+  return axiosInstance.get(url);
 };

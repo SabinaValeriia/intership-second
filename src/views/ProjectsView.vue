@@ -3,90 +3,113 @@
   h1 Projects
   form.position
     .form-group.search
-      .form-icon
-        input(v-model="searchText", placeholder="Search projects")
+      .form-icon 
+        input(v-model="searchText", placeholder="Search")
         i.icon.search
     .mobile
-      .dropdown-block
-        base-input.tags-project(
-          :class="{ select: selectItemTag.length }",
+      .dropdown__block
+        .selected(v-if="tagItem.length > 1") + {{ tagItem.length - 1 }}
+        base-input.tags-block(
           :type="`tags`",
-          :withIcon="true",
-          :value-input="selectItemTag[0] !== undefined ? `Tags: ${selectItemTag[0]}` : 'Tags'",
-          @click="toggleDropdown('tags')"
-        )
-        .selected(v-if="selectItemTag.length > 1") + {{ selectItemTag.length - 1 }}
-        dropdown-search(
+          :value-input="tagItem[0] !== undefined ? `Tags: ${tagItem[0].name}` : 'Tags'",
+          @click="toggleDropdown('tags')",
+          :class="{ select: tagItem.length }"
+        ) 
+          template(v-slot:suffix)
+            i.icon.arrow
+        dropdown-component.tags__block(
           :isOpen="dropdownStates.tags.isOpen",
           :data="tagNames",
-          :tags="true",
-          :clear="true",
           @selectedItem="selectedItem",
-          :className="true"
+          :type="'checkbox'",
+          :title="'Project tags'"
         )
-      .dropdown-block
-        common-button.btn_primary.btn_icon.lead(
-          @click.prevent="toggleDropdown('lead')"
-        ) {{ selectItemLead ? selectItemLead : "Lead" }}
-        dropdown-search(
-          :iconHere="true",
+      .dropdown__block.lead
+        common-button.btn_icon.lead(
+          @click.prevent="toggleDropdown('lead')",
+          :class="[leadItem ? ['btn-secondary', 'select'] : 'btn_primary']"
+        ) {{ leadItem ? leadItem.name : "Lead" }}
+          i.icon.close(v-if="leadItem", @click="deleteLead")
+        dropdown-component.tags__block(
+          :isOpen="dropdownStates.lead.isOpen",
           :data="leadNames",
           @selectedItem="selectedItem",
-          :isOpen="dropdownStates.lead.isOpen",
-          :className="true"
+          :type="'lead-block'"
         )
       common-button.reset.btn-secondary(
-        v-if="selectItemLead || searchText",
+        v-if="leadItem || searchText || tagItem.length",
         @click.prevent="reset"
       ) Reset
   .ptojects-table
     .ptojects-table__block.distance
       .star-block 
         i.icon.star
-      .name Name
+      .sort.name Name
+        button.sort(
+          @click="sort('name', sortDirection === 'asc' ? 'desc' : 'asc')"
+        )
+          i.icon(
+            :class="{ sort: sortDirection === 'asc' && 'name', sort_down: sortDirection === 'desc' && 'name' }"
+          )
       .sort.key Key
+        button.sort(
+          @click="sort('key', sortDirection === 'asc' ? 'desc' : 'asc')"
+        )
+          i.icon(
+            :class="{ sort: sortDirection === 'asc' && 'key', sort_down: sortDirection === 'desc' && 'key' }"
+          )
+        .key 
       .tags Tags
-      .lead Lead
+      .sort.lead Lead
+        button.sort(
+          @click="sort('lead', sortDirection === 'asc' ? 'desc' : 'asc')"
+        )
+          i.icon(
+            :class="{ sort: sortDirection === 'asc' && 'lead', sort_down: sortDirection === 'desc' && 'lead' }"
+          )
       .members Members
-    .projects(v-if="projects.length")
+    .projects(v-if="totalProjects")
       .ptojects-table__block.ptojects-table__content.position(
-        v-for="(project, index) in displayedItems",
+        v-for="(item, index) in computedFilteredProjects",
         :key="index"
       )
         .star-block.laptop
-          i.icon.unchecked_star
-        .name(v-if="isObject(project.logo)")
-          img(:src="JSON.parse(project.logo.name)")
-          p {{ project.title }}
-        .key {{ project.key }}
+          i.icon.unchecked
+          i.icon.star.checked
+        .name(v-if="isObject(item.logo)")
+          img(:src="JSON.parse(item.logo.name)")
+          router-link(to="/dashboard/projects") {{ item.title }}
+        .key {{ item.key }}
         .tags.tags-block
           .tags-block(
-            v-for="(tag, index) in tagNames.slice(0, 3)",
+            v-for="(i, index) in item.tags.data.slice(0, 3)",
             :key="index"
-          ) {{ tag.tag }}
-        .lead.flex(v-if="isObject(project.lead.data.attributes.logo)")
-          img(:src="JSON.parse(project.lead.data.attributes.logo.name)")
-          p {{ project.lead.data.attributes.username }}
-        .members.flex
+          ) {{ i.attributes.name }}
+        .lead.flex(v-if="item.lead")
+          img(:src="JSON.parse(item.lead.data.attributes.logo.name)")
+          router-link(to="/dashboard/teams") {{ item.lead.data.attributes.username }}
+        .members.flex(v-if="item.members")
           .img(
-            v-for="(item, index) in project.members.data.slice(0, 3)",
+            v-for="(i, index) in item.members.data.slice(0, 3)",
             :key="index"
           )
             img(
-              v-if="isObject(item.attributes.logo)",
-              :src="JSON.parse(item.attributes.logo.name)"
+              v-if="isObject(i.attributes.logo)",
+              :src="JSON.parse(i.attributes.logo.name)"
             )
         .star-block.mobile
-          i.icon.unchecked_star
+          i.icon.unchecked
+          i.icon.star
       pagination-component(
-        v-if="projects.length === 0",
-        :totalItems="projects.length",
-        :itemsPerPage="itemsPerPage",
-        :onPageChange="handlePageChange"
+        v-if="totalProjects > 8",
+        :totalItems="totalProjects",
+        :itemsPerPage="8",
+        @onPageChange="handlePageChange"
       )
-    common-loader(v-else)
+    common-loader(v-if="isLoader")
     no-results(
-      :noData="projects.length === 0 ? true : false",
+      v-if="noDataShow || noResultsShow",
+      :noData="totalProjects === 0 ? true : false",
       :noResults="searchLead",
       @reset="reset"
     )
@@ -98,138 +121,195 @@ import NoResults from "@/components/NoResults.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
 import BaseInput from "@/components/common/BaseInput.vue";
 import DropdownSearch from "@/components/common/DropdownSearch.vue";
+import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
-import { computed, onMounted, ref } from "vue";
-import { useUserStore } from "../store/user";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import { showTag, tagNames } from "@/composables/tagActions";
-import { showProject, projects } from "@/composables/projectsAction";
+import { filterFunction } from "@/composables/projectsAction";
 import { showUsers } from "@/services/api/userApi";
-const userStore = useUserStore();
+import { ProjectInterfaceItem } from "@/types/projectApiInterface";
 const projectsArray = ref();
-const tags = ref();
-const members = ref();
-const lengthProjects = ref(null);
-const selectItem = ref([]);
-const selectItemTag = ref([]);
-const selectItemLead = ref();
 const leadNames = ref([]);
-const searchLead = ref(false);
-const totalItems = ref(null);
-const itemsPerPage = ref(10);
 const currentPage = ref(1);
-const isMobileState = ref(false);
+const noResultsShow = ref(false);
+const noDataShow = ref(false);
+const totalProjects = ref(null);
+const tagItem = ref([]);
+const leadItem = ref("");
+const isLoader = ref(false);
+const sortDirection = ref("asc");
+const page = ref(1);
+const limit = ref(8);
+const filteredProjects = ref([]);
+const startIndex = (page.value - 1) * limit.value;
+const endIndex = startIndex + limit.value;
 
 const searchText = ref("");
-const isObject = computed(() => {
-  return function (value) {
-    return value !== null && typeof value === "object";
-  };
+const isObject = computed(() => (value: { name: string }) => {
+  return value !== null && typeof value === "object";
 });
 
-const filterAndPaginateProjects = (
-  allProjects,
-  searchText,
-  currentPage,
-  itemsPerPage
-) => {
-  let filteredProjects = allProjects;
-  isMobile();
-  if (searchText.trim()) {
-    const searchTerm = searchText.trim().toLowerCase();
-    filteredProjects = filteredProjects.filter((project) => {
-      const name = project.title.toLowerCase();
-      return name.includes(searchTerm);
-    });
-  }
-
-  if (selectItemLead.value) {
-    filteredProjects = filteredProjects.filter((project) => {
-      return project.lead.data.attributes.username === selectItemLead.value;
-    });
-    searchLead.value = true;
-  }
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  if (isMobileState.value) {
-    const paginatedProjects = filteredProjects.slice(startIndex, 8);
-    return paginatedProjects;
-  } else {
-    const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
-    return paginatedProjects;
-  }
-};
+const computedFilteredProjects = computed(() => {
+  return filteredProjects.value;
+});
 
 const reset = () => {
-  selectItemLead.value = "";
   searchText.value = "";
-  searchLead.value = false;
+  leadItem.value = "";
+  tagItem.value = [];
+  noResultsShow.value = false;
+  showProjects("_page=1&_limit=8").then((response) => {
+    const startIndex = (page.value - 1) * limit.value;
+    const endIndex = startIndex + limit.value;
+    projectsArray.value = response.data.data
+      .slice(startIndex, endIndex)
+      .map((project: ProjectInterfaceItem) => project.attributes);
+  });
 };
-
-const displayedItems = computed(() => {
-  console.log(displayedItems);
-  return filterAndPaginateProjects(
-    projects.value,
-    searchText.value,
-    currentPage.value,
-    itemsPerPage.value
-  );
-});
 
 const dropdownStates = ref({
   tags: { isOpen: false },
   lead: { isOpen: false },
 });
 
-const isMobile = () => {
-  if (
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
-    )
-  ) {
-    isMobileState.value = true;
-  } else {
-    isMobileState.value = false;
-  }
-};
-
-const toggleDropdown = (dropdownName) => {
+const toggleDropdown = (dropdownName: string) => {
   dropdownStates.value[dropdownName].isOpen =
     !dropdownStates.value[dropdownName].isOpen;
 };
-const handlePageChange = (newPage) => {
-  currentPage.value = newPage;
-};
 
-const selectedItem = (select) => {
+const { selected } = filterFunction([]);
+
+const selectedItem = (tag: { name: string }) => {
   if (dropdownStates.value.tags.isOpen) {
-    const tagToAdd = select.tag;
-
-    if (!selectItemTag.value.includes(tagToAdd)) {
-      selectItemTag.value.push(tagToAdd);
-      dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
+    if (!selected.includes(tag)) {
+      tagItem.value.push(tag);
+      if (tagItem.value.length === tagNames.value.length) {
+        tagNames.value.splice(0, tagNames.value.length);
+        dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
+      }
     }
   } else {
-    selectItemLead.value = select.leadName;
+    leadItem.value = tag;
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   }
 };
+
+const fetchAndSetProjects = () => {
+  const searchTerm = searchText.value.toLowerCase();
+
+  if (searchTerm) {
+    isLoader.value = true;
+    filteredProjects.value = projectsArray.value.filter(
+      (item: { title: string }) => {
+        const title = item.title.toLowerCase();
+        isLoader.value = false;
+        return title.includes(searchTerm);
+      }
+    );
+    if (filteredProjects.value.length) {
+      noResultsShow.value = false;
+    } else {
+      noResultsShow.value = true;
+    }
+  } else if (tagItem.value.length) {
+    isLoader.value = true;
+    showProjects(`filters[tags]=${tagItem.value[0].id}`).then((response) => {
+      const startIndex = (page.value - 1) * limit.value;
+      const endIndex = startIndex + limit.value;
+      isLoader.value = false;
+      return (filteredProjects.value = response.data.data
+        .slice(startIndex, endIndex)
+        .map((project: ProjectInterfaceItem) => project.attributes));
+    });
+  } else if (leadItem.value) {
+    isLoader.value = true;
+    showProjects(`filters[lead]=${leadItem.value.id}`).then((response) => {
+      const startIndex = (page.value - 1) * limit.value;
+      const endIndex = startIndex + limit.value;
+      return (filteredProjects.value = response.data.data
+        .slice(startIndex, endIndex)
+        .map((project: ProjectInterfaceItem) => project.attributes));
+    });
+    isLoader.value = false;
+    if (filteredProjects.value.length) {
+      noResultsShow.value = false;
+    } else {
+      noResultsShow.value = true;
+    }
+  } else {
+    filteredProjects.value = projectsArray.value;
+  }
+};
+
+watchEffect(() => {
+  fetchAndSetProjects();
+});
+
+const handlePageChange = (newPage: number) => {
+  currentPage.value = newPage;
+
+  page.value = currentPage.value;
+  isLoader.value = true;
+
+  showProjects("_page=1&_limit=8").then((response) => {
+    const startIndex = (page.value - 1) * limit.value;
+    const endIndex = startIndex + limit.value;
+    projectsArray.value = response.data.data
+      .slice(startIndex, endIndex)
+      .map((project: ProjectInterfaceItem) => project.attributes);
+    isLoader.value = false;
+  });
+};
+
+const deleteLead = () => {
+  leadItem.value = "";
+  dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
+};
+
+const sort = (field: string, order: "asc" | "desc") => {
+  sortDirection.value = order;
+  if (order === "asc") {
+    showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
+      projectsArray.value = response.data.data
+        .slice(startIndex, endIndex)
+        .map((project: ProjectInterfaceItem) => project.attributes);
+    });
+  } else {
+    showProjects("_page=1&_limit=8&sort=title:DESC").then((response) => {
+      projectsArray.value = response.data.data
+        .slice(startIndex, endIndex)
+        .map((project: ProjectInterfaceItem) => project.attributes);
+    });
+  }
+};
+
 onMounted(() => {
-  showProject();
-  projectsArray.value = projects.value;
-  lengthProjects.value = projectsArray.value.length;
+  isLoader.value = true;
+  showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
+    projectsArray.value = response.data.data
+      .slice(startIndex, endIndex)
+      .map((project: ProjectInterfaceItem) => project.attributes);
+    totalProjects.value = response.data.data.length;
+    isLoader.value = false;
+    if (totalProjects.value === 0) {
+      noDataShow.value = true;
+    } else {
+      noDataShow.value = false;
+    }
+  });
+
   showTag();
   showUsers().then(({ data }) => {
     leadNames.value = data.map(
       (item: {
-        leadName: string;
+        name: string;
         logo: {
           name: string;
         };
         id: number;
       }) => ({
-        leadName: item.username,
+        name: item.username,
         logo: item.logo,
         id: item.id,
       })
@@ -244,6 +324,161 @@ onMounted(() => {
   height: 100vh;
   width: calc(100% - 80px);
   padding: 28px 40px 89px;
+  .position {
+    display: flex;
+    @include media_laptop {
+      .form-group {
+        margin-bottom: 26px;
+      }
+    }
+    @include media_mobile {
+      flex-direction: column;
+      .form-group {
+        margin-bottom: 0;
+        &.tags {
+          .form-icon {
+            input {
+              padding: 9px 10px;
+              width: 64px;
+              height: 34px;
+            }
+          }
+        }
+      }
+    }
+    label {
+      display: none;
+    }
+    .search {
+      input {
+        width: 220px;
+        @include media_mobile {
+          width: 100%;
+          padding: 8px 8px 8px 27px;
+          height: 34px;
+        }
+      }
+    }
+    i.icon {
+      right: 16px;
+      &.arrow {
+        height: 12px;
+        @include media_mobile {
+          right: 8px;
+          width: 10px;
+          height: 5px;
+        }
+        &.mobile {
+          display: none;
+        }
+      }
+      &.search {
+        @include media_mobile {
+          left: 8px;
+          height: 13px;
+          width: 13px;
+        }
+      }
+    }
+    .mobile {
+      display: flex;
+      position: relative;
+      margin-left: 10px;
+      @include media_mobile {
+        margin-left: 0px;
+        margin-top: 6px;
+      }
+      .tags__block {
+        top: 64px;
+        z-index: 3;
+        width: 240px;
+        @include media_mobile {
+          top: 47px;
+          width: 341px;
+        }
+      }
+      .selected {
+        background: var(--accent);
+        @include font(12px, 500, 16px, var(--white));
+        padding: 4px 8px;
+        border-radius: 12px;
+        width: fit-content;
+        position: absolute;
+        right: 49px;
+        top: 12px;
+        z-index: 2;
+        @include media_mobile {
+          font-size: 8px;
+          line-height: 12px;
+          right: 23px;
+          top: 8px;
+        }
+      }
+      button {
+        &.reset {
+          width: 102px;
+          height: 48px;
+          margin-left: 20px;
+          @include media_mobile {
+            width: 67px;
+            height: 34px;
+            margin-left: 12px;
+          }
+        }
+        &.lead {
+          height: 48px;
+        }
+      }
+      .dropdown__block {
+        position: relative;
+        .lead {
+          height: 48px;
+          margin-left: 10px;
+          width: 102px;
+          @include media_mobile {
+            width: 67px;
+            height: 34px;
+            margin-left: 6px;
+          }
+          i.close {
+            width: 12px;
+            height: 12px;
+            right: 10px;
+            top: 19px;
+            &::before {
+              background: var(--white);
+            }
+            @include media_mobile {
+              top: 12px;
+            }
+          }
+        }
+        .btn-secondary {
+          padding: 16px 34px 16px 16px;
+          @include media_mobile {
+            padding: 9px 34px 9px 10px;
+          }
+          &.select {
+            width: 100%;
+          }
+        }
+        .tags-block {
+          width: 97px;
+          @include media_mobile {
+            width: 64px;
+          }
+          &.select {
+            width: 100%;
+            position: relative;
+            input {
+              color: var(--accent);
+              width: 100%;
+            }
+          }
+        }
+      }
+    }
+  }
   @include media_tablet {
     width: calc(100% - 40px);
     padding: 28px 20px 89px;
@@ -259,11 +494,6 @@ onMounted(() => {
       background: url("@/assets/icons/member.svg");
     }
   }
-  button.reset {
-    width: 91px;
-    height: 48px;
-    margin-left: 10px;
-  }
   h1 {
     padding: 0;
     margin: 0 0 28px;
@@ -275,9 +505,16 @@ onMounted(() => {
   .ptojects-table {
     width: 100%;
     margin-top: 16px;
+    @include media_laptop {
+      margin-top: 0;
+    }
+    @include media_mobile {
+      margin-top: 16px;
+    }
     &__block {
       display: flex;
       align-items: center;
+      position: relative;
       @include font(16px, 500, 24px, var(--text));
       @include media_tablet {
         font-size: 14px;
@@ -319,6 +556,9 @@ onMounted(() => {
       .star-block {
         width: 3.67%;
         margin-left: 10px;
+        @include media_laptop {
+          width: 4.67%;
+        }
         @include media_mobile {
           width: 5%;
           margin-left: 0;
@@ -338,13 +578,37 @@ onMounted(() => {
           height: 16px;
           width: 16px;
           position: relative;
+          @include media_mobile {
+            display: none;
+          }
         }
-        .unchecked_star {
+        .unchecked {
           position: relative;
-          margin: 5px -2px;
+          margin: -11px 12px;
+          &::before {
+            background: var(--text);
+          }
+          &:hover {
+            display: none;
+          }
           @include media_tablet {
             width: 16px;
             height: 16px;
+          }
+          @include media_mobile {
+            margin: -11px 17px;
+          }
+        }
+        .checked {
+          margin: -20px 12px;
+          width: 20px;
+          height: 20px;
+          display: none;
+          &::before {
+            background: var(--notify_warning);
+          }
+          &:hover {
+            display: block;
           }
         }
       }
@@ -353,8 +617,8 @@ onMounted(() => {
         margin-left: -2px;
         display: flex;
         align-items: center;
-        @include media_tablet {
-          margin-left: 10px;
+        @include media_laptop {
+          margin-left: 1px;
         }
         @include media_mobile {
           margin-left: 0;
@@ -363,9 +627,13 @@ onMounted(() => {
         img {
           border-radius: 6px;
         }
-        p {
+        a {
           color: var(--accent);
           margin: 0;
+          text-decoration: none;
+          &:hover {
+            text-decoration: underline;
+          }
           @include media_tablet {
             font-size: 12px;
             line-height: 16px;
@@ -381,6 +649,49 @@ onMounted(() => {
         }
         @include media_mobile {
           display: none;
+        }
+      }
+      .sort {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        i.icon.sort {
+          width: 16px;
+          height: 16px;
+        }
+        &.name {
+          position: relative;
+          button.sort {
+            i.icon.sort {
+              @include media_laptop {
+                position: absolute;
+                right: 17px;
+              }
+            }
+          }
+        }
+        button {
+          background: transparent;
+          border: none;
+          .sort {
+            position: relative;
+            &::before {
+              background: var(--text);
+            }
+            &:hover {
+              &::before {
+                background: var(--primary);
+              }
+            }
+          }
+          .sort_down {
+            position: relative;
+            &:hover {
+              &::before {
+                background: var(--primary);
+              }
+            }
+          }
         }
       }
       .tags {
@@ -415,9 +726,13 @@ onMounted(() => {
         margin-left: 7px;
         display: flex;
         align-items: center;
-        p {
+        a {
           color: var(--accent);
           margin: 0;
+          text-decoration: none;
+          &:hover {
+            text-decoration: underline;
+          }
         }
         @include media_tablet {
           margin-left: -12px;
@@ -444,8 +759,20 @@ onMounted(() => {
           z-index: 1;
           position: relative;
           margin-left: -8px;
+          cursor: pointer;
+          &:hover {
+            z-index: 3;
+            border: 2px solid var(--secondary);
+            width: 34px;
+            height: 34px;
+            border-radius: 19px;
+          }
           img {
             margin-right: 0;
+            &:hover {
+              width: 34px;
+              height: 34px;
+            }
           }
           &:first-child {
             margin-left: 3px;
@@ -458,6 +785,11 @@ onMounted(() => {
       align-items: center;
       font-size: 14px;
       line-height: 20px;
+      &.position {
+        @include media_mobile {
+          flex-direction: row;
+        }
+      }
       @include media_tablet {
         font-size: 12px;
         line-height: 16px;
