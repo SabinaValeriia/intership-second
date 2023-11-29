@@ -326,7 +326,7 @@ onMounted(() => {
   padding: 28px 40px 89px;
   .position {
     display: flex;
-    @include media_laptop {
+    @include media_tablet {
       .form-group {
         margin-bottom: 26px;
       }
@@ -505,7 +505,7 @@ onMounted(() => {
   .ptojects-table {
     width: 100%;
     margin-top: 16px;
-    @include media_laptop {
+    @include media_tablet {
       margin-top: 0;
     }
     @include media_mobile {
@@ -556,7 +556,7 @@ onMounted(() => {
       .star-block {
         width: 3.67%;
         margin-left: 10px;
-        @include media_laptop {
+        @include media_tablet {
           width: 4.67%;
         }
         @include media_mobile {
@@ -617,7 +617,7 @@ onMounted(() => {
         margin-left: -2px;
         display: flex;
         align-items: center;
-        @include media_laptop {
+        @include media_tablet {
           margin-left: 1px;
         }
         @include media_mobile {
@@ -663,7 +663,7 @@ onMounted(() => {
           position: relative;
           button.sort {
             i.icon.sort {
-              @include media_laptop {
+              @include media_tablet {
                 position: absolute;
                 right: 17px;
               }
