@@ -27,15 +27,15 @@
     i.icon.info_second.header_icon
     i.icon.setting.header_icon
     img.avatar(
-      v-if="userStore.user.image",
-      :src="userStore.user.image",
+      v-if="userStore.user.logo",
+      :src="JSON.parse(userStore.user.logo.name)",
       :alt="'avatar'"
     )
     .header__avatar.avatar(v-else) {{ logoName }}
   .header__mobile
     img.avatar(
-      v-if="userStore.user.image",
-      :src="userStore.user.image",
+      v-if="userStore.user.logo",
+      :src="JSON.parse(userStore.user.logo.name)",
       :alt="'avatar'",
       @click="openModal(EnumModalKeys.ModalHeader)"
     )
@@ -59,25 +59,24 @@ import ModalCreate from "@/modals/ModalCreate.vue";
 import { computed, ref } from "vue";
 import { useUserStore } from "../store/user";
 const userStore = useUserStore();
-const fullName = computed(() => {
-  const username = userStore.user.username || "";
-  return username;
-});
 const dropdownStates = ref({
   work: { isOpen: false },
   project: { isOpen: false },
 });
 
-const toggleDropdown = (dropdownName) => {
-  dropdownStates.value[dropdownName].isOpen =
-    !dropdownStates.value[dropdownName].isOpen;
-};
+const fullName = computed(() => {
+  const username = userStore.user.username || "";
+  return username;
+});
 
 const logoName = computed(() => {
   const fullNameValue = fullName.value;
   return fullNameValue ? fullNameValue.charAt(0).toUpperCase() : 0;
 });
-
+const toggleDropdown = (dropdownName: string) => {
+  dropdownStates.value[dropdownName].isOpen =
+    !dropdownStates.value[dropdownName].isOpen;
+};
 const close = () => {
   openModal(EnumModalKeys.ModalCreate);
 };
