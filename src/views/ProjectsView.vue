@@ -248,18 +248,16 @@ watchEffect(() => {
 
 const handlePageChange = (newPage: number) => {
   currentPage.value = newPage;
-
   page.value = currentPage.value;
   isLoader.value = true;
-
   showProjects("_page=1&_limit=8").then((response) => {
     const startIndex = (page.value - 1) * limit.value;
     const endIndex = startIndex + limit.value;
     projectsArray.value = response.data.data
       .slice(startIndex, endIndex)
       .map((project: ProjectInterfaceItem) => project.attributes);
-    isLoader.value = false;
   });
+  isLoader.value = false;
 };
 
 const deleteLead = () => {

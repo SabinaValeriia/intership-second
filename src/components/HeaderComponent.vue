@@ -5,16 +5,30 @@
       i.icon.logo_header
     ul
       li 
-        a(@click="toggleDropdown('work')") Your work
+        a Your work
       li.projects
-        a(active-class="active", @click="toggleDropdown('project')") Projects
+        router-link(
+          to="projects",
+          active-class="active",
+          @click="toggleDropdown('project')"
+        ) Projects
         dropdown-menu(
           :isOpen="dropdownStates.project.isOpen",
           title="Starred",
-          :project="true"
+          :project="true",
+          :type="'projects'"
         )
       li 
-        a Teams
+        router-link(
+          to="teams",
+          active-class="active",
+          @click="toggleDropdown('teams')"
+        ) Teams
+        dropdown-menu(
+          :isOpen="dropdownStates.teams.isOpen",
+          title="Your Collaborators",
+          :type="'teams'"
+        )
         span
     common-button.btn-secondary(@click="openModal(EnumModalKeys.ModalCreate)") Create
   .header-block__right
@@ -62,6 +76,7 @@ const userStore = useUserStore();
 const dropdownStates = ref({
   work: { isOpen: false },
   project: { isOpen: false },
+  teams: { isOpen: false },
 });
 
 const fullName = computed(() => {

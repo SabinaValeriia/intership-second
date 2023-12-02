@@ -81,6 +81,18 @@
     &.sort_down {
         mask-image: url("@/assets/icons/sort_down.svg");
     }
+    &.member {
+        mask-image: url("@/assets/icons/member.svg");
+    }
+    &.projects {
+        mask-image: url("@/assets/icons/projects.svg");
+    }
+    &.department {
+        mask-image: url("@/assets/icons/department.svg");
+    }
+    &.reset-icon {
+        mask-image: url("@/assets/icons/reset.svg");
+    }
     @include media_mobile {
         width: 16px;
         height: 16px;

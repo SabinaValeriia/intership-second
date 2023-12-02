@@ -8,8 +8,11 @@ export const loginUser = (
   return axiosInstance.post("auth/local", payload);
 };
 
-export const showUsers = (): Promise<AxiosResponse<ResUser>> => {
-  return axiosInstance.get("users?populate=*");
+export const showUsers = (
+  queryParam: string
+): Promise<AxiosResponse<ResUser>> => {
+  const url = `users?populate=*&${queryParam}`;
+  return axiosInstance.get(url);
 };
 
 export const showMe = (): Promise<AxiosResponse<ResUser>> => {
