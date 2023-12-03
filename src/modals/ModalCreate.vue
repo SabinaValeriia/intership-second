@@ -62,7 +62,7 @@ app-modal
             base-input(
               :class="getValidationClass($v, 'lead')",
               :type="'lead'",
-              :value-input="dropdownStates.lead.isOpen ? form.lead.name : leadName",
+              :value-input="form.lead.name ? form.lead.name : leadName",
               @click="toggleDropdown('lead')",
               :withIcon="true"
             )
@@ -127,7 +127,10 @@ import {
 import { ProjectInterface } from "@/types/projectApiInterface";
 import { showTag, tagNames } from "@/composables/tagActions";
 import { ImageInterface } from "../types/ImageInterface";
-import { filterFunction } from "@/composables/projectsAction";
+import { filterFunction, projects } from "@/composables/projectsAction";
+import { useUserStore } from "../store/user";
+
+const userStore = useUserStore();
 
 interface ProjectData {
   title: string;
@@ -139,7 +142,7 @@ interface ProjectData {
   tags: string[];
 }
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "pushTask"]);
 const members = ref([]);
 const tags = ref([]);
 const leadNames = ref([]);
@@ -218,32 +221,55 @@ const { selected, filtered } = filterFunction([]);
 const selectedItem = (tag: string) => {
   if (dropdownStates.value.lead.isOpen) {
     form.value.lead = tag;
+    const tagIndexToRemove = leadNames.value.findIndex((m) => m.id === tag.id);
+    console.log(tagIndexToRemove);
+    if (tagIndexToRemove !== -1) {
+      leadNames.value.splice(tagIndexToRemove, 1);
+    }
+
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   } else if (dropdownStates.value.tags.isOpen) {
     if (!selected.includes(tag)) {
       form.value.tags.push(tag);
-      if (form.value.tags.length === tagNames.value.length) {
-        dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
-        showAdd.value = false;
-      }
+    }
+    const tagIndexToRemove = tagNames.value.findIndex((t) => t.id === tag.id);
+    if (tagIndexToRemove !== -1) {
+      tagNames.value.splice(tagIndexToRemove, 1);
+    }
+    if (!tagNames.value.length) {
+      dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
+      showAdd.value = false;
     }
     tags.value.push(tag.id.toString());
   } else {
     if (!selected.includes(tag.name)) {
       form.value.members.push(tag.name);
+      const tagIndexToRemove = membersNames.value.findIndex(
+        (m) => m.id === tag.id
+      );
+      console.log(tagIndexToRemove);
+      if (tagIndexToRemove !== -1) {
+        membersNames.value.splice(tagIndexToRemove, 1);
+        console.log(membersNames.value);
+      }
+
       if (form.value.members.length === membersNames.value.length) {
         dropdownStates.value.members.isOpen =
           !dropdownStates.value.members.isOpen;
-        membersNames.value.splice(0, membersNames.value.length);
       }
     }
-
     members.value.push(tag.id.toString());
   }
 };
 
-const deleteTag = (tag: { tag: string; id: number }) => {
-  form.value.tags.splice(tag, 1);
+const deleteTag = (tag: { name: string; id: number }) => {
+  const tagIndex = form.value.tags.findIndex((t) => t.id === tag.id);
+
+  if (tagIndex !== -1) {
+    form.value.tags.splice(tagIndex, 1);
+    tagNames.value.push(tag);
+  }
+
   showAdd.value = true;
 };
 
@@ -270,6 +296,7 @@ const save = () => {
   };
   projectPost(dataProject)
     .then(({ data }) => {
+      userStore.showProjectsData(data);
       close();
       pushNotification({
         text: "The project has been added successfully",

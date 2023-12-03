@@ -11,7 +11,7 @@
         .selected(v-if="tagItem.length > 1") + {{ tagItem.length - 1 }}
         base-input.tags-block(
           :type="`tags`",
-          :value-input="tagItem[0] !== undefined ? `Tags: ${tagItem[0].name}` : 'Tags'",
+          :value-input="tagItem.length > 0 ? `Tags: ${tagItem[0].name}` : 'Tags'",
           @click="toggleDropdown('tags')",
           :class="{ select: tagItem.length }"
         ) 
@@ -70,7 +70,7 @@
       .members Members
     .projects(v-if="totalProjects")
       .ptojects-table__block.ptojects-table__content.position(
-        v-for="(item, index) in computedFilteredProjects",
+        v-for="(item, index) in projectsArray",
         :key="index"
       )
         .star-block.laptop
@@ -100,13 +100,13 @@
         .star-block.mobile
           i.icon.unchecked
           i.icon.star
+      common-loader(v-if="isLoader")
       pagination-component(
         v-if="totalProjects > 8",
         :totalItems="totalProjects",
         :itemsPerPage="8",
         @onPageChange="handlePageChange"
       )
-    common-loader(v-if="isLoader")
     no-results(
       v-if="noDataShow || noResultsShow",
       :noData="totalProjects === 0 ? true : false",
@@ -124,12 +124,13 @@ import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import { showTag, tagNames } from "@/composables/tagActions";
 import { filterFunction } from "@/composables/projectsAction";
 import { showUsers } from "@/services/api/userApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
-const projectsArray = ref();
+import { useUserStore } from "../store/user";
+const projectsArray = ref([]);
 const leadNames = ref([]);
 const currentPage = ref(1);
 const noResultsShow = ref(false);
@@ -141,17 +142,13 @@ const isLoader = ref(false);
 const sortDirection = ref("asc");
 const page = ref(1);
 const limit = ref(8);
-const filteredProjects = ref([]);
 const startIndex = (page.value - 1) * limit.value;
 const endIndex = startIndex + limit.value;
+const userStore = useUserStore();
 
 const searchText = ref("");
 const isObject = computed(() => (value: { name: string }) => {
   return value !== null && typeof value === "object";
-});
-
-const computedFilteredProjects = computed(() => {
-  return filteredProjects.value;
 });
 
 const reset = () => {
@@ -182,7 +179,7 @@ const { selected } = filterFunction([]);
 
 const selectedItem = (tag: { name: string }) => {
   if (dropdownStates.value.tags.isOpen) {
-    if (!selected.includes(tag)) {
+    if (!tagItem.value.some((selectedTag) => selectedTag.id === tag.id)) {
       tagItem.value.push(tag);
       if (tagItem.value.length === tagNames.value.length) {
         tagNames.value.splice(0, tagNames.value.length);
@@ -200,45 +197,61 @@ const fetchAndSetProjects = () => {
 
   if (searchTerm) {
     isLoader.value = true;
-    filteredProjects.value = projectsArray.value.filter(
+    projectsArray.value = projectsArray.value.filter(
       (item: { title: string }) => {
         const title = item.title.toLowerCase();
-        isLoader.value = false;
         return title.includes(searchTerm);
       }
     );
-    if (filteredProjects.value.length) {
-      noResultsShow.value = false;
+    if (projectsArray.value.length) {
+      setTimeout(() => {
+        isLoader.value = false;
+      }, 1000);
+      isLoader.value = false;
     } else {
+      setTimeout(() => {
+        isLoader.value = false;
+      }, 1000);
       noResultsShow.value = true;
     }
   } else if (tagItem.value.length) {
     isLoader.value = true;
-    showProjects(`filters[tags]=${tagItem.value[0].id}`).then((response) => {
-      const startIndex = (page.value - 1) * limit.value;
-      const endIndex = startIndex + limit.value;
-      isLoader.value = false;
-      return (filteredProjects.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes));
-    });
+
+    setTimeout(() => {
+      showProjects(`filters[tags]=${tagItem.value[0].id}`).then((response) => {
+        const startIndex = (page.value - 1) * limit.value;
+        const endIndex = startIndex + limit.value;
+        projectsArray.value = response.data.data
+          .slice(startIndex, endIndex)
+          .map((project) => project.attributes);
+        isLoader.value = false;
+        if (projectsArray.value.length) {
+          noResultsShow.value = false;
+        } else {
+          noResultsShow.value = true;
+        }
+      });
+    }, 1000);
   } else if (leadItem.value) {
     isLoader.value = true;
-    showProjects(`filters[lead]=${leadItem.value.id}`).then((response) => {
-      const startIndex = (page.value - 1) * limit.value;
-      const endIndex = startIndex + limit.value;
-      return (filteredProjects.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes));
-    });
-    isLoader.value = false;
-    if (filteredProjects.value.length) {
-      noResultsShow.value = false;
-    } else {
-      noResultsShow.value = true;
-    }
+
+    setTimeout(() => {
+      showProjects(`filters[lead]=${leadItem.value.id}`).then((response) => {
+        const startIndex = (page.value - 1) * limit.value;
+        const endIndex = startIndex + limit.value;
+        projectsArray.value = response.data.data
+          .slice(startIndex, endIndex)
+          .map((project) => project.attributes);
+        isLoader.value = false;
+        if (projectsArray.value.length) {
+          noResultsShow.value = false;
+        } else {
+          noResultsShow.value = true;
+        }
+      });
+    }, 1000);
   } else {
-    filteredProjects.value = projectsArray.value;
+    return projectsArray.value;
   }
 };
 
@@ -248,18 +261,18 @@ watchEffect(() => {
 
 const handlePageChange = (newPage: number) => {
   currentPage.value = newPage;
-
   page.value = currentPage.value;
   isLoader.value = true;
-
-  showProjects("_page=1&_limit=8").then((response) => {
-    const startIndex = (page.value - 1) * limit.value;
-    const endIndex = startIndex + limit.value;
-    projectsArray.value = response.data.data
-      .slice(startIndex, endIndex)
-      .map((project: ProjectInterfaceItem) => project.attributes);
+  setTimeout(() => {
     isLoader.value = false;
-  });
+    showProjects("_page=1&_limit=8").then((response) => {
+      const startIndex = (page.value - 1) * limit.value;
+      const endIndex = startIndex + limit.value;
+      projectsArray.value = response.data.data
+        .slice(startIndex, endIndex)
+        .map((project: ProjectInterfaceItem) => project.attributes);
+    });
+  }, 1000);
 };
 
 const deleteLead = () => {
@@ -285,20 +298,22 @@ const sort = (field: string, order: "asc" | "desc") => {
 };
 
 onMounted(() => {
-  isLoader.value = true;
+  watch(
+    () => userStore.projectData,
+    (newProjectData) => {
+      isLoader.value = true;
+      setTimeout(() => {
+        projectsArray.value.push(newProjectData.data.attributes);
+        isLoader.value = false;
+      }, 1000);
+    }
+  );
   showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
     projectsArray.value = response.data.data
       .slice(startIndex, endIndex)
       .map((project: ProjectInterfaceItem) => project.attributes);
     totalProjects.value = response.data.data.length;
-    isLoader.value = false;
-    if (totalProjects.value === 0) {
-      noDataShow.value = true;
-    } else {
-      noDataShow.value = false;
-    }
   });
-
   showTag();
   showUsers().then(({ data }) => {
     leadNames.value = data.map(

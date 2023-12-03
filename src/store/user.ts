@@ -11,7 +11,7 @@ export const useUserStore = defineStore(
   () => {
     const data = ref({});
     const user = ref({ ...defaultUser } as UserInterface);
-    const project = ref();
+    const projectData = ref({});
     const accessToken = ref("");
 
     const isAuthorized = computed(() => !!user.value.id && !!accessToken.value);
@@ -19,8 +19,10 @@ export const useUserStore = defineStore(
     const login = (data: UserInterface) => {
       user.value = data;
     };
-    const projectsShow = (data: any) => {
-      project.value = data;
+
+    const showProjectsData = (data: any) => {
+      projectData.value = data;
+      console.log(projectData);
     };
 
     const setTokens = (payload: { accessToken: string }) => {
@@ -40,8 +42,9 @@ export const useUserStore = defineStore(
       accessToken,
       setTokens,
       login,
-      projectsShow,
       clear,
+      projectData,
+      showProjectsData,
     };
   },
   {
