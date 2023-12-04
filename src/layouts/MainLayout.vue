@@ -1,6 +1,7 @@
 <template lang="pug">
 header-component
-router-view
+.content
+  router-view
 footer-component.footer
 </template>
 
@@ -10,6 +11,12 @@ import FooterComponent from "@/components/FooterComponent.vue";
 </script>
 
 <style lang="scss" scoped>
+.content {
+  @include media_mobile {
+    overflow: auto;
+  }
+}
+
 .footer {
   display: none;
   @include media_mobile {

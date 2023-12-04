@@ -1,9 +1,15 @@
 <template lang="pug">
 .no-results
-  img(:src="require(`@/assets/icons/${noData ? 'no-search' : 'no-data'}.svg`)")
-  h2(v-if="noData") Wait!
-  p {{ noData ? "You have no projects created, please create new one." : "No results found, try to reset filters" }}
-  common-button.btn-secondary(@click="noData ? create() : reset()") {{ noData ? "Create" : "Reset" }}
+  img.img(
+    :src="require(`@/assets/icons/${noData ? 'no-search' : 'no-data'}.svg`)"
+  )
+  div
+    h2 {{ title }}
+    p {{ desc }}
+  common-button.btn-secondary(
+    v-if="isButton",
+    @click="noData ? create() : reset()"
+  ) {{ noData ? "Create" : "Reset" }}
 </template>
 
 <script setup lang="ts">
@@ -19,6 +25,16 @@ const props = defineProps({
   noData: {
     type: Boolean,
     default: false,
+  },
+  desc: {
+    type: String,
+  },
+  title: {
+    type: String,
+  },
+  isButton: {
+    type: Boolean,
+    default: true,
   },
 });
 
@@ -37,6 +53,51 @@ const create = () => {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  &.no-results {
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-left: 65px;
+    @include media_tablet {
+      margin-left: 0;
+    }
+    @include media_mobile {
+      flex-direction: column;
+      padding: 16px 26px;
+      border: 1px solid var(--primary);
+      border-radius: 4px;
+    }
+
+    .img {
+      width: 140px;
+      height: 120px;
+      margin: 0 36px 0 0;
+      @include media_mobile {
+        width: 98px;
+        height: 84px;
+        margin: 0;
+      }
+    }
+    p {
+      @include font(12px, 400, 16px, var(--text));
+      width: 191px;
+      text-align: left;
+      @include media_mobile {
+        width: 100%;
+        font-size: 11px;
+        line-height: 14px;
+        text-align: center;
+      }
+    }
+    h2 {
+      @include font(16px, 500, 20px, var(--text));
+      margin: 0 0 6px 0;
+      @include media_mobile {
+        font-size: 14px;
+        margin: 10px 0 6px;
+        text-align: center;
+      }
+    }
+  }
   &.menu-no {
     border-bottom: 1px solid var(--primary);
     margin-bottom: 16px;

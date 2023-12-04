@@ -69,7 +69,9 @@
       i.icon.reset-icon
   .box-container
     .box-item(v-for="(lead, index) in computedFilteredTeams", :key="index")
-      .flip-box
+      router-link.flip-box(
+        :to="{ name: 'teamsUser', params: { id: lead.id } }"
+      )
         .flip-box-front
           img.avatar(
             v-if="lead.logo",
@@ -92,15 +94,8 @@
           .flip-box-desc
             h5 Department:
               span {{ lead.department.name }}
-            h5 Manager:
-              img(
-                v-if="lead.manager.logo",
-                :src="JSON.parse(lead.manager.logo.name)",
-                alt="avatar"
-              )
-              span {{ lead.manager.username }}
             h5 Projects:
-              span {{ lead.project.length }} +
+              span {{ lead.projects.length }} +
             h5 Assign tasks:
               span {{ lead.tasks.length }} +
             h5 Hour spent:
@@ -526,6 +521,7 @@ onMounted(() => {
   }
 
   .flip-box {
+    text-decoration: none;
     -ms-transform-style: preserve-3d;
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;

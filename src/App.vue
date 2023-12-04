@@ -7,4 +7,10 @@ router-view
 import NotificationComponent from "./components/common/NotificationComponent.vue";
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+#app {
+  @include media_mobile {
+    overflow: hidden;
+  }
+}
+</style>
