@@ -22,7 +22,6 @@ export const useUserStore = defineStore(
 
     const showProjectsData = (data: any) => {
       projectData.value = data;
-      console.log(projectData);
     };
 
     const setTokens = (payload: { accessToken: string }) => {
