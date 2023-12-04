@@ -30,7 +30,7 @@
         @click="toggleDropdown('manager')",
         :class="{ selected: managerValue.length }"
       ) {{ managerValue.length ? managerValue[0].name : "Manager" }}
-        i.icon.member(v-if="!managerValue.length")
+        i.icon.member(v-if="!managerValue.logo")
         img(v-else, :src="JSON.parse(managerValue[0].logo.name)", alt="avatar")
         i.icon.close(
           v-if="managerValue.length",

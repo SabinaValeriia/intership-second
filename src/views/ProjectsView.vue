@@ -77,7 +77,7 @@
           i.icon.unchecked
           i.icon.star.checked
         .name(v-if="isObject(item.logo)")
-          img(:src="JSON.parse(item.logo.name)")
+          img(v-if="item.logo", :src="JSON.parse(item.logo.name)")
           router-link(to="/dashboard/projects") {{ item.title }}
         .key {{ item.key }}
         .tags.tags-block
@@ -86,7 +86,10 @@
             :key="index"
           ) {{ i.attributes.name }}
         .lead.flex(v-if="item.lead")
-          img(:src="JSON.parse(item.lead.data.attributes.logo.name)")
+          img(
+            v-if="item.lead.data.attributes.logo",
+            :src="JSON.parse(item.lead.data.attributes.logo.name)"
+          )
           router-link(to="/dashboard/teams") {{ item.lead.data.attributes.username }}
         .members.flex(v-if="item.members")
           .img(

@@ -7,11 +7,7 @@
 ul(v-if="data.length", :class="({ checkbox: type === 'checkbox' }, type)")
   li(v-for="(item, index) in data", :key="index", @click="selectItem(item)")
     .image-item(v-if="type === 'lead'")
-      img.logo(
-        v-if="item.logo !== null || item.logo",
-        :src="JSON.parse(item.logo.name)",
-        alt="name"
-      )
+      img.logo(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
       .grey-block(v-else)
     button.checkbox(
       v-if="type === 'checkbox'",

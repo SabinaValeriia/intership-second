@@ -222,11 +222,9 @@ const selectedItem = (tag: string) => {
   if (dropdownStates.value.lead.isOpen) {
     form.value.lead = tag;
     const tagIndexToRemove = leadNames.value.findIndex((m) => m.id === tag.id);
-    console.log(tagIndexToRemove);
     if (tagIndexToRemove !== -1) {
       leadNames.value.splice(tagIndexToRemove, 1);
     }
-
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   } else if (dropdownStates.value.tags.isOpen) {
     if (!selected.includes(tag)) {
@@ -247,12 +245,9 @@ const selectedItem = (tag: string) => {
       const tagIndexToRemove = membersNames.value.findIndex(
         (m) => m.id === tag.id
       );
-      console.log(tagIndexToRemove);
       if (tagIndexToRemove !== -1) {
         membersNames.value.splice(tagIndexToRemove, 1);
-        console.log(membersNames.value);
       }
-
       if (form.value.members.length === membersNames.value.length) {
         dropdownStates.value.members.isOpen =
           !dropdownStates.value.members.isOpen;
