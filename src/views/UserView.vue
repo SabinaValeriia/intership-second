@@ -2,14 +2,15 @@
 .user(v-if="user.length") 
   div(v-for="(item, index) in user", :key="index")
     .user--bg
-      img.user--bg-icon(
-        v-if="item.logo",
-        :src="JSON.parse(item.logo.name)",
-        alt="user"
-      )
-      .mobile-user
-        h2 {{ item.name }}
-        p {{ item.email }}
+      .user--bg-block
+        img.user--bg-icon(
+          v-if="item.logo",
+          :src="JSON.parse(item.logo.name)",
+          alt="user"
+        )
+        .mobile-user
+          h2 {{ item.name }}
+          p {{ item.email }}
 
     .user--info
       .tablet 
@@ -47,12 +48,16 @@
               v-for="(task, index) in item.tasks.slice(0, 3)",
               :key="index"
             )
-              i.icon.company
+              div(v-for="(taskItem, index) in tasks", :key="index")
+                i.icon(
+                  v-if="taskItem.title === task.title",
+                  :class="getTaskTypeName(taskItem.type.data.attributes.name)"
+                )
               div
                 .flex
                   h6 {{ task.title }}
                 .flex(v-for="(p, index) in projects", :key="index") 
-                  .flex.desc(v-if="p.key === task.key")
+                  .flex.desc(v-if="p.key === item.projects[0].key")
                     p {{ p.title }}
                     i.icon.dot
                     p.members(
@@ -78,7 +83,7 @@
                 :src="JSON.parse(project.logo.name)",
                 alt="user"
               )
-              p {{ project.title }} ({{ project.key }})
+              p.project-item {{ project.title }} ({{ project.key }})
           .block(v-else)
             no-results.user-results(
               :noData="'true'",
@@ -99,16 +104,24 @@ import { onMounted, ref } from "vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
 import NoResults from "@/components/NoResults.vue";
 import { showProjects } from "@/services/api/projectApi";
+import { useRoute } from "vue-router";
+import { UserInterface } from "@/types/UserInterface";
+import { showTasks } from "@/services/api/tasksApi";
+import { getTaskTypeName } from "@/composables/projectsAction";
+import { ShowTasks } from "@/types/tasksApiInterface";
 const isLoader = ref(false);
 const user = ref([]);
 const foundUser = ref([]);
 const projects = ref([]);
+const tasks = ref([]);
+const route = useRoute();
+const idUser = Number(route.params.id);
 
 onMounted(() => {
   isLoader.value = true;
 
   showUsers("").then(({ data }) => {
-    foundUser.value = data.find((item: { id: number }) => item.id);
+    foundUser.value = data.find((user: UserInterface) => user.id === idUser);
 
     if (foundUser.value) {
       user.value.push({
@@ -119,6 +132,7 @@ onMounted(() => {
         department: foundUser.value.department,
         tasks: foundUser.value.tasks,
         projects: foundUser.value.projects,
+        manager: foundUser.value.managerr,
       });
     }
     isLoader.value = false;
@@ -126,6 +140,11 @@ onMounted(() => {
 
   showProjects("").then(({ data }) => {
     projects.value = data.data.map((project: any) => project.attributes);
+  });
+  showTasks().then(({ data }) => {
+    console.log(data);
+    tasks.value = data.data.map((task: ShowTasks) => task.attributes);
+    console.log(tasks.value);
   });
 });
 </script>
@@ -178,8 +197,15 @@ onMounted(() => {
   &--bg {
     background: url("../assets/icons/bg_user.svg");
     height: 120px;
-    padding: 29px 0 0 184px;
     box-sizing: border-box;
+    padding: 29px 0 0 0;
+    &-block {
+      width: 924px;
+      margin: 0 auto;
+      @include media_mobile {
+        width: 100%;
+      }
+    }
     @include media_tablet {
       padding: 29px 0 0 20px;
     }
@@ -222,13 +248,13 @@ onMounted(() => {
         height: 84px;
         position: absolute;
         left: 50%;
+        top: 75px;
         transform: translateX(-50%);
         z-index: 4;
       }
     }
   }
   &--info {
-    padding: 36px 178px;
     display: flex;
     justify-content: space-between;
     background: var(--background);
@@ -243,7 +269,11 @@ onMounted(() => {
     }
     .tablet {
       display: flex;
+      width: 924px;
+      padding: 36px 0;
+      margin: 0 auto;
       @include media_mobile {
+        width: 100%;
         &-user {
           display: none;
         }
@@ -257,8 +287,10 @@ onMounted(() => {
     }
     &-left {
       margin-right: 38px;
+      flex: 1;
       @include media_mobile {
         margin-right: 0;
+        flex: none;
       }
       p {
         @include font(14px, 400, 20px, var(--text));
@@ -272,16 +304,17 @@ onMounted(() => {
         border: 1px solid var(--secondary);
         border-radius: 4px;
         padding: 20px 10px;
-        width: 300px;
+        max-width: 300px;
         box-sizing: border-box;
         margin-top: 42px;
         @include media_tablet {
           padding: 20px 2px;
         }
         @include media_mobile {
-          padding: 23px 12px 16px;
+          padding: 29px 12px 16px;
           border: none;
-          width: 100%;
+          max-width: 100%;
+          margin-top: 0;
         }
         h4 {
           @include font(16px, 500, 24px, var(--text));
@@ -323,6 +356,7 @@ onMounted(() => {
       }
     }
     &-right {
+      flex: auto;
       @include media_mobile {
         padding: 0 12px;
       }
@@ -339,18 +373,20 @@ onMounted(() => {
       }
       .block {
         padding: 20px 18px;
-        width: 588px;
+        max-width: 588px;
         box-sizing: border-box;
         border: 1px solid var(--secondary);
         border-radius: 4px;
         @include media_tablet {
-          width: 392px;
           padding: 16px 10px;
         }
         @include media_mobile {
           border: none;
           padding: 0;
-          width: 100%;
+          max-width: 100%;
+          &:last-of-type {
+            padding-bottom: 34px;
+          }
         }
         &:first-of-type {
           margin-bottom: 36px;
@@ -362,6 +398,15 @@ onMounted(() => {
           display: flex;
           align-items: center;
           padding: 6px 8px;
+          cursor: pointer;
+          &:hover {
+            background: var(--white);
+            border-radius: 3px;
+            p.project-item {
+              color: var(--accent);
+              border-bottom: 1px solid var(--accent);
+            }
+          }
           @include media_mobile {
             padding: 4px 0;
           }
@@ -384,6 +429,7 @@ onMounted(() => {
               width: 5px;
               height: 5px;
             }
+
             p {
               margin: 0;
               @include font(8px, 400, 12px, var(--text));
@@ -407,6 +453,10 @@ onMounted(() => {
           width: 32px;
           height: 32px;
           border-radius: 6px;
+          @include media_mobile {
+            width: 26px;
+            height: 26px;
+          }
         }
       }
     }

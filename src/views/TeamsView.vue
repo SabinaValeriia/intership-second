@@ -94,6 +94,13 @@
           .flip-box-desc
             h5 Department:
               span {{ lead.department.name }}
+            h5 Manager:
+              img(
+                v-if="lead.logo",
+                :src="JSON.parse(lead.logo.name)",
+                alt="avatar"
+              )
+              span {{ lead.username }}
             h5 Projects:
               span {{ lead.projects.length }} +
             h5 Assign tasks:
@@ -300,6 +307,7 @@ onMounted(() => {
             logo: {
               name: string;
             };
+            managers: string;
           };
           id: number;
         };
@@ -307,6 +315,7 @@ onMounted(() => {
         name: item.attributes.title,
         id: item.id,
         logo: item.attributes.logo,
+        managers: item.attributes.managers.data[0],
       })
     );
   });
@@ -502,6 +511,7 @@ onMounted(() => {
   .box-container {
     align-items: center;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
     width: 100%;
@@ -511,13 +521,20 @@ onMounted(() => {
     }
     @include media_mobile {
       margin-top: 16px;
+      justify-content: flex-start;
     }
   }
 
   .box-item {
     position: relative;
     -webkit-backface-visibility: hidden;
-    max-width: 100%;
+    width: 157px;
+    @include media_tablet {
+      width: 174px;
+    }
+    @include media_mobile {
+      width: 48%;
+    }
   }
 
   .flip-box {
@@ -527,13 +544,6 @@ onMounted(() => {
     -webkit-transform-style: preserve-3d;
     perspective: 1000px;
     -webkit-perspective: 1000px;
-    width: 157px;
-    @include media_tablet {
-      width: 174px;
-    }
-    @include media_mobile {
-      width: 168px;
-    }
   }
 
   .flip-box-front,
@@ -541,7 +551,7 @@ onMounted(() => {
     background-size: cover;
     background-position: center;
     border-radius: 4px;
-    min-height: 157px;
+    max-height: 184px;
     background: var(--white);
     -ms-transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
     transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
@@ -549,12 +559,13 @@ onMounted(() => {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     padding: 12px 6px;
+    width: 157px;
     @include media_tablet {
       width: 174px;
     }
     @include media_mobile {
-      width: 168px;
-      min-height: 142px;
+      max-height: 142px;
+      width: 100%;
     }
   }
 
@@ -570,14 +581,7 @@ onMounted(() => {
     justify-content: center;
     flex-direction: column;
     padding: 20px;
-    width: 157px;
     box-sizing: border-box;
-    @include media_tablet {
-      width: 174px;
-    }
-    @include media_mobile {
-      width: 168px;
-    }
     img {
       width: 90px;
       height: 90px;
@@ -604,7 +608,6 @@ onMounted(() => {
     position: absolute;
     top: 0;
     left: 0;
-    width: 157px;
     background: var(--secondary);
     box-sizing: border-box;
 
@@ -614,12 +617,6 @@ onMounted(() => {
     -webkit-transform-style: preserve-3d;
     -ms-transform-style: preserve-3d;
     transform-style: preserve-3d;
-    @include media_tablet {
-      width: 174px;
-    }
-    @include media_mobile {
-      width: 168px;
-    }
     .flip-box-user {
       display: flex;
       justify-content: space-between;
@@ -652,6 +649,7 @@ onMounted(() => {
           width: 15px;
           height: 15px;
           margin: 0 0 0 8px;
+          border-radius: 18px;
         }
         span {
           font-weight: 400;

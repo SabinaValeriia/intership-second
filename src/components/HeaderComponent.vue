@@ -7,9 +7,8 @@
       li 
         a Your work
       li.projects
-        router-link(
-          to="projects",
-          active-class="active",
+        a(
+          :class="{ active: isRouteActive('projects') }",
           @click="toggleDropdown('project')"
         ) Projects
         dropdown-menu(
@@ -19,11 +18,10 @@
           :type="'projects'"
         )
       li 
-        router-link(
-          to="teams",
-          active-class="active",
+        a(
+          :class="{ active: isRouteActive('teams') }",
           @click="toggleDropdown('teams')"
-        ) Teams
+        ) Team
         dropdown-menu(
           :isOpen="dropdownStates.teams.isOpen",
           title="Your Collaborators",
@@ -72,7 +70,10 @@ import ModalHeader from "@/modals/ModalHeader.vue";
 import ModalCreate from "@/modals/ModalCreate.vue";
 import { computed, ref } from "vue";
 import { useUserStore } from "../store/user";
+import { useRoute } from "vue-router";
 const userStore = useUserStore();
+const route = useRoute();
+
 const dropdownStates = ref({
   work: { isOpen: false },
   project: { isOpen: false },
@@ -94,6 +95,11 @@ const toggleDropdown = (dropdownName: string) => {
 };
 const close = () => {
   openModal(EnumModalKeys.ModalCreate);
+};
+const isRouteActive = (routeName: string) => {
+  if (route.name === routeName) {
+    return true;
+  }
 };
 </script>
 
@@ -190,6 +196,7 @@ const close = () => {
           cursor: pointer;
           height: 34px;
           box-sizing: border-box;
+          position: relative;
 
           &.projects {
             position: relative;

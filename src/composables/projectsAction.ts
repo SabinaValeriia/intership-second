@@ -38,3 +38,13 @@ export const filterFunction = (data: string[]) => {
     filtered,
   };
 };
+
+export const getTaskTypeName = (taskItem: string) => {
+  if (taskItem === "bug") {
+    return "bug";
+  } else if (taskItem === "implementation") {
+    return "implementation";
+  } else if (taskItem === "feature") {
+    return "feature";
+  }
+};

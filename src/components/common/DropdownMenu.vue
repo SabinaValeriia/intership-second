@@ -79,6 +79,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .menu {
+  left: 0;
   position: absolute;
   top: 55px;
   padding: 16px 0;
