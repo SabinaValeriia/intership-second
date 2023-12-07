@@ -4,6 +4,23 @@ form {
         flex-direction: column;
         position: relative;
         margin-bottom: 20px;
+        &.tags-block {
+            label {
+                display: none;
+            }
+            input {
+                font-size: 16px;
+                font-weight: 500;
+                line-height: 24px;
+                @include media_mobile {
+                    font-size: 12px;
+                    line-height: 16px;
+                }
+            }
+            i.icon.arrow.mobile {
+                display: none;
+            }
+        }
         &.image {
             margin-bottom: 16px;
             @include media_mobile {
@@ -16,6 +33,10 @@ form {
             align-items: center;
             input {
                 padding: 14px 16px;
+                @include media_mobile {
+                    padding: 9px 10px;
+                    height: 34px;
+                }
             }
         }
         .label-group {

@@ -22,7 +22,7 @@ const props = defineProps({
     required: false,
   },
 });
-const emit = defineEmits(["onClose"]);
+const emit = defineEmits(["onClose", "closeDropdown"]);
 const hide = ref(false);
 const close = () => {
   hide.value = true;
@@ -38,6 +38,10 @@ const keyPress = (event: KeyboardEvent) => {
   if (event && event.code === "Escape") {
     close();
   }
+};
+
+const closeDropdown = () => {
+  emit("closeDropdown");
 };
 useDisableScroll();
 document.addEventListener("keydown", keyPress);
@@ -89,6 +93,7 @@ onBeforeUnmount(() => {
         margin-top: 32px;
         button {
           width: 100px;
+          z-index: 2;
           @include media_mobile {
             width: fit-content;
           }
@@ -218,5 +223,12 @@ onBeforeUnmount(() => {
     opacity: 0;
     transition: all 0.5s ease;
   }
+}
+.backdrop {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 </style>

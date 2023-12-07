@@ -12,7 +12,7 @@ ul(v-if="data.length", :class="({ checkbox: type === 'checkbox' }, type)")
     button.checkbox(
       v-if="type === 'checkbox'",
       @click.prevent="toggleSelect(item)",
-      :class="{ active: isActive }"
+      :class="{ active: selectedItems.includes(item) }"
     )
       i.check.icon
     p {{ item.name }}
@@ -35,18 +35,21 @@ const selectedItems = ref<string[]>([]);
 const isActive = ref(false);
 
 const selectItem = (item: { name: string; id: number }) => {
-  selectedItems.value.push(item);
+  if (selectedItems.value.includes(item)) {
+    selectedItems.value = selectedItems.value.filter((i) => i !== item);
+  } else {
+    selectedItems.value.push(item);
+  }
   emit("selectedItem", item);
 };
 
 const selectAll = () => {
-  isActive.value = true;
-  selectedItems.value.push(props.data);
+  selectedItems.value = props.data;
   emit("selectedItem", props.data);
 };
 
 const clearAll = () => {
-  isActive.value = false;
+  selectedItems.value = [];
 };
 </script>
 
@@ -65,9 +68,9 @@ const clearAll = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
   @include media_mobile {
     top: 32px;
-    width: 343px;
   }
   p {
     @include font(14px, 400, 20px, var(--text));
@@ -76,7 +79,8 @@ const clearAll = () => {
   button {
     background: transparent;
     border: none;
-    @include font(12px, 16px, 600, var(--blue));
+    cursor: pointer;
+    @include font(12px, 600, 16px, var(--blue));
     text-decoration: underline;
   }
 }
@@ -92,6 +96,7 @@ ul {
   margin: 0;
   max-height: 200px;
   overflow-x: scroll;
+  width: calc(100% - 2px);
 
   @include media_mobile {
     top: 32px;
@@ -104,20 +109,9 @@ ul {
     }
   }
 
-  &.tags {
-    width: 218px;
-    top: 60px;
-    @include media_mobile {
-      width: calc(100% - 2px);
-      top: 48px;
-    }
-  }
-
   &.members {
-    width: 238px;
     top: 44px;
     @include media_mobile {
-      width: calc(100% - 2px);
       top: 32px;
     }
   }
@@ -127,20 +121,6 @@ ul {
     width: calc(100% - 2px);
     @include media_mobile {
       top: 76px;
-      width: 341px;
-    }
-  }
-  &.lead-block {
-    width: 238px;
-    @include media_mobile {
-      width: 343px;
-    }
-  }
-
-  &.lead {
-    width: 238px;
-    @include media_mobile {
-      width: calc(100% - 2px);
     }
   }
 
@@ -161,7 +141,6 @@ ul {
   }
   &.lead {
     input {
-      width: 240px;
       @include media_mobile {
         width: 100%;
       }

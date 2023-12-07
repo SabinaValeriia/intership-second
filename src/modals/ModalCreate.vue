@@ -1,6 +1,7 @@
 <template lang="pug">
 app-modal
   template(v-slot:content)
+    .backdrop(@click="closeDropdown")
     .modal-header
       h1 Create project
     .modal-body
@@ -55,14 +56,15 @@ app-modal
             :isOpen="dropdownStates.tags.isOpen",
             :data="tagNames",
             @selectedItem="selectedItem",
-            :type="'tags'"
+            :type="'tags'",
+            :classType="'small'"
           )
         .position.mobile
           .position-dropdown
             base-input(
               :class="getValidationClass($v, 'lead')",
               :type="'lead'",
-              :value-input="form.lead.name ? form.lead.name : leadName",
+              :value-input="form.lead.name",
               @click="toggleDropdown('lead')",
               :withIcon="true"
             )
@@ -87,7 +89,7 @@ app-modal
             base-input(
               :class="getValidationClass($v, 'members')",
               :type="`members`",
-              :value-input="form.members",
+              :value-input="form.members.length > 2 ? `${form.members[0]}, ${form.members[1]}, ${form.members.length - 2} more` : form.members",
               @click="toggleDropdown('members')"
             )
               template(v-slot:suffix)
@@ -129,6 +131,7 @@ import { showTag, tagNames } from "@/composables/tagActions";
 import { ImageInterface } from "../types/ImageInterface";
 import { filterFunction, projects } from "@/composables/projectsAction";
 import { useUserStore } from "../store/user";
+import { showDataUser, leadNames } from "@/composables/userActions";
 
 const userStore = useUserStore();
 
@@ -145,7 +148,6 @@ interface ProjectData {
 const emit = defineEmits(["close", "pushTask"]);
 const members = ref([]);
 const tags = ref([]);
-const leadNames = ref([]);
 const membersNames = ref([]);
 const showInput = ref("");
 const leadName = ref("");
@@ -216,15 +218,16 @@ const toggleDropdown = (dropdownName: string) => {
     !dropdownStates.value[dropdownName].isOpen;
 };
 
+const closeDropdown = () => {
+  dropdownStates.value.tags.isOpen = false;
+  dropdownStates.value.lead.isOpen = false;
+  dropdownStates.value.members.isOpen = false;
+};
 const { selected, filtered } = filterFunction([]);
 
 const selectedItem = (tag: string) => {
   if (dropdownStates.value.lead.isOpen) {
     form.value.lead = tag;
-    const tagIndexToRemove = leadNames.value.findIndex((m) => m.id === tag.id);
-    if (tagIndexToRemove !== -1) {
-      leadNames.value.splice(tagIndexToRemove, 1);
-    }
 
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   } else if (dropdownStates.value.tags.isOpen) {
@@ -289,6 +292,7 @@ const save = () => {
       lead: form.value.lead.id.toString(),
       members: Array.from(members.value),
       tags: Array.from(tags.value),
+      manager: leadName.value,
     },
   };
   projectPost(dataProject)
@@ -316,23 +320,8 @@ const close = () => {
 
 onMounted(() => {
   showTag();
-
-  showUsers().then(({ data }) => {
-    leadNames.value = data.map(
-      (item: {
-        name: string;
-        logo: {
-          name: string;
-        };
-        id: number;
-      }) => ({
-        name: item.username,
-        logo: item.logo,
-        id: item.id,
-      })
-    );
-    membersNames.value = [...leadNames.value];
-  });
+  showDataUser();
+  membersNames.value = [...leadNames.value];
   showMe().then(({ data }) => {
     leadName.value = data.username;
   });
@@ -382,9 +371,11 @@ onMounted(() => {
       .position {
         display: flex;
         align-items: center;
+        width: fit-content;
         &.mobile {
           @include media_mobile {
             flex-direction: column;
+            width: 100%;
           }
         }
         &-dropdown {

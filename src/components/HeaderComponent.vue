@@ -1,4 +1,5 @@
 <template lang="pug">
+.backdrop(@click="closeDropdown")
 .header 
   .header-block__left 
     a
@@ -7,7 +8,10 @@
       li 
         a(@click="toggleDropdown('work')") Your work
       li.projects
-        a(active-class="active", @click="toggleDropdown('project')") Projects
+        a(
+          :class="{ active: isRouteActive('projects') }",
+          @click="toggleDropdown('project')"
+        ) Projects
         dropdown-menu(
           :isOpen="dropdownStates.project.isOpen",
           title="Starred",
@@ -57,7 +61,9 @@ import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
 import ModalCreate from "@/modals/ModalCreate.vue";
 import { computed, ref } from "vue";
+const route = useRoute();
 import { useUserStore } from "../store/user";
+import { useRoute } from "vue-router";
 const userStore = useUserStore();
 const fullName = computed(() => {
   const username = userStore.user.username || "";
@@ -67,6 +73,11 @@ const dropdownStates = ref({
   work: { isOpen: false },
   project: { isOpen: false },
 });
+
+const closeDropdown = () => {
+  dropdownStates.value.work.isOpen = false;
+  dropdownStates.value.project.isOpen = false;
+};
 
 const toggleDropdown = (dropdownName) => {
   dropdownStates.value[dropdownName].isOpen =
@@ -80,6 +91,11 @@ const logoName = computed(() => {
 
 const close = () => {
   openModal(EnumModalKeys.ModalCreate);
+};
+const isRouteActive = (routeName: string) => {
+  if (route.name === routeName) {
+    return true;
+  }
 };
 </script>
 
@@ -142,6 +158,7 @@ const close = () => {
         background: transparent;
         padding: 0;
         cursor: pointer;
+        z-index: 3;
       }
     }
   }
@@ -152,6 +169,9 @@ const close = () => {
       justify-content: space-between;
       @include media_mobile {
         display: none;
+      }
+      button {
+        z-index: 10;
       }
       a {
         margin-right: 46px;
@@ -179,6 +199,9 @@ const close = () => {
 
           &.projects {
             position: relative;
+            .menu {
+              left: -2px;
+            }
           }
 
           a {
@@ -219,6 +242,9 @@ const close = () => {
         line-height: 20px;
         margin-left: 10px;
         width: 77px;
+        @include media_tablet {
+          margin-left: 6px;
+        }
       }
     }
     &__right {
@@ -290,5 +316,12 @@ const close = () => {
       }
     }
   }
+}
+.backdrop {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 </style>

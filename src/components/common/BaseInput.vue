@@ -2,7 +2,7 @@
 .form-group(:class="type")
   .label-group
     label {{ capitalizeFirstLetter(`${type}`) }}
-    i.icon.arrow.mobile(:class="{ active: open }", @click="toggleInput")
+    i.icon.arrow.mobile(@click="toggleInput")
   .form-icon(v-if="open")
     slot(name="prefix")
     input(

@@ -1,5 +1,6 @@
 <template lang="pug">
-.project
+.backdrop(@click="close")
+.project(@click="closeDropdowns")
   h1 Projects
   form.position
     .form-group.search
@@ -16,8 +17,9 @@
           :class="{ select: tagItem.length }"
         ) 
           template(v-slot:suffix)
-            i.icon.arrow
+            i.icon.arrow(:class="{ active: openDropdown }")
         dropdown-component.tags__block(
+          v-if="dropdownStates.tags.isOpen",
           :isOpen="dropdownStates.tags.isOpen",
           :data="tagNames",
           @selectedItem="selectedItem",
@@ -46,14 +48,16 @@
         i.icon.star
       .sort.name Name
         button.sort(
-          @click="sort('name', sortDirection === 'asc' ? 'desc' : 'asc')"
+          @click="sort('name', sortDirection === 'asc' ? 'desc' : 'asc')",
+          :class="{ active: activeSort.name.active }"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'name', sort_down: sortDirection === 'desc' && 'name' }"
           )
       .sort.key Key
         button.sort(
-          @click="sort('key', sortDirection === 'asc' ? 'desc' : 'asc')"
+          @click="sort('key', sortDirection === 'asc' ? 'desc' : 'asc')",
+          :class="{ active: activeSort.key.active }"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'key', sort_down: sortDirection === 'desc' && 'key' }"
@@ -62,7 +66,8 @@
       .tags Tags
       .sort.lead Lead
         button.sort(
-          @click="sort('lead', sortDirection === 'asc' ? 'desc' : 'asc')"
+          @click="sort('lead', sortDirection === 'asc' ? 'desc' : 'asc')",
+          :class="{ active: activeSort.lead.active }"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'lead', sort_down: sortDirection === 'desc' && 'lead' }"
@@ -85,7 +90,7 @@
             v-for="(i, index) in item.tags.data.slice(0, 3)",
             :key="index"
           ) {{ i.attributes.name }}
-        .lead.flex(v-if="item.lead")
+        .lead.flex(v-if="item.lead.data")
           img(
             v-if="item.lead.data.attributes.logo",
             :src="JSON.parse(item.lead.data.attributes.logo.name)"
@@ -103,7 +108,6 @@
         .star-block.mobile
           i.icon.unchecked
           i.icon.star
-      common-loader(v-if="isLoader")
       pagination-component(
         v-if="totalProjects > 8",
         :totalItems="totalProjects",
@@ -113,9 +117,9 @@
     no-results(
       v-if="noDataShow || noResultsShow",
       :noData="totalProjects === 0 ? true : false",
-      :noResults="searchLead",
       @reset="reset"
     )
+    common-loader(v-if="isLoader")
 </template>
 
 <script setup lang="ts">
@@ -127,27 +131,35 @@ import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 import { showTag, tagNames } from "@/composables/tagActions";
 import { filterFunction } from "@/composables/projectsAction";
 import { showUsers } from "@/services/api/userApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
 import { useUserStore } from "../store/user";
+import { page, limit, startIndex, endIndex } from "@/composables/pagination";
+import { showDataUser, leadNames } from "@/composables/userActions";
 const projectsArray = ref([]);
-const leadNames = ref([]);
 const currentPage = ref(1);
 const noResultsShow = ref(false);
 const noDataShow = ref(false);
+const openDropdown = ref(false);
 const totalProjects = ref(null);
 const tagItem = ref([]);
 const leadItem = ref("");
 const isLoader = ref(false);
 const sortDirection = ref("asc");
-const page = ref(1);
-const limit = ref(8);
-const startIndex = (page.value - 1) * limit.value;
-const endIndex = startIndex + limit.value;
 const userStore = useUserStore();
+const dropdownStates = ref({
+  tags: { isOpen: false },
+  lead: { isOpen: false },
+});
+
+const activeSort = ref({
+  name: { active: false },
+  key: { active: false },
+  lead: { active: false },
+});
 
 const searchText = ref("");
 const isObject = computed(() => (value: { name: string }) => {
@@ -156,41 +168,53 @@ const isObject = computed(() => (value: { name: string }) => {
 
 const reset = () => {
   searchText.value = "";
-  leadItem.value = "";
-  tagItem.value = [];
+  if (tagItem.value.length) {
+    tagItem.value = [];
+  }
   noResultsShow.value = false;
-  showProjects("_page=1&_limit=8").then((response) => {
-    const startIndex = (page.value - 1) * limit.value;
-    const endIndex = startIndex + limit.value;
-    projectsArray.value = response.data.data
-      .slice(startIndex, endIndex)
-      .map((project: ProjectInterfaceItem) => project.attributes);
-  });
+  isLoader.value = true;
+  setTimeout(() => {
+    isLoader.value = false;
+    showProjects("_page=1&_limit=8").then((response) => {
+      const startIndex = (page.value - 1) * limit.value;
+      const endIndex = startIndex + limit.value;
+      projectsArray.value = response.data.data
+        .slice(startIndex, endIndex)
+        .map((project: ProjectInterfaceItem) => project.attributes);
+    });
+  }, 1000);
 };
-
-const dropdownStates = ref({
-  tags: { isOpen: false },
-  lead: { isOpen: false },
-});
 
 const toggleDropdown = (dropdownName: string) => {
   dropdownStates.value[dropdownName].isOpen =
     !dropdownStates.value[dropdownName].isOpen;
+  if (dropdownStates.value.tags.isOpen) {
+    openDropdown.value = !openDropdown.value;
+  }
+};
+
+const close = (dropdownName: string) => {
+  dropdownStates.value.tags.isOpen = false;
+  dropdownStates.value.lead.isOpen = false;
 };
 
 const { selected } = filterFunction([]);
 
-const selectedItem = (tag: { name: string }) => {
+const selectedItem = (tag: { id: any; name: string }) => {
   if (dropdownStates.value.tags.isOpen) {
     if (!tagItem.value.some((selectedTag) => selectedTag.id === tag.id)) {
-      tagItem.value.push(tag);
+      tagItem.value = tagItem.value.concat(tag);
       if (tagItem.value.length === tagNames.value.length) {
         tagNames.value.splice(0, tagNames.value.length);
-        dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
       }
+      dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
     }
   } else {
     leadItem.value = tag;
+    const tagIndexToRemove = leadNames.value.findIndex((m) => m.id === tag.id);
+    if (tagIndexToRemove !== -1) {
+      leadNames.value.splice(tagIndexToRemove, 1);
+    }
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   }
 };
@@ -200,25 +224,20 @@ const fetchAndSetProjects = () => {
 
   if (searchTerm) {
     isLoader.value = true;
-    projectsArray.value = projectsArray.value.filter(
-      (item: { title: string }) => {
-        const title = item.title.toLowerCase();
-        return title.includes(searchTerm);
+    setTimeout(() => {
+      projectsArray.value = projectsArray.value.filter(
+        (item: { title: string }) => {
+          const title = item.title.toLowerCase();
+          return title.includes(searchTerm);
+        }
+      );
+      if (!projectsArray.value.length) {
+        noResultsShow.value = true;
       }
-    );
-    if (projectsArray.value.length) {
-      setTimeout(() => {
-        isLoader.value = false;
-      }, 1000);
-      isLoader.value = false;
-    } else {
-      setTimeout(() => {
-        isLoader.value = false;
-      }, 1000);
-      noResultsShow.value = true;
-    }
+    }, 1000);
   } else if (tagItem.value.length) {
     isLoader.value = true;
+    noDataShow.value = false;
 
     setTimeout(() => {
       showProjects(`filters[tags]=${tagItem.value[0].id}`).then((response) => {
@@ -228,9 +247,7 @@ const fetchAndSetProjects = () => {
           .slice(startIndex, endIndex)
           .map((project) => project.attributes);
         isLoader.value = false;
-        if (projectsArray.value.length) {
-          noResultsShow.value = false;
-        } else {
+        if (!projectsArray.value.length) {
           noResultsShow.value = true;
         }
       });
@@ -246,9 +263,7 @@ const fetchAndSetProjects = () => {
           .slice(startIndex, endIndex)
           .map((project) => project.attributes);
         isLoader.value = false;
-        if (projectsArray.value.length) {
-          noResultsShow.value = false;
-        } else {
+        if (!projectsArray.value.length) {
           noResultsShow.value = true;
         }
       });
@@ -279,10 +294,15 @@ const handlePageChange = (newPage: number) => {
 };
 
 const deleteLead = () => {
-  leadItem.value = "";
-  dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
+  isLoader.value = true;
+  setTimeout(() => {
+    isLoader.value = false;
+    leadNames.value.push(leadItem.value);
+    leadItem.value = "";
+    dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
+    reset();
+  }, 1000);
 };
-
 const sort = (field: string, order: "asc" | "desc") => {
   sortDirection.value = order;
   if (order === "asc") {
@@ -290,17 +310,31 @@ const sort = (field: string, order: "asc" | "desc") => {
       projectsArray.value = response.data.data
         .slice(startIndex, endIndex)
         .map((project: ProjectInterfaceItem) => project.attributes);
+      activeSort.value = {
+        name: { active: false },
+        key: { active: false },
+        lead: { active: false },
+      };
+
+      activeSort.value[field].active = true;
     });
-  } else {
+  } else if (order === "desc") {
     showProjects("_page=1&_limit=8&sort=title:DESC").then((response) => {
       projectsArray.value = response.data.data
         .slice(startIndex, endIndex)
         .map((project: ProjectInterfaceItem) => project.attributes);
+      activeSort.value = {
+        name: { active: false },
+        key: { active: false },
+        lead: { active: false },
+      };
+
+      activeSort.value[field].active = true;
     });
   }
 };
-
 onMounted(() => {
+  isLoader.value = true;
   watch(
     () => userStore.projectData,
     (newProjectData) => {
@@ -308,35 +342,38 @@ onMounted(() => {
       setTimeout(() => {
         projectsArray.value.push(newProjectData.data.attributes);
         isLoader.value = false;
+        noDataShow.value = false;
+        totalProjects.value = projectsArray.value.length;
       }, 1000);
     }
   );
-  showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
-    projectsArray.value = response.data.data
-      .slice(startIndex, endIndex)
-      .map((project: ProjectInterfaceItem) => project.attributes);
-    totalProjects.value = response.data.data.length;
-  });
+  setTimeout(() => {
+    showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
+      projectsArray.value = response.data.data
+        .slice(startIndex, endIndex)
+        .map((project: ProjectInterfaceItem) => project.attributes);
+      totalProjects.value = response.data.data.length;
+      activeSort.value = {
+        name: { active: false },
+        key: { active: false },
+        lead: { active: false },
+      };
+
+      activeSort.value.name.active = true;
+      if (!totalProjects.value) {
+        noDataShow.value = true;
+        isLoader.value = false;
+      } else {
+        isLoader.value = false;
+      }
+    });
+  }, 1000);
   showTag();
-  showUsers().then(({ data }) => {
-    leadNames.value = data.map(
-      (item: {
-        name: string;
-        logo: {
-          name: string;
-        };
-        id: number;
-      }) => ({
-        name: item.username,
-        logo: item.logo,
-        id: item.id,
-      })
-    );
-  });
+  showDataUser();
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .project {
   background: var(--background);
   height: 100vh;
@@ -344,6 +381,9 @@ onMounted(() => {
   padding: 28px 40px 89px;
   .position {
     display: flex;
+    label {
+      display: none;
+    }
     @include media_tablet {
       .form-group {
         margin-bottom: 26px;
@@ -364,9 +404,6 @@ onMounted(() => {
         }
       }
     }
-    label {
-      display: none;
-    }
     .search {
       input {
         width: 220px;
@@ -381,6 +418,10 @@ onMounted(() => {
       right: 16px;
       &.arrow {
         height: 12px;
+        width: 16px;
+        &.active {
+          transform: rotate(180deg);
+        }
         @include media_mobile {
           right: 8px;
           width: 10px;
@@ -409,10 +450,10 @@ onMounted(() => {
       .tags__block {
         top: 64px;
         z-index: 3;
-        width: 240px;
         @include media_mobile {
-          top: 47px;
-          width: 341px;
+          top: 155px;
+          position: fixed;
+          left: 14px;
         }
       }
       .selected {
@@ -436,11 +477,11 @@ onMounted(() => {
         &.reset {
           width: 102px;
           height: 48px;
-          margin-left: 20px;
+          margin-left: 10px;
           @include media_mobile {
             width: 67px;
             height: 34px;
-            margin-left: 12px;
+            margin-left: 6px;
           }
         }
         &.lead {
@@ -449,14 +490,18 @@ onMounted(() => {
       }
       .dropdown__block {
         position: relative;
+        &:first-of-type {
+          margin-right: 10px;
+          @include media_mobile {
+            margin-right: 6px;
+          }
+        }
         .lead {
           height: 48px;
-          margin-left: 10px;
           width: 102px;
           @include media_mobile {
             width: 67px;
             height: 34px;
-            margin-left: 6px;
           }
           i.close {
             width: 12px;
@@ -482,6 +527,11 @@ onMounted(() => {
         }
         .tags-block {
           width: 97px;
+          .form-icon {
+            input {
+              padding: 9px 10px;
+            }
+          }
           @include media_mobile {
             width: 64px;
           }
@@ -509,7 +559,11 @@ onMounted(() => {
     padding: 12px 16px;
     box-sizing: border-box;
     &::before {
-      background: url("@/assets/icons/member.svg");
+      background: url("@/assets/icons/member.svg") no-repeat;
+      background-size: cover;
+    }
+    @include media_mobile {
+      padding: 9px 10px;
     }
   }
   h1 {
@@ -565,21 +619,31 @@ onMounted(() => {
         width: 32px;
         height: 32px;
         margin-right: 10px;
+        border-radius: 16px;
         @include media_tablet {
           width: 28px;
           height: 28px;
-          margin-right: 6px;
+          margin-right: 10px;
         }
       }
       .star-block {
-        width: 3.67%;
-        margin-left: 10px;
-        @include media_tablet {
+        width: 5.67%;
+        @include media_small_laptop {
           width: 4.67%;
         }
+        @include media_tablet {
+          width: 6.67%;
+        }
         @include media_mobile {
-          width: 5%;
           margin-left: 0;
+        }
+        &:hover {
+          .unchecked {
+            display: none;
+          }
+          .checked {
+            display: block;
+          }
         }
         &.laptop {
           @include media_mobile {
@@ -593,6 +657,7 @@ onMounted(() => {
           }
         }
         .star {
+          left: 10px;
           height: 16px;
           width: 16px;
           position: relative;
@@ -602,31 +667,36 @@ onMounted(() => {
         }
         .unchecked {
           position: relative;
-          margin: -11px 12px;
+          right: 0;
+          left: 7px;
           &::before {
             background: var(--text);
-          }
-          &:hover {
-            display: none;
           }
           @include media_tablet {
             width: 16px;
             height: 16px;
+            left: 12px;
           }
           @include media_mobile {
-            margin: -11px 17px;
+            margin: -11px -10px;
           }
         }
         .checked {
-          margin: -20px 12px;
+          right: 0;
+          left: 7px;
           width: 20px;
           height: 20px;
           display: none;
+          @include media_tablet {
+            width: 16px;
+            height: 16px;
+            left: 12px;
+          }
+          @include media_mobile {
+            margin: -11px -10px;
+          }
           &::before {
             background: var(--notify_warning);
-          }
-          &:hover {
-            display: block;
           }
         }
       }
@@ -635,6 +705,12 @@ onMounted(() => {
         margin-left: -2px;
         display: flex;
         align-items: center;
+        cursor: pointer;
+        &:hover {
+          button.sort {
+            display: block;
+          }
+        }
         @include media_tablet {
           margin-left: 1px;
         }
@@ -658,6 +734,34 @@ onMounted(() => {
             text-wrap: wrap;
           }
         }
+        button.sort {
+          display: none;
+          &.active {
+            display: block;
+            &:hover {
+              i.sort {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+              i.sort_down {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+            }
+            i.sort {
+              &::before {
+                background: var(--text);
+              }
+            }
+            i.sort_down {
+              &::before {
+                background: var(--text);
+              }
+            }
+          }
+        }
       }
       .key {
         width: 9.83%;
@@ -667,6 +771,39 @@ onMounted(() => {
         }
         @include media_mobile {
           display: none;
+        }
+        &:hover {
+          .sort {
+            display: block;
+          }
+        }
+        button.sort {
+          display: none;
+          &.active {
+            display: block;
+            &:hover {
+              i.sort {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+              i.sort_down {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+            }
+            i.sort {
+              &::before {
+                background: var(--text);
+              }
+            }
+            i.sort_down {
+              &::before {
+                background: var(--text);
+              }
+            }
+          }
         }
       }
       .sort {
@@ -683,7 +820,13 @@ onMounted(() => {
             i.icon.sort {
               @include media_tablet {
                 position: absolute;
-                right: 17px;
+                right: 24px;
+                top: 2px;
+              }
+              &.active {
+                &::before {
+                  background: var(--text);
+                }
               }
             }
           }
@@ -693,10 +836,14 @@ onMounted(() => {
           border: none;
           .sort {
             position: relative;
+            &.active {
+              display: block;
+            }
             &::before {
-              background: var(--text);
+              background: var(--primary);
             }
             &:hover {
+              display: block;
               &::before {
                 background: var(--primary);
               }
@@ -704,6 +851,16 @@ onMounted(() => {
           }
           .sort_down {
             position: relative;
+            width: 16px;
+            height: 16px;
+            &::before {
+              background: var(--primary);
+            }
+            &.active {
+              &::before {
+                background: var(--text);
+              }
+            }
             &:hover {
               &::before {
                 background: var(--primary);
@@ -752,11 +909,47 @@ onMounted(() => {
             text-decoration: underline;
           }
         }
+        &:hover {
+          .sort {
+            display: block;
+          }
+        }
+        .sort {
+          display: none;
+        }
         @include media_tablet {
           margin-left: -12px;
         }
         @include media_mobile {
           display: none;
+        }
+        button.sort {
+          display: none;
+          &.active {
+            display: block;
+            &:hover {
+              i.sort {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+              i.sort_down {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+            }
+            i.sort {
+              &::before {
+                background: var(--text);
+              }
+            }
+            i.sort_down {
+              &::before {
+                background: var(--text);
+              }
+            }
+          }
         }
       }
       .members {
@@ -814,5 +1007,12 @@ onMounted(() => {
       }
     }
   }
+}
+.backdrop {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 81px;
+  left: 0;
 }
 </style>

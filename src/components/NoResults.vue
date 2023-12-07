@@ -37,6 +37,9 @@ const create = () => {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  button {
+    z-index: 5;
+  }
   &.menu-no {
     border-bottom: 1px solid var(--primary);
     margin-bottom: 16px;
