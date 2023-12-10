@@ -22,9 +22,11 @@
           v-if="dropdownStates.tags.isOpen",
           :isOpen="dropdownStates.tags.isOpen",
           :data="tagNames",
+          :checkedItem="tagItem",
           @selectedItem="selectedItem",
           :type="'checkbox'",
-          :title="'Project tags'"
+          :title="'Project tags'",
+          @clear="clear"
         )
       .dropdown__block.lead
         common-button.btn_icon.lead(
@@ -33,10 +35,11 @@
         ) {{ leadItem ? leadItem.name : "Lead" }}
           i.icon.close(v-if="leadItem", @click="deleteLead")
         dropdown-component.tags__block(
+          v-if="dropdownStates.lead.isOpen",
           :isOpen="dropdownStates.lead.isOpen",
           :data="leadNames",
           @selectedItem="selectedItem",
-          :type="'lead-block'"
+          :type="'lead'"
         )
       common-button.reset.btn-secondary(
         v-if="leadItem || searchText || tagItem.length",
@@ -48,11 +51,11 @@
         i.icon.star
       .sort.name Name
         button.sort(
-          @click="sort('name', sortDirection === 'asc' ? 'desc' : 'asc')",
+          @click="sort('title', sortDirection === 'asc' ? 'desc' : 'asc')",
           :class="{ active: activeSort.name.active }"
         )
           i.icon(
-            :class="{ sort: sortDirection === 'asc' && 'name', sort_down: sortDirection === 'desc' && 'name' }"
+            :class="{ sort: sortDirection === 'asc' && 'title', sort_down: sortDirection === 'desc' && 'title' }"
           )
       .sort.key Key
         button.sort(
@@ -73,87 +76,108 @@
             :class="{ sort: sortDirection === 'asc' && 'lead', sort_down: sortDirection === 'desc' && 'lead' }"
           )
       .members Members
-    .projects(v-if="totalProjects")
+    common-loader(v-if="isLoader")
+    .projects(v-if="totalProjects && !isLoader")
       .ptojects-table__block.ptojects-table__content.position(
-        v-for="(item, index) in projectsArray",
+        v-for="(item, index) in processProjectData",
         :key="index"
       )
         .star-block.laptop
           i.icon.unchecked
           i.icon.star.checked
-        .name(v-if="isObject(item.logo)")
-          img(v-if="item.logo", :src="JSON.parse(item.logo.name)")
-          router-link(to="/dashboard/projects") {{ item.title }}
-        .key {{ item.key }}
+        .name(v-if="item.attributes.logo")
+          img(
+            v-if="item.attributes.logo",
+            :src="JSON.parse(item.attributes.logo.name)"
+          )
+          router-link(:to="{ name: 'projectsItem', params: { id: item.id } }") {{ item.attributes.title }}
+        .key {{ item.attributes.key }}
         .tags.tags-block
           .tags-block(
-            v-for="(i, index) in item.tags.data.slice(0, 3)",
+            v-for="(i, index) in item.attributes.tags.data.slice(0, 3)",
             :key="index"
           ) {{ i.attributes.name }}
-        .lead.flex(v-if="item.lead.data")
+        .lead.flex(v-if="item.attributes.lead.data")
           img(
-            v-if="item.lead.data.attributes.logo",
-            :src="JSON.parse(item.lead.data.attributes.logo.name)"
+            v-if="item.attributes.lead.data.attributes.logo",
+            :src="JSON.parse(item.attributes.lead.data.attributes.logo.name)"
           )
-          router-link(to="/dashboard/teams") {{ item.lead.data.attributes.username }}
-        .members.flex(v-if="item.members")
+          router-link(
+            :to="{ name: 'teamsItem', params: { id: item.attributes.lead.data.id } }"
+          ) {{ item.attributes.lead.data.attributes.username }}
+        .lead.flex(v-else)
+          img(:src="require(`@/assets/icons/default_user.svg`)")
+        .members.flex(v-if="item.attributes.members.data.length")
           .img(
-            v-for="(i, index) in item.members.data.slice(0, 3)",
+            v-for="(i, index) in item.attributes.members.data.slice(0, 3)",
             :key="index"
           )
             img(
-              v-if="isObject(i.attributes.logo)",
+              v-if="i.attributes.logo",
               :src="JSON.parse(i.attributes.logo.name)"
             )
+        .members.flex(v-else)
+          img(:src="require(`@/assets/icons/default_user.svg`)")
         .star-block.mobile
           i.icon.unchecked
           i.icon.star
-      pagination-component(
-        v-if="totalProjects > 8",
-        :totalItems="totalProjects",
-        :itemsPerPage="8",
-        @onPageChange="handlePageChange"
-      )
     no-results(
-      v-if="noDataShow || noResultsShow",
-      :noData="totalProjects === 0 ? true : false",
+      v-if="noDataShow || (noResultsShow && filterUse)",
+      :noData="noDataShow",
       @reset="reset"
     )
-    common-loader(v-if="isLoader")
+    pagination-component(
+      v-if="totalProjects > itemsPerPage && !noResultsShow && !isLoader",
+      :totalItems="totalProjects",
+      :itemsPerPage="itemsPerPage",
+      @onPageChange="handlePageChange"
+    )
 </template>
 
 <script setup lang="ts">
-import PaginationComponent from "@/components/common/PaginationComponent.vue";
 import NoResults from "@/components/NoResults.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
+import PaginationComponent from "@/components/common/PaginationComponent.vue";
 import BaseInput from "@/components/common/BaseInput.vue";
 import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
-import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
+import { computed, onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { showTag, tagNames } from "@/composables/tagActions";
 import { filterFunction } from "@/composables/projectsAction";
 import { showUsers } from "@/services/api/userApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
 import { useUserStore } from "../store/user";
-import { page, limit, startIndex, endIndex } from "@/composables/pagination";
+import {
+  page,
+  startIndex,
+  endIndex,
+  itemsPerPage,
+} from "@/composables/pagination";
 import { showDataUser, leadNames } from "@/composables/userActions";
+const props = defineProps({
+  newProjectShow: {
+    type: Boolean,
+  },
+});
 const projectsArray = ref([]);
-const currentPage = ref(1);
 const noResultsShow = ref(false);
+const filterUse = ref(false);
 const noDataShow = ref(false);
 const openDropdown = ref(false);
 const totalProjects = ref(null);
 const tagItem = ref([]);
 const leadItem = ref("");
 const isLoader = ref(false);
+const isFetching = ref(false);
 const sortDirection = ref("asc");
-const userStore = useUserStore();
 const dropdownStates = ref({
   tags: { isOpen: false },
   lead: { isOpen: false },
 });
+
+const useStore = useUserStore();
 
 const activeSort = ref({
   name: { active: false },
@@ -161,28 +185,33 @@ const activeSort = ref({
   lead: { active: false },
 });
 
-const searchText = ref("");
-const isObject = computed(() => (value: { name: string }) => {
-  return value !== null && typeof value === "object";
+const sortAction = ref({
+  name: "title",
+  status: "ASC",
 });
 
+const searchText = ref("");
 const reset = () => {
+  showTag();
+  // page.value = 1;
   searchText.value = "";
   if (tagItem.value.length) {
     tagItem.value = [];
   }
+  showDataUser();
+  leadItem.value = "";
   noResultsShow.value = false;
-  isLoader.value = true;
-  setTimeout(() => {
-    isLoader.value = false;
-    showProjects("_page=1&_limit=8").then((response) => {
-      const startIndex = (page.value - 1) * limit.value;
-      const endIndex = startIndex + limit.value;
-      projectsArray.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes);
-    });
-  }, 1000);
+  fetchProjects(
+    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
+  );
+};
+
+const clear = () => {
+  tagItem.value = [];
+  dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
+  fetchProjects(
+    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
+  );
 };
 
 const toggleDropdown = (dropdownName: string) => {
@@ -198,15 +227,25 @@ const close = (dropdownName: string) => {
   dropdownStates.value.lead.isOpen = false;
 };
 
-const { selected } = filterFunction([]);
+const { selected, filtered } = filterFunction([]);
 
 const selectedItem = (tag: { id: any; name: string }) => {
   if (dropdownStates.value.tags.isOpen) {
-    if (!tagItem.value.some((selectedTag) => selectedTag.id === tag.id)) {
-      tagItem.value = tagItem.value.concat(tag);
-      if (tagItem.value.length === tagNames.value.length) {
-        tagNames.value.splice(0, tagNames.value.length);
+    if (!tagItem.value.includes(tag)) {
+      tagItem.value.push(tag);
+    } else {
+      const indexToRemove = tagItem.value.findIndex(
+        (item) => item.id === tag.id
+      );
+
+      if (indexToRemove !== -1) {
+        tagItem.value.splice(indexToRemove, 1);
+        fetchProjects(
+          `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
+        );
       }
+    }
+    if (tagNames.value.length === tagItem.value.length) {
       dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
     }
   } else {
@@ -220,139 +259,65 @@ const selectedItem = (tag: { id: any; name: string }) => {
 };
 
 const fetchAndSetProjects = () => {
-  const searchTerm = searchText.value.toLowerCase();
-
-  if (searchTerm) {
-    isLoader.value = true;
-    setTimeout(() => {
-      projectsArray.value = projectsArray.value.filter(
-        (item: { title: string }) => {
-          const title = item.title.toLowerCase();
-          return title.includes(searchTerm);
-        }
-      );
-      if (!projectsArray.value.length) {
-        noResultsShow.value = true;
-      }
-    }, 1000);
+  if (searchText.value) {
+    let apiRequest = `filters[$and][0][title][$eq]=${searchText.value}`;
+    noResultsShow.value = false;
+    filterUse.value = true;
+    fetchProjects(apiRequest);
   } else if (tagItem.value.length) {
-    isLoader.value = true;
-    noDataShow.value = false;
-
-    setTimeout(() => {
-      showProjects(`filters[tags]=${tagItem.value[0].id}`).then((response) => {
-        const startIndex = (page.value - 1) * limit.value;
-        const endIndex = startIndex + limit.value;
-        projectsArray.value = response.data.data
-          .slice(startIndex, endIndex)
-          .map((project) => project.attributes);
-        isLoader.value = false;
-        if (!projectsArray.value.length) {
-          noResultsShow.value = true;
-        }
-      });
-    }, 1000);
+    const tagFilters = tagItem.value
+      .map(
+        (tag, index) => `filters[$and][${index}][tags][name][$eq]=${tag.name}`
+      )
+      .join("&");
+    const apiRequest = `${tagFilters}`;
+    filterUse.value = true;
+    noResultsShow.value = false;
+    fetchProjects(apiRequest);
   } else if (leadItem.value) {
-    isLoader.value = true;
-
-    setTimeout(() => {
-      showProjects(`filters[lead]=${leadItem.value.id}`).then((response) => {
-        const startIndex = (page.value - 1) * limit.value;
-        const endIndex = startIndex + limit.value;
-        projectsArray.value = response.data.data
-          .slice(startIndex, endIndex)
-          .map((project) => project.attributes);
-        isLoader.value = false;
-        if (!projectsArray.value.length) {
-          noResultsShow.value = true;
-        }
-      });
-    }, 1000);
+    let apiRequest = `filters[$and][${leadItem.value.id}][lead][username][$eq]=${leadItem.value.name}`;
+    filterUse.value = true;
+    noResultsShow.value = false;
+    fetchProjects(apiRequest);
   } else {
     return projectsArray.value;
+  }
+};
+const processProjectData = computed(() => {
+  updateData();
+  return projectsArray.value;
+});
+
+const updateData = () => {
+  let show = props.newProjectShow;
+  if (show && !isFetching.value) {
+    isFetching.value = true;
+    fetchProjects(
+      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
+    ).then(() => {
+      isFetching.value = false;
+    });
   }
 };
 
 watchEffect(() => {
   fetchAndSetProjects();
 });
-
 const handlePageChange = (newPage: number) => {
-  currentPage.value = newPage;
-  page.value = currentPage.value;
-  isLoader.value = true;
-  setTimeout(() => {
-    isLoader.value = false;
-    showProjects("_page=1&_limit=8").then((response) => {
-      const startIndex = (page.value - 1) * limit.value;
-      const endIndex = startIndex + limit.value;
-      projectsArray.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes);
-    });
-  }, 1000);
-};
-
-const deleteLead = () => {
-  isLoader.value = true;
-  setTimeout(() => {
-    isLoader.value = false;
-    leadNames.value.push(leadItem.value);
-    leadItem.value = "";
-    dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
-    reset();
-  }, 1000);
-};
-const sort = (field: string, order: "asc" | "desc") => {
-  sortDirection.value = order;
-  if (order === "asc") {
-    showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
-      projectsArray.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes);
-      activeSort.value = {
-        name: { active: false },
-        key: { active: false },
-        lead: { active: false },
-      };
-
-      activeSort.value[field].active = true;
-    });
-  } else if (order === "desc") {
-    showProjects("_page=1&_limit=8&sort=title:DESC").then((response) => {
-      projectsArray.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes);
-      activeSort.value = {
-        name: { active: false },
-        key: { active: false },
-        lead: { active: false },
-      };
-
-      activeSort.value[field].active = true;
-    });
-  }
-};
-onMounted(() => {
-  isLoader.value = true;
-  watch(
-    () => userStore.projectData,
-    (newProjectData) => {
-      isLoader.value = true;
-      setTimeout(() => {
-        projectsArray.value.push(newProjectData.data.attributes);
-        isLoader.value = false;
-        noDataShow.value = false;
-        totalProjects.value = projectsArray.value.length;
-      }, 1000);
-    }
+  page.value = newPage;
+  startIndex.value = (page.value - 1) * itemsPerPage.value;
+  fetchProjects(
+    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
   );
-  setTimeout(() => {
-    showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
-      projectsArray.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes);
-      totalProjects.value = response.data.data.length;
+};
+const fetchProjects = (apiRequest: string) => {
+  isLoader.value = true;
+  return new Promise(() => {
+    showProjects(apiRequest).then((response) => {
+      projectsArray.value = response.data.data.map(
+        (project: ProjectInterfaceItem) => project
+      );
+      totalProjects.value = response.data.meta.pagination.total;
       activeSort.value = {
         name: { active: false },
         key: { active: false },
@@ -360,14 +325,44 @@ onMounted(() => {
       };
 
       activeSort.value.name.active = true;
-      if (!totalProjects.value) {
+      isLoader.value = false;
+      if (!totalProjects.value && filterUse.value) {
+        noResultsShow.value = true;
+      } else if (!totalProjects.value) {
         noDataShow.value = true;
-        isLoader.value = false;
-      } else {
-        isLoader.value = false;
       }
     });
-  }, 1000);
+  });
+};
+const deleteLead = () => {
+  showDataUser();
+  leadItem.value = "";
+  noResultsShow.value = false;
+  fetchProjects(
+    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
+  );
+};
+const sort = (field: string, order: "asc" | "desc") => {
+  sortDirection.value = order;
+  if (order === "asc") {
+    fetchProjects(
+      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${field}:ASC`
+    ).then(() => {
+      activeSort.value[field].active = true;
+    });
+  } else if (order === "desc") {
+    fetchProjects(
+      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${field}:DESC`
+    ).then(() => {
+      activeSort.value[field].active = true;
+    });
+  }
+};
+
+onMounted(() => {
+  fetchProjects(
+    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
+  );
   showTag();
   showDataUser();
 });

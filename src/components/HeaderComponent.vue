@@ -44,11 +44,13 @@
       @click="openModal(EnumModalKeys.ModalHeader)"
     )
     .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
-    button(@click="openModal(EnumModalKeys.ModalCreate)") Create issue
+    h3(v-if="isRouteActive('projects')") Projects
+    i.icon.plus(@click="openModal(EnumModalKeys.ModalCreate)")
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
 modal-create(
   v-if="isOpen(EnumModalKeys.ModalCreate)",
   @close="close",
+  @newProject="newProject",
   :create="true"
 )
 </template>
@@ -69,10 +71,15 @@ const fullName = computed(() => {
   const username = userStore.user.username || "";
   return username;
 });
+const emit = defineEmits(["newProject"]);
 const dropdownStates = ref({
   work: { isOpen: false },
   project: { isOpen: false },
 });
+
+const newProject = () => {
+  emit("newProject");
+};
 
 const closeDropdown = () => {
   dropdownStates.value.work.isOpen = false;
@@ -152,13 +159,16 @@ const isRouteActive = (routeName: string) => {
           outline: 8px solid var(--secondary);
         }
       }
-      button {
-        @include font(14px, 500, 20px, var(--white));
-        border: none;
-        background: transparent;
-        padding: 0;
-        cursor: pointer;
+      i.plus {
         z-index: 3;
+        position: relative;
+        &::before {
+          background: var(--text);
+        }
+      }
+      h3 {
+        @include font(16px, 500, 24px, var(--white));
+        margin: 0;
       }
     }
   }

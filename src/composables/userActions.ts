@@ -1,6 +1,7 @@
 import { showUsers } from "@/services/api/userApi";
 import { ref } from "vue";
 export const leadNames = ref([]);
+export const membersNames = ref([]);
 export const showDataUser = () => {
   showUsers().then(({ data }) => {
     leadNames.value = data.map((item: userDataInterface) => ({
@@ -8,6 +9,7 @@ export const showDataUser = () => {
       logo: item.logo,
       id: item.id,
     }));
+    membersNames.value = [...leadNames.value];
   });
 };
 

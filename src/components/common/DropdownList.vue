@@ -4,15 +4,33 @@
   div
     button(@click.prevent="selectAll") Select All
     button(@click.prevent="clearAll") Clear
-ul(v-if="data.length", :class="({ checkbox: type === 'checkbox' }, type)")
-  li(v-for="(item, index) in data", :key="index", @click="selectItem(item)")
+ul(
+  v-if="filteredData.length",
+  :class="({ checkbox: type === 'checkbox' }, type)"
+)
+  li(
+    v-for="(item, index) in filteredData",
+    :key="index",
+    @click="selectItem(item)"
+  )
     .image-item(v-if="type === 'lead'")
       img.logo(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
       .grey-block(v-else)
     button.checkbox(
-      v-if="type === 'checkbox'",
+      v-if="type === 'checkbox' && !checkedItem",
+      @click.prevent="toggleSelect(item)"
+    )
+      i.check.icon
+    button.checkbox(
+      v-else-if="checkedItem",
       @click.prevent="toggleSelect(item)",
-      :class="{ active: selectedItems.includes(item) }"
+      :class="{ active: checkedItem.includes(item) }"
+    )
+      i.check.icon
+    button.checkbox(
+      v-else-if="allItems",
+      @click.prevent="toggleSelect(item)",
+      :class="{ active: allItems.includes(item) }"
     )
       i.check.icon
     p {{ item.name }}
@@ -23,33 +41,32 @@ ul.not-founds(v-else)
 </template>
 
 <script setup lang="ts">
+import { filterFunction } from "@/composables/projectsAction";
 import { defineProps, ref } from "vue";
 
 const props = defineProps({
-  data: { type: Array },
   type: { type: String },
   title: { type: String },
+  checkedItem: { type: Array },
+  filteredData: { type: Array },
 });
-const emit = defineEmits(["selectedItem"]);
-const selectedItems = ref<string[]>([]);
+const emit = defineEmits(["selectedItem", "clear"]);
+const selectedItems = ref(props.checkedItem);
 const isActive = ref(false);
-
+const { selected } = filterFunction([]);
 const selectItem = (item: { name: string; id: number }) => {
-  if (selectedItems.value.includes(item)) {
-    selectedItems.value = selectedItems.value.filter((i) => i !== item);
-  } else {
-    selectedItems.value.push(item);
-  }
   emit("selectedItem", item);
 };
 
 const selectAll = () => {
-  selectedItems.value = props.data;
-  emit("selectedItem", props.data);
+  const allItems = [...props.filteredData];
+  for (const item of allItems) {
+    emit("selectedItem", item);
+  }
 };
 
 const clearAll = () => {
-  selectedItems.value = [];
+  emit("clear");
 };
 </script>
 
@@ -200,6 +217,9 @@ ul {
         left: 20px;
         &::before {
           background: var(--white);
+        }
+        @include media_mobile {
+          left: 16px;
         }
       }
     }

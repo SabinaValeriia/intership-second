@@ -6,17 +6,20 @@
         input(v-model="searchText", placeholder="Placeholder")
         i.icon.search
     dropdown-list(
-      :data="data",
       @selectedItem="onSelectedItem",
       :tags="tags",
       :type="type",
+      :data="data",
       :class="{ tags, checkbox: type === 'checkbox' }",
-      :title="title"
+      :title="title",
+      @clear="clear",
+      :checkedItem="checkedItem",
+      :filteredData="filteredData"
     )
 </template>
 
 <script setup lang="ts">
-import { defineProps, onMounted, onUnmounted, ref } from "vue";
+import { defineProps, onMounted, onUnmounted, ref, watch } from "vue";
 import DropdownList from "@/components/common/DropdownList.vue";
 import { selectedItemInterface } from "@/types/selectedItemInterface";
 const props = defineProps({
@@ -26,9 +29,11 @@ const props = defineProps({
   isOpen: { type: Boolean },
   title: { type: String },
   classType: { type: String, default: "big" },
+  checkedItem: { type: Array },
+  filteredData: { type: Array },
 });
-const emit = defineEmits(["selectedItem", "close"]);
-
+const emit = defineEmits(["selectedItem", "close", "clear"]);
+const searchText = ref("");
 const onSelectedItem = (selectedItem: selectedItemInterface) => {
   emit("selectedItem", selectedItem);
 };
@@ -43,6 +48,23 @@ const clickOutsideHandler = (event: MouseEvent) => {
   ) {
     emit("close");
   }
+};
+
+const clear = () => {
+  emit("clear");
+};
+
+const filteredData = ref(props.data);
+
+watch(searchText, () => {
+  filterData();
+});
+
+const filterData = () => {
+  const searchLowerCase = searchText.value.toLowerCase();
+  filteredData.value = props.data.filter((item) =>
+    item.name.toLowerCase().includes(searchLowerCase)
+  );
 };
 
 onMounted(() => {
@@ -68,6 +90,7 @@ onUnmounted(() => {
       width: calc(100% - 28px);
       &.lead {
         width: 100%;
+        top: 78px;
       }
     }
   }

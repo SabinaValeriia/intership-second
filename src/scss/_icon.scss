@@ -81,6 +81,12 @@
     &.sort_down {
         mask-image: url("@/assets/icons/sort_down.svg");
     }
+    &.default_user {
+        mask-image: url("@/assets/icons/default_user.svg");
+    }
+    &.plus {
+        mask-image: url("@/assets/icons/plus.svg");
+    }
     @include media_mobile {
         width: 16px;
         height: 16px;

@@ -7,10 +7,10 @@
     )
       i.icon.arrow
     li(
-      v-for="pageNumber in totalPages",
-      :key="pageNumber",
-      @click="changePage(pageNumber)",
-      :class="{ active: currentPage === pageNumber }"
+      v-for="(pageNumber, index) in totalPages",
+      :key="index",
+      :class="{ active: currentPage === pageNumber }",
+      @click="changePage(pageNumber)"
     ) {{ pageNumber }}
     li(
       @click="changePage(currentPage + 1)",
@@ -20,9 +20,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, ref } from "vue";
+import { computed, defineProps, ref, watch } from "vue";
 
-const props = defineProps(["totalItems", "itemsPerPage", "onPageChange"]);
+const props = defineProps({
+  totalItems: {},
+  itemsPerPage: {},
+  isLoaded: { default: true, type: Boolean },
+});
 
 const emit = defineEmits(["onPageChange"]);
 
@@ -32,10 +36,9 @@ const totalPages = computed(() =>
   Math.ceil(props.totalItems / props.itemsPerPage)
 );
 const changePage = (newPage: number) => {
-  if (newPage >= 1 && newPage <= totalPages.value) {
-    currentPage.value = newPage;
-    emit("onPageChange", newPage);
-  }
+  currentPage.value = newPage;
+  console.log(currentPage.value);
+  emit("onPageChange", newPage);
 };
 </script>
 

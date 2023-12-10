@@ -1,7 +1,6 @@
 import { showProjects } from "@/services/api/projectApi";
 import { ref, computed } from "vue";
 import { ProjectInterfaceItem } from "../types/projectApiInterface";
-export const leadNames = ref([]);
 export const projects = ref([]);
 
 export const showProject = () => {
@@ -9,21 +8,6 @@ export const showProject = () => {
     projects.value = data.data.map((project: ProjectInterfaceItem) => {
       return project.attributes;
     });
-    leadNames.value = data.data.map(
-      (item: {
-        attributes: {
-          leadName: string;
-          logo: {
-            name: string;
-          };
-        };
-        id: number;
-      }) => ({
-        leadName: item.attributes,
-        logo: item.attributes.logo.name,
-        id: item.id,
-      })
-    );
   });
 };
 
@@ -36,5 +20,16 @@ export const filterFunction = (data: string[]) => {
   return {
     selected,
     filtered,
+    addSelected: (item: string) => {
+      if (!selected.includes(item)) {
+        selected.push(item);
+      }
+    },
+    removeSelected: (item: string) => {
+      const index = selected.indexOf(item);
+      if (index !== -1) {
+        selected.splice(index, 1);
+      }
+    },
   };
 };

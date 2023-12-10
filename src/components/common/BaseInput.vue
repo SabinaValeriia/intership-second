@@ -2,7 +2,7 @@
 .form-group(:class="type")
   .label-group
     label {{ capitalizeFirstLetter(`${type}`) }}
-    i.icon.arrow.mobile(@click="toggleInput")
+    i.icon.arrow.mobile(@click="toggleInput", :class="{ open }")
   .form-icon(v-if="open")
     slot(name="prefix")
     input(
@@ -43,6 +43,7 @@ const capitalizeFirstLetter = (word: string) => {
   return word.charAt(0).toUpperCase() + word.slice(1);
 };
 const toggleInput = () => {
+  event.stopPropagation();
   open.value = !open.value;
 };
 </script>
