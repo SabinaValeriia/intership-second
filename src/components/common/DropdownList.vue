@@ -15,7 +15,8 @@ ul(
   )
     .image-item(v-if="type === 'lead'")
       img.logo(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
-      .grey-block(v-else)
+      //- .grey-block(v-else)
+      img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
     button.checkbox(
       v-if="type === 'checkbox' && !checkedItem",
       @click.prevent="toggleSelect(item)"
