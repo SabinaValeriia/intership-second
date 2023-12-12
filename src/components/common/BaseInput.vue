@@ -17,12 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed, ref } from "vue";
+import { defineProps, defineEmits, computed, ref, watch } from "vue";
 const props = defineProps({
   type: { type: String },
   valueInput: {
     type: String,
   },
+  isError: { type: Boolean },
   withIcon: { type: Boolean, default: false },
 });
 
@@ -46,4 +47,12 @@ const toggleInput = () => {
   event.stopPropagation();
   open.value = !open.value;
 };
+watch(
+  () => props.isError.error,
+  (newError) => {
+    if (newError) {
+      open.value = true;
+    }
+  }
+);
 </script>

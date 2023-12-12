@@ -11,7 +11,7 @@ app-modal
             :class="getValidationClass($v, 'title')",
             :type="`title`",
             :value-input="form.title",
-            :is-error="$v.title.required.$invalid",
+            :isError="getValidationClass($v, 'title')",
             @set-data="form.title = $event"
           )
             template(v-slot:errors, v-if="$v.title.required.$invalid")
@@ -74,7 +74,7 @@ app-modal
                   :src="JSON.parse(form.lead.logo.name)",
                   alt="name"
                 )
-                .grey-circle(v-else)
+                img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
               template(v-slot:errors, v-if="$v.lead.required.$invalid")
                 span This field is required.
               template(v-slot:suffix)
@@ -106,7 +106,8 @@ app-modal
               :title="'Members'",
               @clear="clear",
               :type="'checkbox'",
-              :checkedItem="memberItem"
+              :checkedItem="memberItem",
+              @allItem="allItem"
             )
     .modal-footer.create
       common-button.cancel.btn-secondary-line(@click="close") Cancel
@@ -215,10 +216,17 @@ const toggleBlock = (inputType: string) => {
   showInput.value = showInput.value === inputType ? "" : inputType;
 };
 
+const allItem = (item) => {
+  if (!form.value.members.some((tag) => tag.id === item.id)) {
+    form.value.members.push(item.name);
+    members.value.push(item.id.toString());
+  }
+  dropdownStates.value.members.isOpen = false;
+};
+
 const clear = () => {
   memberItem.value = [];
   form.value.members = [];
-  dropdownStates.value.members.isOpen = !dropdownStates.value.members.isOpen;
   showDataUser();
 };
 
@@ -320,7 +328,7 @@ const save = () => {
       lead: form.value.lead.id.toString(),
       members: Array.from(members.value),
       tags: Array.from(tags.value),
-      managers: leadName.value.toString(),
+      manager: leadName.value.toString(),
     },
   };
   projectPost(dataProject)
@@ -379,6 +387,8 @@ onMounted(() => {
     height: 11px;
     @include media_mobile {
       right: 12px;
+      width: 12px;
+      height: 8px;
     }
     &.active {
       transform: rotate(180deg);
@@ -541,6 +551,10 @@ onMounted(() => {
           background: var(--accent);
           @include font(14px, 400, 20px, var(--white));
           margin-left: 8px;
+          cursor: pointer;
+          &:hover {
+            background: var(--accent_hover);
+          }
           i.close {
             top: 11px;
             left: 8px;
@@ -548,6 +562,17 @@ onMounted(() => {
             height: 10px;
             &::before {
               background: var(--white);
+            }
+          }
+          @include media_mobile {
+            padding: 4px 6px 4px 18px;
+            font-size: 12px;
+            line-height: 16px;
+            i.close {
+              top: 9px;
+              left: 6px;
+              width: 8px;
+              height: 8px;
             }
           }
         }

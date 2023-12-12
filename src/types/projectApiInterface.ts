@@ -9,7 +9,7 @@ export interface ProjectInterface {
     lead: string;
     members: string[];
     tags: string[];
-    managers: string;
+    manager: string;
   };
 }
 

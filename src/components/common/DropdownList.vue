@@ -15,7 +15,6 @@ ul(
   )
     .image-item(v-if="type === 'lead'")
       img.logo(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
-      //- .grey-block(v-else)
       img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
     button.checkbox(
       v-if="type === 'checkbox' && !checkedItem",
@@ -51,7 +50,7 @@ const props = defineProps({
   checkedItem: { type: Array },
   filteredData: { type: Array },
 });
-const emit = defineEmits(["selectedItem", "clear"]);
+const emit = defineEmits(["selectedItem", "clear", "allItem"]);
 const selectedItems = ref(props.checkedItem);
 const isActive = ref(false);
 const { selected } = filterFunction([]);
@@ -62,7 +61,7 @@ const selectItem = (item: { name: string; id: number }) => {
 const selectAll = () => {
   const allItems = [...props.filteredData];
   for (const item of allItems) {
-    emit("selectedItem", item);
+    emit("allItem", item);
   }
 };
 

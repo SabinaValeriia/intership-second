@@ -13,6 +13,7 @@
       :class="{ tags, checkbox: type === 'checkbox' }",
       :title="title",
       @clear="clear",
+      @allItem="allItem",
       :checkedItem="checkedItem",
       :filteredData="filteredData"
     )
@@ -32,7 +33,7 @@ const props = defineProps({
   checkedItem: { type: Array },
   filteredData: { type: Array },
 });
-const emit = defineEmits(["selectedItem", "close", "clear"]);
+const emit = defineEmits(["selectedItem", "close", "clear", "allItem"]);
 const searchText = ref("");
 const onSelectedItem = (selectedItem: selectedItemInterface) => {
   emit("selectedItem", selectedItem);
@@ -52,6 +53,10 @@ const clickOutsideHandler = (event: MouseEvent) => {
 
 const clear = () => {
   emit("clear");
+};
+
+const allItem = (item: [{ name: string; id: number }]) => {
+  emit("allItem", item);
 };
 
 const filteredData = ref(props.data);

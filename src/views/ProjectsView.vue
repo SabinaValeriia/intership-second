@@ -1,5 +1,6 @@
 <template lang="pug">
 .backdrop(@click="close")
+.project--background
 .project(@click="closeDropdowns")
   h1 Projects
   form.position
@@ -9,15 +10,12 @@
         i.icon.search
     .mobile
       .dropdown__block
-        .selected(v-if="tagItem.length > 1") + {{ tagItem.length - 1 }}
-        base-input.tags-block(
-          :type="`tags`",
-          :value-input="tagItem.length > 0 ? `Tags: ${tagItem[0].name}` : 'Tags'",
-          @click="toggleDropdown('tags')",
+        common-button.btn-secondary-line.tags-block(
+          @click.prevent="toggleDropdown('tags')",
           :class="{ select: tagItem.length }"
-        ) 
-          template(v-slot:suffix)
-            i.icon.arrow(:class="{ active: openDropdown }")
+        ) {{ tagItem.length > 0 ? `Tags: ${tagItem[0].name}` : "Tags" }}
+          span.selected(v-if="tagItem.length > 1") + {{ tagItem.length - 1 }}
+          i.icon.arrow(:class="{ active: dropdownStates.tags.isOpen }")
         dropdown-component.tags__block(
           v-if="dropdownStates.tags.isOpen",
           :isOpen="dropdownStates.tags.isOpen",
@@ -26,13 +24,25 @@
           @selectedItem="selectedItem",
           :type="'checkbox'",
           :title="'Project tags'",
-          @clear="clear"
+          @clear="clear",
+          @allItem="selectAll"
         )
       .dropdown__block.lead
         common-button.btn_icon.lead(
           @click.prevent="toggleDropdown('lead')",
           :class="[leadItem ? ['btn-secondary', 'select'] : 'btn_primary']"
         ) {{ leadItem ? leadItem.name : "Lead" }}
+          i.icon.member.icon-img(v-if="!leadItem")
+          div(v-else)
+            img.logo(
+              v-if="leadItem.logo",
+              :src="JSON.parse(leadItem.logo.name)",
+              alt="name"
+            )
+            img(
+              v-else-if="!leadItem.logo",
+              :src="require(`@/assets/icons/default_user.svg`)"
+            )
           i.icon.close(v-if="leadItem", @click="deleteLead")
         dropdown-component.tags__block(
           v-if="dropdownStates.lead.isOpen",
@@ -41,10 +51,15 @@
           @selectedItem="selectedItem",
           :type="'lead'"
         )
-      common-button.reset.btn-secondary(
+      common-button.reset.btn-secondary.laptop(
         v-if="leadItem || searchText || tagItem.length",
         @click.prevent="reset"
       ) Reset
+      common-button.reset.btn-secondary.mobile(
+        v-if="leadItem || searchText || tagItem.length",
+        @click.prevent="reset"
+      ) 
+        i.icon.reset
   .ptojects-table
     .ptojects-table__block.distance
       .star-block 
@@ -110,12 +125,13 @@
           .img(
             v-for="(i, index) in item.attributes.members.data.slice(0, 3)",
             :key="index"
-          )
-            img(
-              v-if="i.attributes.logo",
-              :src="JSON.parse(i.attributes.logo.name)"
-            )
-            img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
+          ) 
+            router-link(:to="{ name: 'teamsItem', params: { id: i.id } }")
+              img(
+                v-if="i.attributes.logo",
+                :src="JSON.parse(i.attributes.logo.name)"
+              )
+              img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
         .star-block.mobile
           i.icon.unchecked
           i.icon.star
@@ -197,20 +213,22 @@ const reset = () => {
   leadItem.value = "";
   noResultsShow.value = false;
   fetchProjects("");
+  close();
 };
 
 const clear = () => {
   tagItem.value = [];
-  dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
   fetchProjects("");
 };
 
 const toggleDropdown = (dropdownName: string) => {
+  Object.keys(dropdownStates.value).forEach((name) => {
+    if (name !== dropdownName) {
+      dropdownStates.value[name].isOpen = false;
+    }
+  });
   dropdownStates.value[dropdownName].isOpen =
     !dropdownStates.value[dropdownName].isOpen;
-  if (dropdownStates.value.tags.isOpen) {
-    openDropdown.value = !openDropdown.value;
-  }
 };
 
 const close = (dropdownName: string) => {
@@ -298,9 +316,7 @@ const updateData = () => {
   let show = props.newProjectShow;
   if (show && !isFetching.value) {
     isFetching.value = true;
-    fetchProjects(
-      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
-    ).then(() => {
+    fetchProjects("").then(() => {
       isFetching.value = false;
     });
   }
@@ -312,19 +328,21 @@ const handlePageChange = (newPage: number) => {
 };
 const fetchProjects = (filters: string) => {
   isLoader.value = true;
-  showProjects(
-    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}${filters}`
-  ).then((response) => {
-    projectsArray.value = response.data.data.map(
-      (project: ProjectInterfaceItem) => project
-    );
-    totalProjects.value = response.data.meta.pagination.total;
-    isLoader.value = false;
-    if (!totalProjects.value && filterUse.value) {
-      noResultsShow.value = true;
-    } else if (!totalProjects.value) {
-      noDataShow.value = true;
-    }
+  return new Promise(() => {
+    showProjects(
+      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}${filters}`
+    ).then((response) => {
+      projectsArray.value = response.data.data.map(
+        (project: ProjectInterfaceItem) => project
+      );
+      totalProjects.value = response.data.meta.pagination.total;
+      isLoader.value = false;
+      if (!totalProjects.value && filterUse.value) {
+        noResultsShow.value = true;
+      } else if (!totalProjects.value) {
+        noDataShow.value = true;
+      }
+    });
   });
 };
 const deleteLead = () => {
@@ -333,19 +351,29 @@ const deleteLead = () => {
   noResultsShow.value = false;
   fetchProjects("");
 };
-const sort = (field: string, order: "ASC" | "DESC") => {
-  sortDirection.value = order;
-  sortAction.value.class = "";
-  sortAction.value = {
-    name: `${field}`,
-    status: `${order}`,
-    class: "active",
-  };
-  if (field === "lead") {
-    fetchProjects(`&_sort=lead.attributes.username:${order}`);
+const sort = (field: string) => {
+  if (sortAction.value.name === field) {
+    sortAction.value.status =
+      sortAction.value.status === "ASC" ? "DESC" : "ASC";
   } else {
-    fetchProjects(`&sort=${field}:${order}`);
+    sortAction.value = {
+      name: field,
+      status: "ASC",
+      class: "active",
+    };
   }
+  if (field === "lead") {
+    fetchProjects(`&_sort=lead.attributes.username:${sortAction.value.status}`);
+  } else {
+    fetchProjects(`&sort=${field}:${sortAction.value.status}`);
+  }
+};
+
+const selectAll = (item: [{ name: string; id: number }]) => {
+  if (!tagItem.value.some((tag) => tag.id === item.id)) {
+    tagItem.value.push(item);
+  }
+  dropdownStates.value.tags.isOpen = false;
 };
 
 onMounted(() => {
@@ -356,14 +384,28 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.project--background {
+  @include media_mobile {
+    background: var(--background);
+    position: relative;
+    width: 100%;
+    height: 500px;
+  }
+}
 .project {
   background: var(--background);
-  height: 100vh;
+  height: -webkit-fill-available;
   width: calc(100% - 80px);
   padding: 28px 40px 89px;
   @include media_mobile {
-    height: calc(100% - 124px);
-    overflow: auto;
+    top: 56px;
+    position: absolute;
+    height: 100vh;
+  }
+  .projects {
+    @include media_mobile {
+      min-height: 380px;
+    }
   }
   .position {
     display: flex;
@@ -383,7 +425,6 @@ onMounted(() => {
           .form-icon {
             input {
               padding: 9px 10px;
-              width: 64px;
               height: 34px;
             }
           }
@@ -405,7 +446,7 @@ onMounted(() => {
       &.arrow {
         height: 12px;
         width: 16px;
-        top: 21px;
+        top: 19px;
         &.active {
           transform: rotate(180deg);
           top: 17px;
@@ -414,7 +455,10 @@ onMounted(() => {
           right: 10px;
           width: 10px;
           height: 5px;
-          top: 16px;
+          top: 14px;
+          &.active {
+            top: 14px;
+          }
         }
         &.mobile {
           display: none;
@@ -437,8 +481,8 @@ onMounted(() => {
         margin-top: 6px;
       }
       .tags__block {
-        top: 64px;
         z-index: 3;
+        top: 63px;
         @include media_mobile {
           top: 155px;
           position: fixed;
@@ -451,10 +495,8 @@ onMounted(() => {
         padding: 4px 8px;
         border-radius: 12px;
         width: fit-content;
-        position: absolute;
-        right: 49px;
-        top: 12px;
         z-index: 2;
+        margin-left: 6px;
         @include media_mobile {
           font-size: 8px;
           line-height: 12px;
@@ -464,17 +506,62 @@ onMounted(() => {
       }
       button {
         &.reset {
-          width: 102px;
-          height: 48px;
+          padding: 14px 26px;
           margin-left: 10px;
+          font-size: 14px;
+          line-height: 20px;
+          height: fit-content;
           @include media_mobile {
-            width: 67px;
-            height: 34px;
-            margin-left: 6px;
+            margin: 0 0 0 6px;
+            &.laptop {
+              display: none;
+            }
+          }
+          &.mobile {
+            display: none;
+            @include media_mobile {
+              display: block;
+              width: auto;
+              padding: 9px 10px;
+              .reset {
+                position: relative;
+                right: auto;
+                &::before {
+                  background: var(--white);
+                }
+              }
+            }
           }
         }
         &.lead {
           height: 48px;
+          div {
+            display: flex;
+            align-items: center;
+          }
+          img {
+            height: 20px;
+            width: 20px;
+            left: 16px;
+            position: absolute;
+            border-radius: 10px;
+            @include media_mobile {
+              left: 10px;
+              width: 13px;
+              height: 13px;
+            }
+          }
+          .member {
+            left: 16px;
+            &::before {
+              background: var(--white);
+            }
+            @include media_mobile {
+              left: 10px;
+              width: 13px;
+              height: 13px;
+            }
+          }
         }
       }
       .dropdown__block {
@@ -495,41 +582,52 @@ onMounted(() => {
           i.close {
             width: 12px;
             height: 12px;
-            right: 10px;
+            right: 16px;
             top: 19px;
             &::before {
               background: var(--white);
             }
             @include media_mobile {
-              top: 12px;
+              top: 13px;
+              width: 8px;
+              height: 8px;
+              right: 10px;
             }
           }
         }
         .btn-secondary {
-          padding: 16px 34px 16px 16px;
+          padding: 12px 36px 12px 16px;
           @include media_mobile {
-            padding: 9px 34px 9px 10px;
+            padding: 9px 24px 9px 10px;
           }
           &.select {
             width: 100%;
           }
         }
         .tags-block {
-          width: 97px;
-          .form-icon {
-            input {
-              padding: 9px 10px;
+          padding: 12px 44px 12px 16px;
+          background: var(--white);
+          border-color: var(--primary);
+          color: var(--text);
+          height: 48px;
+          width: auto;
+          &.select {
+            color: var(--accent);
+            i.arrow {
+              &::before {
+                background: var(--accent);
+              }
             }
           }
           @include media_mobile {
-            width: 64px;
+            padding: 9px 26px 9px 10px;
+            font-size: 12px;
+            line-height: 16px;
+            height: 34px;
           }
-          &.select {
-            width: 100%;
-            position: relative;
+          .form-icon {
             input {
-              color: var(--accent);
-              width: 100%;
+              padding: 9px 10px;
             }
           }
         }
@@ -547,10 +645,6 @@ onMounted(() => {
   .btn_icon {
     padding: 12px 16px;
     box-sizing: border-box;
-    &::before {
-      background: url("@/assets/icons/member.svg") no-repeat;
-      background-size: cover;
-    }
     @include media_mobile {
       padding: 9px 10px;
     }
@@ -960,18 +1054,30 @@ onMounted(() => {
           position: relative;
           margin-left: -8px;
           cursor: pointer;
+          @include media_mobile {
+            height: 28px;
+            width: 28px;
+          }
           &:hover {
             z-index: 3;
             border: 2px solid var(--secondary);
             width: 34px;
             height: 34px;
             border-radius: 19px;
+            @include media_mobile {
+              width: 28px;
+              height: 28px;
+            }
           }
           img {
             margin-right: 0;
             &:hover {
               width: 34px;
               height: 34px;
+              @include media_mobile {
+                width: 28px;
+                height: 28px;
+              }
             }
           }
           &:first-child {

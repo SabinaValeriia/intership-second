@@ -117,6 +117,11 @@ const isRouteActive = (routeName: string) => {
   height: 80px;
   box-sizing: border-box;
   @include media_mobile {
+    position: fixed;
+    width: 100%;
+    z-index: 3;
+    top: 0;
+
     height: 56px;
   }
   &__avatar {

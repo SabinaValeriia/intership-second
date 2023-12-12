@@ -45,7 +45,7 @@ const changePage = (newPage: number) => {
 .pagination {
   margin: 40px 0 16px;
   @include media_mobile {
-    margin: 20px 0 0;
+    margin: 20px 0 76px 0;
   }
   ul {
     list-style-type: none;
@@ -70,9 +70,15 @@ const changePage = (newPage: number) => {
         width: 36px;
         height: 36px;
         font-size: 14px;
+        border-radius: 8px;
       }
       &:hover {
         background-color: var(--primary);
+        i.arrow {
+          &::before {
+            background: var(--text);
+          }
+        }
       }
       i.arrow {
         height: 11px;
@@ -81,10 +87,14 @@ const changePage = (newPage: number) => {
         }
       }
       &.disabled {
+        pointer-events: none;
         i.arrow {
           &::before {
             background: var(--placeholder);
           }
+        }
+        &:hover {
+          background: transparent;
         }
       }
       &:first-child {
@@ -105,6 +115,9 @@ const changePage = (newPage: number) => {
     .active {
       background-color: var(--accent);
       color: var(--white);
+      &:hover {
+        background-color: var(--accent);
+      }
     }
   }
 }

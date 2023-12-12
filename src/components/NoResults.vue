@@ -94,6 +94,10 @@ const create = () => {
     margin-top: 16px;
     width: 100px;
     height: 52px;
+    @include media_mobile {
+      height: 44px;
+      width: 71px;
+    }
   }
 }
 </style>

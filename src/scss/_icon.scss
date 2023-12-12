@@ -87,6 +87,12 @@
     &.plus {
         mask-image: url("@/assets/icons/plus.svg");
     }
+    &.member {
+        mask-image: url("@/assets/icons/member.svg");
+    }
+    &.reset {
+        mask-image: url("@/assets/icons/reset.svg");
+    }
     @include media_mobile {
         width: 16px;
         height: 16px;

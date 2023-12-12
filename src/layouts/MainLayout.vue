@@ -19,6 +19,7 @@ const newProject = () => {
   display: none;
   @include media_mobile {
     display: flex;
+    z-index: 3;
   }
 }
 </style>
