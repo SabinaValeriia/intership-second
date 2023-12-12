@@ -102,11 +102,10 @@
             v-if="item.attributes.lead.data.attributes.logo",
             :src="JSON.parse(item.attributes.lead.data.attributes.logo.name)"
           )
+          img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
           router-link(
             :to="{ name: 'teamsItem', params: { id: item.attributes.lead.data.id } }"
           ) {{ item.attributes.lead.data.attributes.username }}
-        .lead.flex(v-else)
-          img(:src="require(`@/assets/icons/default_user.svg`)")
         .members.flex(v-if="item.attributes.members.data.length")
           .img(
             v-for="(i, index) in item.attributes.members.data.slice(0, 3)",
@@ -116,8 +115,7 @@
               v-if="i.attributes.logo",
               :src="JSON.parse(i.attributes.logo.name)"
             )
-        .members.flex(v-else)
-          img(:src="require(`@/assets/icons/default_user.svg`)")
+            img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
         .star-block.mobile
           i.icon.unchecked
           i.icon.star
