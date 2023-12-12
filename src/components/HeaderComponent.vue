@@ -163,7 +163,7 @@ const isRouteActive = (routeName: string) => {
         z-index: 3;
         position: relative;
         &::before {
-          background: var(--text);
+          background: var(--white);
         }
       }
       h3 {

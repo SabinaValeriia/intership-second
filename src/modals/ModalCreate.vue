@@ -54,7 +54,7 @@ app-modal
             ) Add
           dropdown-component.tag(
             :isOpen="dropdownStates.tags.isOpen",
-            :data="tagNames",
+            :data="tagData",
             @selectedItem="selectedItem",
             :type="'tags'",
             :classType="'small'"
@@ -130,7 +130,7 @@ import {
   pushNotification,
 } from "@/composables/notification";
 import { ProjectInterface } from "@/types/projectApiInterface";
-import { showTag, tagNames } from "@/composables/tagActions";
+import { showTag, tagData } from "@/composables/tagActions";
 import { ImageInterface } from "../types/ImageInterface";
 import { filterFunction, projects } from "@/composables/projectsAction";
 import { useUserStore } from "../store/user";
@@ -245,17 +245,23 @@ const selectedItem = (tag: string) => {
 
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   } else if (dropdownStates.value.tags.isOpen) {
-    if (!selected.includes(tag)) {
+    if (!form.value.tags.includes(tag)) {
       form.value.tags.push(tag);
     }
-    const tagIndexToRemove = tagNames.value.findIndex((t) => t.id === tag.id);
+
+    const updatedTagNames = [...tagData.value];
+    const tagIndexToRemove = updatedTagNames.findIndex((t) => t.id === tag.id);
+
     if (tagIndexToRemove !== -1) {
-      tagNames.value.splice(tagIndexToRemove, 1);
+      updatedTagNames.splice(tagIndexToRemove, 1);
+      tagData.value = updatedTagNames;
     }
-    if (!tagNames.value.length) {
+
+    if (!tagData.value.length) {
       dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
       showAdd.value = false;
     }
+
     tags.value.push(tag.id.toString());
   } else {
     if (!memberItem.value.includes(tag)) {
@@ -289,7 +295,7 @@ const deleteTag = (tag: { name: string; id: number }) => {
 
   if (tagIndex !== -1) {
     form.value.tags.splice(tagIndex, 1);
-    tagNames.value.push(tag);
+    tagData.value = [...tagData.value, tag];
   }
 
   showAdd.value = true;

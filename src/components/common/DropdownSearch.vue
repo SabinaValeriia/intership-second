@@ -59,7 +59,12 @@ const filteredData = ref(props.data);
 watch(searchText, () => {
   filterData();
 });
-
+watch(
+  () => props.data,
+  () => {
+    filterData();
+  }
+);
 const filterData = () => {
   const searchLowerCase = searchText.value.toLowerCase();
   filteredData.value = props.data.filter((item) =>

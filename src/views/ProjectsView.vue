@@ -52,7 +52,7 @@
       .sort.name Name
         button.sort(
           @click="sort('title', sortDirection === 'asc' ? 'desc' : 'asc')",
-          :class="{ active: activeSort.name.active }"
+          :class="{ active: sortAction.name === 'title' }"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'title', sort_down: sortDirection === 'desc' && 'title' }"
@@ -60,7 +60,7 @@
       .sort.key Key
         button.sort(
           @click="sort('key', sortDirection === 'asc' ? 'desc' : 'asc')",
-          :class="{ active: activeSort.key.active }"
+          :class="{ active: sortAction.name === 'key' }"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'key', sort_down: sortDirection === 'desc' && 'key' }"
@@ -70,7 +70,7 @@
       .sort.lead Lead
         button.sort(
           @click="sort('lead', sortDirection === 'asc' ? 'desc' : 'asc')",
-          :class="{ active: activeSort.lead.active }"
+          :class="{ active: sortAction.name === 'lead' }"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'lead', sort_down: sortDirection === 'desc' && 'lead' }"
@@ -127,7 +127,7 @@
       @reset="reset"
     )
     pagination-component(
-      v-if="totalProjects > itemsPerPage && !noResultsShow && !isLoader",
+      v-show="totalProjects > itemsPerPage && !noResultsShow && !isLoader",
       :totalItems="totalProjects",
       :itemsPerPage="itemsPerPage",
       @onPageChange="handlePageChange"
@@ -143,8 +143,8 @@ import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
-import { computed, onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { showTag, tagNames } from "@/composables/tagActions";
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
+import { showTag, tagDataShow, tagNames } from "@/composables/tagActions";
 import { filterFunction } from "@/composables/projectsAction";
 import { showUsers } from "@/services/api/userApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
@@ -172,6 +172,8 @@ const leadItem = ref("");
 const isLoader = ref(false);
 const isFetching = ref(false);
 const sortDirection = ref("asc");
+const filter = ref("");
+const leadData = ref([]);
 const dropdownStates = ref({
   tags: { isOpen: false },
   lead: { isOpen: false },
@@ -179,21 +181,16 @@ const dropdownStates = ref({
 
 const useStore = useUserStore();
 
-const activeSort = ref({
-  name: { active: false },
-  key: { active: false },
-  lead: { active: false },
-});
-
 const sortAction = ref({
   name: "title",
   status: "ASC",
+  class: "active",
 });
 
 const searchText = ref("");
 const reset = () => {
   showTag();
-  // page.value = 1;
+  page.value = 1;
   searchText.value = "";
   if (tagItem.value.length) {
     tagItem.value = [];
@@ -201,17 +198,13 @@ const reset = () => {
   showDataUser();
   leadItem.value = "";
   noResultsShow.value = false;
-  fetchProjects(
-    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
-  );
+  fetchProjects("");
 };
 
 const clear = () => {
   tagItem.value = [];
   dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
-  fetchProjects(
-    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
-  );
+  fetchProjects("");
 };
 
 const toggleDropdown = (dropdownName: string) => {
@@ -241,48 +234,63 @@ const selectedItem = (tag: { id: any; name: string }) => {
       if (indexToRemove !== -1) {
         tagItem.value.splice(indexToRemove, 1);
         fetchProjects(
-          `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
+          `&sort=${sortAction.value.name}:${sortAction.value.status}`
         );
       }
     }
-    if (tagNames.value.length === tagItem.value.length) {
+    if (tagNames.tags.length === tagItem.value.length) {
       dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
     }
   } else {
     leadItem.value = tag;
-    const tagIndexToRemove = leadNames.value.findIndex((m) => m.id === tag.id);
+    leadData.value = [...leadNames.value];
+    const tagIndexToRemove = leadData.value.findIndex((m) => m.id === tag.id);
     if (tagIndexToRemove !== -1) {
-      leadNames.value.splice(tagIndexToRemove, 1);
+      leadData.value.splice(tagIndexToRemove, 1);
     }
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   }
 };
+const fetchAndSetProjects = computed(() => {
+  return fetchProjects(filter.value);
+});
 
-const fetchAndSetProjects = () => {
-  if (searchText.value) {
-    let apiRequest = `filters[$and][0][title][$eq]=${searchText.value}`;
-    noResultsShow.value = false;
-    filterUse.value = true;
-    fetchProjects(apiRequest);
-  } else if (tagItem.value.length) {
-    const tagFilters = tagItem.value
-      .map(
-        (tag, index) => `filters[$and][${index}][tags][name][$eq]=${tag.name}`
-      )
-      .join("&");
-    const apiRequest = `${tagFilters}`;
-    filterUse.value = true;
-    noResultsShow.value = false;
-    fetchProjects(apiRequest);
-  } else if (leadItem.value) {
-    let apiRequest = `filters[$and][${leadItem.value.id}][lead][username][$eq]=${leadItem.value.name}`;
-    filterUse.value = true;
-    noResultsShow.value = false;
-    fetchProjects(apiRequest);
-  } else {
-    return projectsArray.value;
-  }
-};
+watch(
+  [() => searchText.value, () => tagItem.value, () => leadItem.value],
+  ([searchTextValue, tagItemValue, leadItemValue]) => {
+    const filters = [];
+
+    if (searchTextValue) {
+      noResultsShow.value = false;
+      filterUse.value = true;
+      filters.push(`filters[title][$contains]=${searchTextValue}`);
+    }
+
+    if (tagItemValue && tagItemValue.length) {
+      const tagFilters = tagItemValue
+        .map(
+          (tag, index) => `filters[$and][${index}][tags][name][$eq]=${tag.name}`
+        )
+        .join("&");
+      filters.push(tagFilters);
+      filterUse.value = true;
+      noResultsShow.value = false;
+    }
+
+    if (leadItemValue) {
+      filters.push(
+        `filters[$and][${leadItemValue.id}][lead][username][$eq]=${leadItemValue.name}`
+      );
+      filterUse.value = true;
+      noResultsShow.value = false;
+    }
+
+    filter.value = filters.length ? `&${filters.join("&")}` : "";
+    fetchProjects(filter.value);
+  },
+  { deep: true }
+);
+
 const processProjectData = computed(() => {
   updateData();
   return projectsArray.value;
@@ -299,70 +307,51 @@ const updateData = () => {
     });
   }
 };
-
-watchEffect(() => {
-  fetchAndSetProjects();
-});
 const handlePageChange = (newPage: number) => {
   page.value = newPage;
   startIndex.value = (page.value - 1) * itemsPerPage.value;
-  fetchProjects(
-    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
-  );
+  fetchProjects("");
 };
-const fetchProjects = (apiRequest: string) => {
+const fetchProjects = (filters: string) => {
   isLoader.value = true;
-  return new Promise(() => {
-    showProjects(apiRequest).then((response) => {
-      projectsArray.value = response.data.data.map(
-        (project: ProjectInterfaceItem) => project
-      );
-      totalProjects.value = response.data.meta.pagination.total;
-      activeSort.value = {
-        name: { active: false },
-        key: { active: false },
-        lead: { active: false },
-      };
-
-      activeSort.value.name.active = true;
-      isLoader.value = false;
-      if (!totalProjects.value && filterUse.value) {
-        noResultsShow.value = true;
-      } else if (!totalProjects.value) {
-        noDataShow.value = true;
-      }
-    });
+  showProjects(
+    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}${filters}`
+  ).then((response) => {
+    projectsArray.value = response.data.data.map(
+      (project: ProjectInterfaceItem) => project
+    );
+    totalProjects.value = response.data.meta.pagination.total;
+    isLoader.value = false;
+    if (!totalProjects.value && filterUse.value) {
+      noResultsShow.value = true;
+    } else if (!totalProjects.value) {
+      noDataShow.value = true;
+    }
   });
 };
 const deleteLead = () => {
   showDataUser();
   leadItem.value = "";
   noResultsShow.value = false;
-  fetchProjects(
-    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
-  );
+  fetchProjects("");
 };
-const sort = (field: string, order: "asc" | "desc") => {
+const sort = (field: string, order: "ASC" | "DESC") => {
   sortDirection.value = order;
-  if (order === "asc") {
-    fetchProjects(
-      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${field}:ASC`
-    ).then(() => {
-      activeSort.value[field].active = true;
-    });
-  } else if (order === "desc") {
-    fetchProjects(
-      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${field}:DESC`
-    ).then(() => {
-      activeSort.value[field].active = true;
-    });
+  sortAction.value.class = "";
+  sortAction.value = {
+    name: `${field}`,
+    status: `${order}`,
+    class: "active",
+  };
+  if (field === "lead") {
+    fetchProjects(`&_sort=lead.attributes.username:${order}`);
+  } else {
+    fetchProjects(`&sort=${field}:${order}`);
   }
 };
 
 onMounted(() => {
-  fetchProjects(
-    `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=${sortAction.value.name}:${sortAction.value.status}`
-  );
+  fetchProjects(`&sort=${sortAction.value.name}:${sortAction.value.status}`);
   showTag();
   showDataUser();
 });
@@ -374,6 +363,10 @@ onMounted(() => {
   height: 100vh;
   width: calc(100% - 80px);
   padding: 28px 40px 89px;
+  @include media_mobile {
+    height: calc(100% - 124px);
+    overflow: auto;
+  }
   .position {
     display: flex;
     label {
@@ -414,13 +407,16 @@ onMounted(() => {
       &.arrow {
         height: 12px;
         width: 16px;
+        top: 21px;
         &.active {
           transform: rotate(180deg);
+          top: 17px;
         }
         @include media_mobile {
-          right: 8px;
+          right: 10px;
           width: 10px;
           height: 5px;
+          top: 16px;
         }
         &.mobile {
           display: none;

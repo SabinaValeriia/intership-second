@@ -37,7 +37,6 @@ const totalPages = computed(() =>
 );
 const changePage = (newPage: number) => {
   currentPage.value = newPage;
-  console.log(currentPage.value);
   emit("onPageChange", newPage);
 };
 </script>
@@ -65,6 +64,7 @@ const changePage = (newPage: number) => {
       height: 44px;
       margin: 0 5px;
       border-radius: 4px;
+      z-index: 3;
       @include font(16px, 400, 24px, var(--text));
       @include media_mobile {
         width: 36px;
@@ -75,13 +75,13 @@ const changePage = (newPage: number) => {
         background-color: var(--primary);
       }
       i.arrow {
+        height: 11px;
         &::before {
           background: var(--accent);
         }
       }
       &.disabled {
         i.arrow {
-          height: 12px;
           &::before {
             background: var(--placeholder);
           }

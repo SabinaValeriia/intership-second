@@ -40,6 +40,16 @@ form {
             i.icon.arrow.mobile {
                 display: none;
             }
+            &.select {
+                input {
+                    color: var(--accent);
+                }
+                i.arrow {
+                    &::before {
+                        background: var(--accent);
+                    }
+                }
+            }
         }
         &.image {
             margin-bottom: 16px;

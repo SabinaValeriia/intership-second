@@ -80,6 +80,7 @@ onBeforeUnmount(() => {
         margin-top: 40px;
         border-radius: 25px 25px 0 0;
         padding: 12px;
+        overflow: auto;
       }
     }
     .modal-footer {
