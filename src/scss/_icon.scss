@@ -63,6 +63,36 @@
             background-color: var(--text);
         }
     }
+    &.icon-close {
+        mask-image: url("@/assets/icons/close.svg");
+    }
+    &.check {
+        mask-image: url("@/assets/icons/check.svg");
+    }
+    &.unchecked {
+        mask-image: url("@/assets/icons/unchecked_star.svg");
+    }
+    &.star {
+        mask-image: url("@/assets/icons/star.svg");
+    }
+    &.sort {
+        mask-image: url("@/assets/icons/sort.svg");
+    }
+    &.sort_down {
+        mask-image: url("@/assets/icons/sort_down.svg");
+    }
+    &.default_user {
+        mask-image: url("@/assets/icons/default_user.svg");
+    }
+    &.plus {
+        mask-image: url("@/assets/icons/plus.svg");
+    }
+    &.member {
+        mask-image: url("@/assets/icons/member.svg");
+    }
+    &.reset {
+        mask-image: url("@/assets/icons/reset.svg");
+    }
     @include media_mobile {
         width: 16px;
         height: 16px;

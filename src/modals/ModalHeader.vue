@@ -14,7 +14,7 @@ app-modal
         :alt="'avatar'"
       )
       .modal__avatar(v-else) {{ logoName }}
-    .modal-footer
+    .modal-footer.header
       ul
         li 
           i.icon.info
@@ -98,9 +98,13 @@ const logoName = computed(() => {
 }
 .modal-footer {
   margin-top: 30px;
+  &.header {
+    justify-content: flex-start;
+  }
   ul {
     margin: 0;
     padding: 0;
+    width: 100%;
     li {
       list-style: none;
       border-top: 1px solid var(--primary_border);

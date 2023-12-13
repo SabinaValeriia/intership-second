@@ -126,7 +126,7 @@ import { notifications, removeNotification } from "@/composables/notification";
     }
   }
   p {
-    margin: 0;
+    margin: 0 36px 0 0;
     @include font(14px, 500, 20px, var(--notify_info));
     display: flex;
     align-items: center;

@@ -1,22 +1,32 @@
 <template lang="pug">
+.backdrop(@click="closeDropdown")
 .header 
   .header-block__left 
     a
       i.icon.logo_header
     ul
       li 
-        a Your work
-      li
-        router-link(to="projects", active-class="active") Projects
+        a(@click="toggleDropdown('work')") Your work
+      li.projects
+        a(
+          :class="{ active: isRouteActive('projects') }",
+          @click="toggleDropdown('project')"
+        ) Projects
+        dropdown-menu(
+          :isOpen="dropdownStates.project.isOpen",
+          title="Starred",
+          :project="true"
+        )
       li 
         a Teams
         span
-    common-button.btn-secondary Create
+    common-button.btn-secondary(@click="openModal(EnumModalKeys.ModalCreate)") Create
   .header-block__right
-    .form-group
-      .form-icon
-        input(placeholder="Placeholder")
-        i.icon.search
+    form
+      .form-group
+        .form-icon
+          input.header--input(placeholder="Placeholder")
+          i.icon.search
     i.icon.search.tablet
     i.icon.info_second.header_icon
     i.icon.setting.header_icon
@@ -34,27 +44,66 @@
       @click="openModal(EnumModalKeys.ModalHeader)"
     )
     .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
-    button Create issue
+    h3(v-if="isRouteActive('projects')") Projects
+    i.icon.plus(@click="openModal(EnumModalKeys.ModalCreate)")
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
+modal-create(
+  v-if="isOpen(EnumModalKeys.ModalCreate)",
+  @close="close",
+  @newProject="newProject",
+  :create="true"
+)
 </template>
 
 <script lang="ts" setup>
+import DropdownMenu from "./common/DropdownMenu.vue";
 import CommonButton from "./common/CommonButton.vue";
 import { isOpen, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
-import { computed } from "vue";
+import ModalCreate from "@/modals/ModalCreate.vue";
+import { computed, ref } from "vue";
+const route = useRoute();
 import { useUserStore } from "../store/user";
+import { useRoute } from "vue-router";
 const userStore = useUserStore();
 const fullName = computed(() => {
   const username = userStore.user.username || "";
   return username;
 });
+const emit = defineEmits(["newProject"]);
+const dropdownStates = ref({
+  work: { isOpen: false },
+  project: { isOpen: false },
+});
+
+const newProject = () => {
+  emit("newProject");
+};
+
+const closeDropdown = () => {
+  dropdownStates.value.work.isOpen = false;
+  dropdownStates.value.project.isOpen = false;
+};
+
+const toggleDropdown = (dropdownName) => {
+  dropdownStates.value[dropdownName].isOpen =
+    !dropdownStates.value[dropdownName].isOpen;
+};
 
 const logoName = computed(() => {
   const fullNameValue = fullName.value;
   return fullNameValue ? fullNameValue.charAt(0).toUpperCase() : 0;
 });
+
+const close = () => {
+  openModal(EnumModalKeys.ModalCreate);
+};
+const isRouteActive = (routeName: string) => {
+  if (route.name === routeName) {
+    return true;
+  }
+};
 </script>
 
 <style scoped lang="scss">
@@ -68,6 +117,11 @@ const logoName = computed(() => {
   height: 80px;
   box-sizing: border-box;
   @include media_mobile {
+    position: fixed;
+    width: 100%;
+    z-index: 3;
+    top: 0;
+
     height: 56px;
   }
   &__avatar {
@@ -110,12 +164,16 @@ const logoName = computed(() => {
           outline: 8px solid var(--secondary);
         }
       }
-      button {
-        @include font(14px, 500, 20px, var(--white));
-        border: none;
-        background: transparent;
-        padding: 0;
-        cursor: pointer;
+      i.plus {
+        z-index: 3;
+        position: relative;
+        &::before {
+          background: var(--white);
+        }
+      }
+      h3 {
+        @include font(16px, 500, 24px, var(--white));
+        margin: 0;
       }
     }
   }
@@ -126,6 +184,9 @@ const logoName = computed(() => {
       justify-content: space-between;
       @include media_mobile {
         display: none;
+      }
+      button {
+        z-index: 10;
       }
       a {
         margin-right: 46px;
@@ -150,6 +211,13 @@ const logoName = computed(() => {
           cursor: pointer;
           height: 34px;
           box-sizing: border-box;
+
+          &.projects {
+            position: relative;
+            .menu {
+              left: -2px;
+            }
+          }
 
           a {
             @include font(16px, 500, 22px, var(--text));
@@ -189,6 +257,9 @@ const logoName = computed(() => {
         line-height: 20px;
         margin-left: 10px;
         width: 77px;
+        @include media_tablet {
+          margin-left: 6px;
+        }
       }
     }
     &__right {
@@ -198,12 +269,14 @@ const logoName = computed(() => {
       @include media_mobile {
         display: none;
       }
-      input {
+      input.header--input {
         padding: 14px 16px 14px 48px;
         background: transparent;
         border: 1px solid var(--accent);
         margin-right: 30px;
         min-width: 280px;
+        box-sizing: border-box;
+        border-radius: 4px;
         &::placeholder {
           color: var(--text);
         }
@@ -258,5 +331,12 @@ const logoName = computed(() => {
       }
     }
   }
+}
+.backdrop {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 </style>

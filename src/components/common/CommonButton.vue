@@ -38,6 +38,7 @@ button {
     padding: 12px 16px;
     font-size: 14px;
     line-height: 20px;
+    font-weight: 400;
   }
 
   &.btn_primary {
@@ -51,13 +52,50 @@ button {
     }
   }
   &.btn-secondary {
-    background: var(--accent, #5418c3);
+    background: var(--accent);
     border: none;
     &:hover {
-      background: var(--accent_hover, #3d1c7b);
+      background: var(--accent_hover);
     }
     &.disabled {
-      background: var(--accent_disable, #786c8e);
+      background: var(--accent_disable);
+    }
+  }
+  &.btn-secondary-line {
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    &:hover {
+      border-color: var(--accent_hover);
+    }
+    &.disabled {
+      border-color: var(--accent_disable);
+    }
+  }
+
+  &.btn_icon {
+    @include media_mobile {
+      padding: 9px 10px;
+      font-size: 12px;
+      line-height: 16px;
+    }
+    &.disabled {
+      background: var(--primary_disable);
+    }
+    &::before {
+      content: "";
+      display: block;
+      width: 20px;
+      height: 20px;
+      mask-position: center;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      margin-right: 12px;
+      @include media_mobile {
+        width: 13px;
+        height: 13px;
+        margin-right: 6px;
+      }
     }
   }
 }

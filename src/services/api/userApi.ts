@@ -1,9 +1,17 @@
 import { AuthUserInterface, ResUser } from "@/types/userApiInterface";
-import axiosInstance from "../api";
-import { AxiosInstance, AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
+import axiosInstance from ".";
 
 export const loginUser = (
   payload: AuthUserInterface
 ): Promise<AxiosResponse<ResUser>> => {
   return axiosInstance.post("auth/local", payload);
+};
+
+export const showUsers = (): Promise<AxiosResponse<ResUser>> => {
+  return axiosInstance.get("users?populate=*");
+};
+
+export const showMe = (): Promise<AxiosResponse<ResUser>> => {
+  return axiosInstance.get("users/me");
 };
