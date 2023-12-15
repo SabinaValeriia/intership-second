@@ -3,7 +3,7 @@
   .footer__block 
     i.icon.home 
     p Home
-  .footer__block 
+  .footer__block(:class="{ active: isRouteActive('projects') }")
     i.icon.projects 
     p Projects
   .footer__block 
@@ -13,6 +13,17 @@
     i.icon.user 
     p Members
 </template>
+
+<script setup lang="ts">
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+const isRouteActive = (routeName: string) => {
+  if (route.name === routeName) {
+    return true;
+  }
+};
+</script>
 
 <style scoped lang="scss">
 .footer {
@@ -30,6 +41,17 @@
     align-items: center;
     flex-direction: column;
     &:hover {
+      color: var(--background);
+
+      i::before {
+        background-color: var(--background);
+      }
+
+      p {
+        color: var(--background);
+      }
+    }
+    &.active {
       color: var(--background);
 
       i::before {

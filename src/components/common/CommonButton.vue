@@ -38,6 +38,7 @@ button {
     padding: 12px 16px;
     font-size: 14px;
     line-height: 20px;
+    font-weight: 400;
   }
 
   &.btn_primary {
@@ -89,10 +90,11 @@ button {
       mask-position: center;
       mask-size: contain;
       mask-repeat: no-repeat;
-      margin-right: 8px;
+      margin-right: 12px;
       @include media_mobile {
         width: 13px;
         height: 13px;
+        margin-right: 6px;
       }
     }
   }

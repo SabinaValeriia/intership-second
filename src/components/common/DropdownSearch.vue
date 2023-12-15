@@ -1,22 +1,26 @@
 <template lang="pug">
-.drop-down(v-if="isOpen")
+.drop-down(v-if="isOpen", :class="classType", ref="dropdownRef")
   .drop-down--section
     form
       .form-group
         input(v-model="searchText", placeholder="Placeholder")
         i.icon.search
     dropdown-list(
-      :data="data",
       @selectedItem="onSelectedItem",
       :tags="tags",
       :type="type",
+      :data="data",
       :class="{ tags, checkbox: type === 'checkbox' }",
-      :title="title"
+      :title="title",
+      @clear="clear",
+      @allItem="allItem",
+      :checkedItem="checkedItem",
+      :filteredData="filteredData"
     )
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
+import { defineProps, onMounted, onUnmounted, ref, watch } from "vue";
 import DropdownList from "@/components/common/DropdownList.vue";
 import { selectedItemInterface } from "@/types/selectedItemInterface";
 const props = defineProps({
@@ -25,67 +29,102 @@ const props = defineProps({
   type: { type: String },
   isOpen: { type: Boolean },
   title: { type: String },
+  classType: { type: String, default: "big" },
+  checkedItem: { type: Array },
+  filteredData: { type: Array },
 });
-const emit = defineEmits(["selectedItem"]);
-
+const emit = defineEmits(["selectedItem", "close", "clear", "allItem"]);
+const searchText = ref("");
 const onSelectedItem = (selectedItem: selectedItemInterface) => {
   emit("selectedItem", selectedItem);
 };
+
+const dropdownRef = ref(null);
+
+const clickOutsideHandler = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (
+    dropdownRef.value &&
+    !(dropdownRef.value as HTMLElement).contains(target)
+  ) {
+    emit("close");
+  }
+};
+
+const clear = () => {
+  emit("clear");
+};
+
+const allItem = (item: [{ name: string; id: number }]) => {
+  emit("allItem", item);
+};
+
+const filteredData = ref(props.data);
+
+watch(searchText, () => {
+  filterData();
+});
+watch(
+  () => props.data,
+  () => {
+    filterData();
+  }
+);
+const filterData = () => {
+  const searchLowerCase = searchText.value.toLowerCase();
+  filteredData.value = props.data.filter((item) =>
+    item.name.toLowerCase().includes(searchLowerCase)
+  );
+};
+
+onMounted(() => {
+  document.addEventListener("click", clickOutsideHandler);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", clickOutsideHandler);
+});
 </script>
 
 <style lang="scss" scoped>
 .drop-down {
-  width: 100%;
   border-radius: 8px;
   color: var(--black);
   border: 1px solid var(--grey-line);
-  z-index: 1;
+  z-index: 3;
   position: absolute;
-  top: 90px;
+  top: 47px;
+  &.big {
+    width: 240px;
+    @include media_mobile {
+      width: calc(100% - 28px);
+      &.lead {
+        width: 100%;
+        top: 78px;
+      }
+    }
+  }
+  &.small {
+    width: 220px;
+    @include media_mobile {
+      width: 100%;
+    }
+  }
+  &.tags-block {
+    @include media_mobile {
+      top: 155px;
+      left: 14px;
+      position: fixed;
+    }
+  }
   @include media_mobile {
-    top: 69px;
+    top: 38px;
   }
 
-  &.tag {
-    top: 32px;
-    @include media_mobile {
-      top: 16px;
-    }
-    input {
-      width: 220px;
-      top: 8px;
-      @include media_mobile {
-        width: 100%;
-      }
-    }
-    ul {
-      width: 218px;
-      top: 60px;
-      @include media_mobile {
-        width: calc(100% - 2px);
-        top: 48px;
-      }
-    }
-    i.search {
-      top: 23px;
-      @include media_mobile {
-        top: 19px;
-        left: 12px;
-      }
-    }
-  }
   &.lead {
-    input {
-      width: 240px;
-      @include media_mobile {
-        width: 100%;
-      }
-    }
-    ul {
-      width: 238px;
-      @include media_mobile {
-        width: calc(100% - 2px);
-      }
+    top: 88px;
+    @include media_mobile {
+      top: 70px;
     }
   }
   &.error {
@@ -98,6 +137,10 @@ const onSelectedItem = (selectedItem: selectedItemInterface) => {
     i.search {
       top: 7px;
       left: 16px;
+      @include media_mobile {
+        top: 5px;
+        left: 14px;
+      }
     }
     input {
       padding: 14px 16px 14px 48px;
@@ -106,7 +149,7 @@ const onSelectedItem = (selectedItem: selectedItemInterface) => {
       top: -8px;
       border-radius: 4px 4px 0 0;
       @include media_mobile {
-        padding: 12px 12px 12px 39px;
+        padding: 12px 12px 12px 37px;
         height: 40px;
       }
     }

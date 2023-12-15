@@ -1,5 +1,5 @@
 <template lang="pug">
-header-component
+header-component(@newProject="newProject")
 router-view
 footer-component.footer
 </template>
@@ -7,6 +7,11 @@ footer-component.footer
 <script lang="ts" setup>
 import HeaderComponent from "@/components/HeaderComponent.vue";
 import FooterComponent from "@/components/FooterComponent.vue";
+import { ref } from "vue";
+const newProjectShow = ref(false);
+const newProject = () => {
+  newProjectShow.value = true;
+};
 </script>
 
 <style lang="scss" scoped>
@@ -14,6 +19,7 @@ import FooterComponent from "@/components/FooterComponent.vue";
   display: none;
   @include media_mobile {
     display: flex;
+    z-index: 3;
   }
 }
 </style>

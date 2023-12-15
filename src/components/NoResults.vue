@@ -37,6 +37,9 @@ const create = () => {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  button {
+    z-index: 5;
+  }
   &.menu-no {
     border-bottom: 1px solid var(--primary);
     margin-bottom: 16px;
@@ -91,6 +94,10 @@ const create = () => {
     margin-top: 16px;
     width: 100px;
     height: 52px;
+    @include media_mobile {
+      height: 44px;
+      width: 71px;
+    }
   }
 }
 </style>

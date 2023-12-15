@@ -1,5 +1,7 @@
 <template lang="pug">
-.project
+.backdrop(@click="close")
+.project--background
+.project(@click="closeDropdowns")
   h1 Projects
   form.position
     .form-group.search
@@ -8,52 +10,72 @@
         i.icon.search
     .mobile
       .dropdown__block
-        .selected(v-if="tagItem.length > 1") + {{ tagItem.length - 1 }}
-        base-input.tags-block(
-          :type="`tags`",
-          :value-input="tagItem.length > 0 ? `Tags: ${tagItem[0].name}` : 'Tags'",
-          @click="toggleDropdown('tags')",
+        common-button.btn-secondary-line.tags-block(
+          @click.prevent="toggleDropdown('tags')",
           :class="{ select: tagItem.length }"
-        ) 
-          template(v-slot:suffix)
-            i.icon.arrow
+        ) {{ tagItem.length > 0 ? `Tags: ${tagItem[0].name}` : "Tags" }}
+          span.selected(v-if="tagItem.length > 1") + {{ tagItem.length - 1 }}
+          i.icon.arrow(:class="{ active: dropdownStates.tags.isOpen }")
         dropdown-component.tags__block(
+          v-if="dropdownStates.tags.isOpen",
           :isOpen="dropdownStates.tags.isOpen",
           :data="tagNames",
+          :checkedItem="tagItem",
           @selectedItem="selectedItem",
           :type="'checkbox'",
-          :title="'Project tags'"
+          :title="'Project tags'",
+          @clear="clear",
+          @allItem="selectAll"
         )
       .dropdown__block.lead
         common-button.btn_icon.lead(
           @click.prevent="toggleDropdown('lead')",
           :class="[leadItem ? ['btn-secondary', 'select'] : 'btn_primary']"
         ) {{ leadItem ? leadItem.name : "Lead" }}
-          i.icon.close(v-if="leadItem", @click="deleteLead")
+          i.icon.member.icon-img(v-if="!leadItem")
+          div(v-else)
+            img.logo(
+              v-if="leadItem.logo",
+              :src="JSON.parse(leadItem.logo.name)",
+              alt="name"
+            )
+            img(
+              v-else-if="!leadItem.logo",
+              :src="require(`@/assets/icons/default_user.svg`)"
+            )
+          i.icon.close(v-if="leadItem", @click.stop="deleteLead")
         dropdown-component.tags__block(
+          v-if="dropdownStates.lead.isOpen",
           :isOpen="dropdownStates.lead.isOpen",
           :data="leadNames",
           @selectedItem="selectedItem",
-          :type="'lead-block'"
+          :type="'lead'"
         )
-      common-button.reset.btn-secondary(
+      common-button.reset.btn-secondary.laptop(
         v-if="leadItem || searchText || tagItem.length",
         @click.prevent="reset"
       ) Reset
+      common-button.reset.btn-secondary.mobile(
+        v-if="leadItem || searchText || tagItem.length",
+        @click.prevent="reset"
+      ) 
+        i.icon.reset
   .ptojects-table
     .ptojects-table__block.distance
       .star-block 
         i.icon.star
       .sort.name Name
         button.sort(
-          @click="sort('name', sortDirection === 'asc' ? 'desc' : 'asc')"
+          @click="sort('title', sortDirection === 'asc' ? 'desc' : 'asc')",
+          :class="{ active: sortAction.name === 'title' }"
         )
           i.icon(
-            :class="{ sort: sortDirection === 'asc' && 'name', sort_down: sortDirection === 'desc' && 'name' }"
+            :class="{ sort: sortDirection === 'asc' && 'title', sort_down: sortDirection === 'desc' && 'title' }"
           )
       .sort.key Key
         button.sort(
-          @click="sort('key', sortDirection === 'asc' ? 'desc' : 'asc')"
+          @click="sort('key', sortDirection === 'asc' ? 'desc' : 'asc')",
+          :class="{ active: sortAction.name === 'key' }"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'key', sort_down: sortDirection === 'desc' && 'key' }"
@@ -62,288 +84,332 @@
       .tags Tags
       .sort.lead Lead
         button.sort(
-          @click="sort('lead', sortDirection === 'asc' ? 'desc' : 'asc')"
+          @click="sort('lead', sortDirection === 'asc' ? 'desc' : 'asc')",
+          :class="{ active: sortAction.name === 'lead' }"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'lead', sort_down: sortDirection === 'desc' && 'lead' }"
           )
       .members Members
-    .projects(v-if="totalProjects")
+    common-loader(v-if="isLoader")
+    .projects(v-if="totalProjects && !isLoader")
       .ptojects-table__block.ptojects-table__content.position(
-        v-for="(item, index) in projectsArray",
+        v-for="(item, index) in processProjectData",
         :key="index"
       )
         .star-block.laptop
           i.icon.unchecked
           i.icon.star.checked
-        .name(v-if="isObject(item.logo)")
-          img(v-if="item.logo", :src="JSON.parse(item.logo.name)")
-          router-link(to="/dashboard/projects") {{ item.title }}
-        .key {{ item.key }}
+        .name(v-if="item.attributes.logo")
+          img(
+            v-if="item.attributes.logo",
+            :src="JSON.parse(item.attributes.logo.name)"
+          )
+          router-link(:to="{ name: 'projectsItem', params: { id: item.id } }") {{ item.attributes.title }}
+        .key {{ item.attributes.key }}
         .tags.tags-block
           .tags-block(
-            v-for="(i, index) in item.tags.data.slice(0, 3)",
+            v-for="(i, index) in item.attributes.tags.data.slice(0, 3)",
             :key="index"
           ) {{ i.attributes.name }}
-        .lead.flex(v-if="item.lead")
+        .lead.flex(v-if="item.attributes.lead.data")
           img(
-            v-if="item.lead.data.attributes.logo",
-            :src="JSON.parse(item.lead.data.attributes.logo.name)"
+            v-if="item.attributes.lead.data.attributes.image",
+            :src="JSON.parse(item.attributes.lead.data.attributes.image.name)"
           )
-          router-link(to="/dashboard/teams") {{ item.lead.data.attributes.username }}
-        .members.flex(v-if="item.members")
+          img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
+          router-link(
+            :to="{ name: 'teamsUser', params: { id: item.attributes.lead.data.id } }"
+          ) {{ item.attributes.lead.data.attributes.username }}
+        .members.flex(v-if="item.attributes.members.data.length")
           .img(
-            v-for="(i, index) in item.members.data.slice(0, 3)",
+            v-for="(i, index) in item.attributes.members.data.slice(0, 3)",
             :key="index"
-          )
-            img(
-              v-if="isObject(i.attributes.logo)",
-              :src="JSON.parse(i.attributes.logo.name)"
-            )
+          ) 
+            router-link(:to="{ name: 'teamsUser', params: { id: i.id } }")
+              img(
+                v-if="i.attributes.image",
+                :src="JSON.parse(i.attributes.image.name)"
+              )
+              img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
         .star-block.mobile
           i.icon.unchecked
           i.icon.star
-      common-loader(v-if="isLoader")
-      pagination-component(
-        v-if="totalProjects > 8",
-        :totalItems="totalProjects",
-        :itemsPerPage="8",
-        @onPageChange="handlePageChange"
-      )
     no-results(
-      v-if="noDataShow || noResultsShow",
-      :noData="totalProjects === 0 ? true : false",
-      :noResults="searchLead",
+      v-if="noDataShow || (noResultsShow && filterUse)",
+      :noData="noDataShow",
       @reset="reset"
+    )
+    pagination-component(
+      v-show="totalProjects > itemsPerPage && !noResultsShow && !isLoader",
+      :totalItems="totalProjects",
+      :itemsPerPage="itemsPerPage",
+      @onPageChange="handlePageChange"
     )
 </template>
 
 <script setup lang="ts">
-import PaginationComponent from "@/components/common/PaginationComponent.vue";
 import NoResults from "@/components/NoResults.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
+import PaginationComponent from "@/components/common/PaginationComponent.vue";
 import BaseInput from "@/components/common/BaseInput.vue";
 import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { showTag, tagNames } from "@/composables/tagActions";
 import { filterFunction } from "@/composables/projectsAction";
 import { showUsers } from "@/services/api/userApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
 import { useUserStore } from "../store/user";
+import {
+  page,
+  startIndex,
+  endIndex,
+  itemsPerPage,
+} from "@/composables/pagination";
+import { showDataUser, leadNames } from "@/composables/userActions";
+const props = defineProps({
+  newProjectShow: {
+    type: Boolean,
+  },
+});
 const projectsArray = ref([]);
-const leadNames = ref([]);
-const currentPage = ref(1);
 const noResultsShow = ref(false);
+const filterUse = ref(false);
 const noDataShow = ref(false);
 const totalProjects = ref(null);
 const tagItem = ref([]);
 const leadItem = ref("");
 const isLoader = ref(false);
+const isFetching = ref(false);
 const sortDirection = ref("asc");
-const page = ref(1);
-const limit = ref(8);
-const startIndex = (page.value - 1) * limit.value;
-const endIndex = startIndex + limit.value;
-const userStore = useUserStore();
-
-const searchText = ref("");
-const isObject = computed(() => (value: { name: string }) => {
-  return value !== null && typeof value === "object";
-});
-
-const reset = () => {
-  searchText.value = "";
-  leadItem.value = "";
-  tagItem.value = [];
-  noResultsShow.value = false;
-  showProjects("_page=1&_limit=8").then((response) => {
-    const startIndex = (page.value - 1) * limit.value;
-    const endIndex = startIndex + limit.value;
-    projectsArray.value = response.data.data
-      .slice(startIndex, endIndex)
-      .map((project: ProjectInterfaceItem) => project.attributes);
-  });
-};
-
+const filter = ref("");
+const leadData = ref([]);
 const dropdownStates = ref({
   tags: { isOpen: false },
   lead: { isOpen: false },
 });
 
+const useStore = useUserStore();
+
+const sortAction = ref({
+  name: "title",
+  status: "ASC",
+  class: "active",
+});
+
+const searchText = ref("");
+const reset = () => {
+  showTag();
+  page.value = 1;
+  searchText.value = "";
+  if (tagItem.value.length) {
+    tagItem.value = [];
+  }
+  showDataUser();
+  leadItem.value = "";
+  noResultsShow.value = false;
+  close();
+};
+
+const clear = () => {
+  tagItem.value = [];
+  fetchProjects("");
+};
+
 const toggleDropdown = (dropdownName: string) => {
+  Object.keys(dropdownStates.value).forEach((name) => {
+    if (name !== dropdownName) {
+      dropdownStates.value[name].isOpen = false;
+    }
+  });
   dropdownStates.value[dropdownName].isOpen =
     !dropdownStates.value[dropdownName].isOpen;
 };
 
-const { selected } = filterFunction([]);
+const close = (dropdownName: string) => {
+  dropdownStates.value.tags.isOpen = false;
+  dropdownStates.value.lead.isOpen = false;
+};
 
-const selectedItem = (tag: { name: string }) => {
+const { selected, filtered } = filterFunction([]);
+
+const selectedItem = (tag: { id: any; name: string }) => {
   if (dropdownStates.value.tags.isOpen) {
-    if (!tagItem.value.some((selectedTag) => selectedTag.id === tag.id)) {
+    if (!tagItem.value.includes(tag)) {
       tagItem.value.push(tag);
-      if (tagItem.value.length === tagNames.value.length) {
-        tagNames.value.splice(0, tagNames.value.length);
-        dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
+    } else {
+      const indexToRemove = tagItem.value.findIndex(
+        (item) => item.id === tag.id
+      );
+
+      if (indexToRemove !== -1) {
+        tagItem.value.splice(indexToRemove, 1);
+        fetchProjects(
+          `&sort=${sortAction.value.name}:${sortAction.value.status}`
+        );
       }
+    }
+    if (tagNames.tags.length === tagItem.value.length) {
+      dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
     }
   } else {
     leadItem.value = tag;
+    leadData.value = [...leadNames.value];
+    const tagIndexToRemove = leadData.value.findIndex((m) => m.id === tag.id);
+    if (tagIndexToRemove !== -1) {
+      leadData.value.splice(tagIndexToRemove, 1);
+    }
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   }
 };
-
-const fetchAndSetProjects = () => {
-  const searchTerm = searchText.value.toLowerCase();
-
-  if (searchTerm) {
-    isLoader.value = true;
-    projectsArray.value = projectsArray.value.filter(
-      (item: { title: string }) => {
-        const title = item.title.toLowerCase();
-        return title.includes(searchTerm);
-      }
-    );
-    if (projectsArray.value.length) {
-      setTimeout(() => {
-        isLoader.value = false;
-      }, 1000);
-      isLoader.value = false;
-    } else {
-      setTimeout(() => {
-        isLoader.value = false;
-      }, 1000);
-      noResultsShow.value = true;
-    }
-  } else if (tagItem.value.length) {
-    isLoader.value = true;
-
-    setTimeout(() => {
-      showProjects(`filters[tags]=${tagItem.value[0].id}`).then((response) => {
-        const startIndex = (page.value - 1) * limit.value;
-        const endIndex = startIndex + limit.value;
-        projectsArray.value = response.data.data
-          .slice(startIndex, endIndex)
-          .map((project) => project.attributes);
-        isLoader.value = false;
-        if (projectsArray.value.length) {
-          noResultsShow.value = false;
-        } else {
-          noResultsShow.value = true;
-        }
-      });
-    }, 1000);
-  } else if (leadItem.value) {
-    isLoader.value = true;
-
-    setTimeout(() => {
-      showProjects(`filters[lead]=${leadItem.value.id}`).then((response) => {
-        const startIndex = (page.value - 1) * limit.value;
-        const endIndex = startIndex + limit.value;
-        projectsArray.value = response.data.data
-          .slice(startIndex, endIndex)
-          .map((project) => project.attributes);
-        isLoader.value = false;
-        if (projectsArray.value.length) {
-          noResultsShow.value = false;
-        } else {
-          noResultsShow.value = true;
-        }
-      });
-    }, 1000);
-  } else {
-    return projectsArray.value;
-  }
-};
-
-watchEffect(() => {
-  fetchAndSetProjects();
+const fetchAndSetProjects = computed(() => {
+  return fetchProjects(filter.value);
 });
 
-const handlePageChange = (newPage: number) => {
-  currentPage.value = newPage;
-  page.value = currentPage.value;
-  isLoader.value = true;
-  setTimeout(() => {
-    isLoader.value = false;
-    showProjects("_page=1&_limit=8").then((response) => {
-      const startIndex = (page.value - 1) * limit.value;
-      const endIndex = startIndex + limit.value;
-      projectsArray.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes);
-    });
-  }, 1000);
-};
+watch(
+  [() => searchText.value, () => tagItem.value, () => leadItem.value],
+  ([searchTextValue, tagItemValue, leadItemValue]) => {
+    const filters = [];
 
-const deleteLead = () => {
-  leadItem.value = "";
-  dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
-};
+    if (searchTextValue) {
+      noResultsShow.value = false;
+      filterUse.value = true;
+      filters.push(`filters[title][$contains]=${searchTextValue}`);
+    }
 
-const sort = (field: string, order: "asc" | "desc") => {
-  sortDirection.value = order;
-  if (order === "asc") {
-    showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
-      projectsArray.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes);
-    });
-  } else {
-    showProjects("_page=1&_limit=8&sort=title:DESC").then((response) => {
-      projectsArray.value = response.data.data
-        .slice(startIndex, endIndex)
-        .map((project: ProjectInterfaceItem) => project.attributes);
+    if (tagItemValue && tagItemValue.length) {
+      const tagFilters = tagItemValue
+        .map(
+          (tag, index) => `filters[$and][${index}][tags][name][$eq]=${tag.name}`
+        )
+        .join("&");
+      filters.push(tagFilters);
+      filterUse.value = true;
+      noResultsShow.value = false;
+    }
+
+    if (leadItemValue) {
+      filters.push(
+        `filters[$and][${leadItemValue.id}][lead][username][$eq]=${leadItemValue.name}`
+      );
+      filterUse.value = true;
+      noResultsShow.value = false;
+    }
+
+    filter.value = filters.length ? `&${filters.join("&")}` : "";
+    fetchProjects(filter.value);
+  },
+  { deep: true }
+);
+
+const processProjectData = computed(() => {
+  updateData();
+  return projectsArray.value;
+});
+
+const updateData = () => {
+  let show = props.newProjectShow;
+  if (show && !isFetching.value) {
+    isFetching.value = true;
+    fetchProjects("").then(() => {
+      isFetching.value = false;
     });
   }
+};
+const handlePageChange = (newPage: number) => {
+  page.value = newPage;
+  startIndex.value = (page.value - 1) * itemsPerPage.value;
+  fetchProjects("");
+};
+const fetchProjects = (filters: string) => {
+  isLoader.value = true;
+  return new Promise(() => {
+    showProjects(
+      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}${filters}`
+    ).then((response) => {
+      projectsArray.value = response.data.data.map(
+        (project: ProjectInterfaceItem) => project
+      );
+      totalProjects.value = response.data.meta.pagination.total;
+      isLoader.value = false;
+      if (!totalProjects.value && filterUse.value) {
+        noResultsShow.value = true;
+      } else if (!totalProjects.value) {
+        noDataShow.value = true;
+      }
+    });
+  });
+};
+const deleteLead = () => {
+  showDataUser();
+  leadItem.value = "";
+  noResultsShow.value = false;
+  fetchProjects("");
+};
+const sort = (field: string) => {
+  if (sortAction.value.name === field) {
+    sortAction.value.status =
+      sortAction.value.status === "ASC" ? "DESC" : "ASC";
+  } else {
+    sortAction.value = {
+      name: field,
+      status: "ASC",
+      class: "active",
+    };
+  }
+  if (field === "lead") {
+    fetchProjects(`&_sort=lead.attributes.username:${sortAction.value.status}`);
+  } else {
+    fetchProjects(`&sort=${field}:${sortAction.value.status}`);
+  }
+};
+
+const selectAll = (item: [{ name: string; id: number }]) => {
+  if (!tagItem.value.some((tag) => tag.id === item.id)) {
+    tagItem.value.push(item);
+  }
+  dropdownStates.value.tags.isOpen = false;
 };
 
 onMounted(() => {
-  watch(
-    () => userStore.projectData,
-    (newProjectData) => {
-      isLoader.value = true;
-      setTimeout(() => {
-        projectsArray.value.push(newProjectData.data.attributes);
-        isLoader.value = false;
-      }, 1000);
-    }
-  );
-  showProjects("_page=1&_limit=8&sort=title:ASC").then((response) => {
-    projectsArray.value = response.data.data
-      .slice(startIndex, endIndex)
-      .map((project: ProjectInterfaceItem) => project.attributes);
-    totalProjects.value = response.data.data.length;
-  });
+  fetchProjects(`&sort=${sortAction.value.name}:${sortAction.value.status}`);
   showTag();
-  showUsers().then(({ data }) => {
-    leadNames.value = data.map(
-      (item: {
-        name: string;
-        logo: {
-          name: string;
-        };
-        id: number;
-      }) => ({
-        name: item.username,
-        logo: item.logo,
-        id: item.id,
-      })
-    );
-  });
+  showDataUser();
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.project--background {
+  @include media_mobile {
+    background: var(--background);
+    position: relative;
+    width: 100%;
+    height: 500px;
+  }
+}
 .project {
   background: var(--background);
-  height: 100vh;
+  height: -webkit-fill-available;
   width: calc(100% - 80px);
   padding: 28px 40px 89px;
+  @include media_mobile {
+    top: 56px;
+    position: absolute;
+    height: 100vh;
+  }
+  .projects {
+    @include media_mobile {
+      min-height: 380px;
+    }
+  }
   .position {
     display: flex;
+    label {
+      display: none;
+    }
     @include media_tablet {
       .form-group {
         margin-bottom: 26px;
@@ -357,15 +423,11 @@ onMounted(() => {
           .form-icon {
             input {
               padding: 9px 10px;
-              width: 64px;
               height: 34px;
             }
           }
         }
       }
-    }
-    label {
-      display: none;
     }
     .search {
       input {
@@ -381,10 +443,20 @@ onMounted(() => {
       right: 16px;
       &.arrow {
         height: 12px;
+        width: 16px;
+        top: 19px;
+        &.active {
+          transform: rotate(180deg);
+          top: 17px;
+        }
         @include media_mobile {
-          right: 8px;
+          right: 10px;
           width: 10px;
           height: 5px;
+          top: 14px;
+          &.active {
+            top: 14px;
+          }
         }
         &.mobile {
           display: none;
@@ -407,12 +479,12 @@ onMounted(() => {
         margin-top: 6px;
       }
       .tags__block {
-        top: 64px;
         z-index: 3;
-        width: 240px;
+        top: 63px;
         @include media_mobile {
-          top: 47px;
-          width: 341px;
+          top: 155px;
+          position: fixed;
+          left: 14px;
         }
       }
       .selected {
@@ -421,10 +493,8 @@ onMounted(() => {
         padding: 4px 8px;
         border-radius: 12px;
         width: fit-content;
-        position: absolute;
-        right: 49px;
-        top: 12px;
         z-index: 2;
+        margin-left: 6px;
         @include media_mobile {
           font-size: 8px;
           line-height: 12px;
@@ -434,63 +504,128 @@ onMounted(() => {
       }
       button {
         &.reset {
-          width: 102px;
-          height: 48px;
-          margin-left: 20px;
+          padding: 14px 26px;
+          margin-left: 10px;
+          font-size: 14px;
+          line-height: 20px;
+          height: fit-content;
           @include media_mobile {
-            width: 67px;
-            height: 34px;
-            margin-left: 12px;
+            margin: 0 0 0 6px;
+            &.laptop {
+              display: none;
+            }
+          }
+          &.mobile {
+            display: none;
+            @include media_mobile {
+              display: block;
+              width: auto;
+              padding: 9px 10px;
+              .reset {
+                position: relative;
+                right: auto;
+                &::before {
+                  background: var(--white);
+                }
+              }
+            }
           }
         }
         &.lead {
           height: 48px;
+          div {
+            display: flex;
+            align-items: center;
+          }
+          img {
+            height: 20px;
+            width: 20px;
+            left: 16px;
+            position: absolute;
+            border-radius: 10px;
+            @include media_mobile {
+              left: 10px;
+              width: 13px;
+              height: 13px;
+            }
+          }
+          .member {
+            left: 16px;
+            &::before {
+              background: var(--white);
+            }
+            @include media_mobile {
+              left: 10px;
+              width: 13px;
+              height: 13px;
+            }
+          }
         }
       }
       .dropdown__block {
         position: relative;
+        &:first-of-type {
+          margin-right: 10px;
+          @include media_mobile {
+            margin-right: 6px;
+          }
+        }
         .lead {
           height: 48px;
-          margin-left: 10px;
           width: 102px;
           @include media_mobile {
             width: 67px;
             height: 34px;
-            margin-left: 6px;
           }
           i.close {
             width: 12px;
             height: 12px;
-            right: 10px;
+            right: 16px;
             top: 19px;
             &::before {
               background: var(--white);
             }
             @include media_mobile {
-              top: 12px;
+              top: 13px;
+              width: 8px;
+              height: 8px;
+              right: 10px;
             }
           }
         }
         .btn-secondary {
-          padding: 16px 34px 16px 16px;
+          padding: 12px 36px 12px 16px;
           @include media_mobile {
-            padding: 9px 34px 9px 10px;
+            padding: 9px 24px 9px 10px;
           }
           &.select {
             width: 100%;
           }
         }
         .tags-block {
-          width: 97px;
-          @include media_mobile {
-            width: 64px;
-          }
+          padding: 12px 44px 12px 16px;
+          background: var(--white);
+          border-color: var(--primary);
+          color: var(--text);
+          height: 48px;
+          width: auto;
           &.select {
-            width: 100%;
-            position: relative;
+            color: var(--accent);
+            i.arrow {
+              &::before {
+                background: var(--accent);
+              }
+            }
+          }
+          @include media_mobile {
+            padding: 9px 26px 9px 10px;
+            font-size: 12px;
+            line-height: 16px;
+            height: 34px;
+          }
+          .form-icon {
             input {
-              color: var(--accent);
-              width: 100%;
+              padding: 9px 10px;
             }
           }
         }
@@ -508,8 +643,8 @@ onMounted(() => {
   .btn_icon {
     padding: 12px 16px;
     box-sizing: border-box;
-    &::before {
-      background: url("@/assets/icons/member.svg");
+    @include media_mobile {
+      padding: 9px 10px;
     }
   }
   h1 {
@@ -565,21 +700,31 @@ onMounted(() => {
         width: 32px;
         height: 32px;
         margin-right: 10px;
+        border-radius: 16px;
         @include media_tablet {
           width: 28px;
           height: 28px;
-          margin-right: 6px;
+          margin-right: 10px;
         }
       }
       .star-block {
-        width: 3.67%;
-        margin-left: 10px;
-        @include media_tablet {
+        width: 5.67%;
+        @include media_small_laptop {
           width: 4.67%;
         }
+        @include media_tablet {
+          width: 6.67%;
+        }
         @include media_mobile {
-          width: 5%;
           margin-left: 0;
+        }
+        &:hover {
+          .unchecked {
+            display: none;
+          }
+          .checked {
+            display: block;
+          }
         }
         &.laptop {
           @include media_mobile {
@@ -593,6 +738,7 @@ onMounted(() => {
           }
         }
         .star {
+          left: 10px;
           height: 16px;
           width: 16px;
           position: relative;
@@ -602,31 +748,36 @@ onMounted(() => {
         }
         .unchecked {
           position: relative;
-          margin: -11px 12px;
+          right: 0;
+          left: 7px;
           &::before {
             background: var(--text);
-          }
-          &:hover {
-            display: none;
           }
           @include media_tablet {
             width: 16px;
             height: 16px;
+            left: 12px;
           }
           @include media_mobile {
-            margin: -11px 17px;
+            margin: -11px -10px;
           }
         }
         .checked {
-          margin: -20px 12px;
+          right: 0;
+          left: 7px;
           width: 20px;
           height: 20px;
           display: none;
+          @include media_tablet {
+            width: 16px;
+            height: 16px;
+            left: 12px;
+          }
+          @include media_mobile {
+            margin: -11px -10px;
+          }
           &::before {
             background: var(--notify_warning);
-          }
-          &:hover {
-            display: block;
           }
         }
       }
@@ -635,6 +786,12 @@ onMounted(() => {
         margin-left: -2px;
         display: flex;
         align-items: center;
+        cursor: pointer;
+        &:hover {
+          button.sort {
+            display: block;
+          }
+        }
         @include media_tablet {
           margin-left: 1px;
         }
@@ -658,6 +815,34 @@ onMounted(() => {
             text-wrap: wrap;
           }
         }
+        button.sort {
+          display: none;
+          &.active {
+            display: block;
+            &:hover {
+              i.sort {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+              i.sort_down {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+            }
+            i.sort {
+              &::before {
+                background: var(--text);
+              }
+            }
+            i.sort_down {
+              &::before {
+                background: var(--text);
+              }
+            }
+          }
+        }
       }
       .key {
         width: 9.83%;
@@ -667,6 +852,39 @@ onMounted(() => {
         }
         @include media_mobile {
           display: none;
+        }
+        &:hover {
+          .sort {
+            display: block;
+          }
+        }
+        button.sort {
+          display: none;
+          &.active {
+            display: block;
+            &:hover {
+              i.sort {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+              i.sort_down {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+            }
+            i.sort {
+              &::before {
+                background: var(--text);
+              }
+            }
+            i.sort_down {
+              &::before {
+                background: var(--text);
+              }
+            }
+          }
         }
       }
       .sort {
@@ -683,7 +901,13 @@ onMounted(() => {
             i.icon.sort {
               @include media_tablet {
                 position: absolute;
-                right: 17px;
+                right: 24px;
+                top: 2px;
+              }
+              &.active {
+                &::before {
+                  background: var(--text);
+                }
               }
             }
           }
@@ -693,10 +917,14 @@ onMounted(() => {
           border: none;
           .sort {
             position: relative;
+            &.active {
+              display: block;
+            }
             &::before {
-              background: var(--text);
+              background: var(--primary);
             }
             &:hover {
+              display: block;
               &::before {
                 background: var(--primary);
               }
@@ -704,6 +932,16 @@ onMounted(() => {
           }
           .sort_down {
             position: relative;
+            width: 16px;
+            height: 16px;
+            &::before {
+              background: var(--primary);
+            }
+            &.active {
+              &::before {
+                background: var(--text);
+              }
+            }
             &:hover {
               &::before {
                 background: var(--primary);
@@ -752,11 +990,47 @@ onMounted(() => {
             text-decoration: underline;
           }
         }
+        &:hover {
+          .sort {
+            display: block;
+          }
+        }
+        .sort {
+          display: none;
+        }
         @include media_tablet {
           margin-left: -12px;
         }
         @include media_mobile {
           display: none;
+        }
+        button.sort {
+          display: none;
+          &.active {
+            display: block;
+            &:hover {
+              i.sort {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+              i.sort_down {
+                &::before {
+                  background: var(--primary);
+                }
+              }
+            }
+            i.sort {
+              &::before {
+                background: var(--text);
+              }
+            }
+            i.sort_down {
+              &::before {
+                background: var(--text);
+              }
+            }
+          }
         }
       }
       .members {
@@ -778,18 +1052,30 @@ onMounted(() => {
           position: relative;
           margin-left: -8px;
           cursor: pointer;
+          @include media_mobile {
+            height: 28px;
+            width: 28px;
+          }
           &:hover {
             z-index: 3;
             border: 2px solid var(--secondary);
             width: 34px;
             height: 34px;
             border-radius: 19px;
+            @include media_mobile {
+              width: 28px;
+              height: 28px;
+            }
           }
           img {
             margin-right: 0;
             &:hover {
               width: 34px;
               height: 34px;
+              @include media_mobile {
+                width: 28px;
+                height: 28px;
+              }
             }
           }
           &:first-child {
@@ -814,5 +1100,12 @@ onMounted(() => {
       }
     }
   }
+}
+.backdrop {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 81px;
+  left: 0;
 }
 </style>

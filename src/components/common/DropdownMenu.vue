@@ -27,6 +27,7 @@
           :src="JSON.parse(project.logo.name)",
           alt="name"
         )
+        img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
         div
           h3 {{ project.name }}
         i.icon.unchecked
@@ -69,7 +70,7 @@ onMounted(() => {
         id: number;
       }) => ({
         name: item.username,
-        logo: item.logo,
+        logo: item.image,
         id: item.id,
       })
     );
@@ -86,7 +87,8 @@ onMounted(() => {
   border-radius: 6px;
   box-sizing: border-box;
   min-width: 351px;
-  z-index: 1;
+  z-index: 3;
+  box-shadow: 0px 4px 8px rgba(61, 55, 52, 0.08);
 
   a {
     @include font(16px, 500, 24px, var(--text));
