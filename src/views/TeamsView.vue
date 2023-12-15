@@ -1,131 +1,138 @@
 <template lang="pug">
 .teams 
-  h1 People
-  form.position
-    .form-group.search
-      .form-icon 
-        input(v-model="searchText", placeholder="Search teams")
-        i.icon.search
-  .teams-block__button(:class="{ selected: projectValue.length }")
+  .teams-block
+    h1 People
+    form.position
+      .form-group.search
+        .form-icon 
+          input(v-model="searchText", placeholder="Search teams")
+          i.icon.search
     .teams-block__button(:class="{ selected: projectValue.length }")
-      .teams-block__button-dropdown
-        common-button.btn_primary.btn_icon(
-          @click="toggleDropdown('project')",
-          :class="{ selected: projectValue.length }"
-        ) {{ projectValue.length ? projectValue[0].name : "Project" }}
-          i.icon.projects(v-if="!projectValue.length")
-          img(
-            v-else,
-            :src="JSON.parse(projectValue[0].logo.name)",
-            alt="avatar"
-          )
-          i.icon.close(
-            v-if="projectValue.length",
-            @click.stop="deleteProject('project')"
-          )
-        dropdown-component.teams-dropdown(
-          :isOpen="dropdownStates.project.isOpen",
-          :data="projectNames",
-          @selectedItem="selectedItem",
-          :iconHere="true",
-          :type="'lead'"
-        )
-      .teams-block__button-dropdown
-        common-button.btn_primary.btn_icon(
-          @click="toggleDropdown('manager')",
-          :class="{ selected: managerValue.length }"
-        ) {{ managerValue.length ? managerValue[0].name : "Manager" }}
-          i.icon.member(v-if="!managerValue.length")
-          div(v-else)
-            img.logo(
-              v-if="managerValue[0].logo",
-              :src="JSON.parse(managerValue[0].logo.name)",
-              alt="name"
-            )
+      .teams-block__button(:class="{ selected: projectValue.length }")
+        .teams-block__button-dropdown
+          common-button.btn_primary.btn_icon(
+            @click="toggleDropdown('project')",
+            :class="{ selected: projectValue.length }"
+          ) {{ projectValue.length ? projectValue[0].name : "Project" }}
+            i.icon.projects(v-if="!projectValue.length")
             img(
-              v-else-if="!managerValue[0].logo",
-              :src="require(`@/assets/icons/default_user.svg`)"
+              v-else,
+              :src="JSON.parse(projectValue[0].logo.name)",
+              alt="avatar"
             )
-          i.icon.close(
-            v-if="managerValue.length",
-            @click.stop="deleteProject('manager')"
+            i.icon.close(
+              v-if="projectValue.length",
+              @click.stop="deleteProject('project')"
+            )
+          dropdown-component.teams-dropdown(
+            :isOpen="dropdownStates.project.isOpen",
+            :data="projectNames",
+            @selectedItem="selectedItem",
+            :iconHere="true",
+            :type="'lead'"
           )
-        dropdown-component.teams-dropdown(
-          :isOpen="dropdownStates.manager.isOpen",
-          :data="leadNames",
-          @selectedItem="selectedItem",
-          :type="'lead'"
-        )
-      .teams-block__button-dropdown
-        common-button.btn_primary.btn_icon(
-          @click="toggleDropdown('department')",
-          :class="{ selected: departmentValue.length }"
-        ) {{ departmentValue.length ? departmentValue[0].name : "Department" }}
-          i.icon.department_another
-          i.icon.close(
-            v-if="departmentValue.length",
-            @click.stop="deleteProject('department')"
+        .teams-block__button-dropdown
+          common-button.btn_primary.btn_icon(
+            @click="toggleDropdown('manager')",
+            :class="{ selected: managerValue.length }"
+          ) {{ managerValue.length ? managerValue[0].name : "Manager" }}
+            i.icon.member(v-if="!managerValue.length")
+            div(v-else)
+              img.logo(
+                v-if="managerValue[0].logo",
+                :src="JSON.parse(managerValue[0].logo.name)",
+                alt="name"
+              )
+              img(
+                v-else-if="!managerValue[0].logo",
+                :src="require(`@/assets/icons/default_user.svg`)"
+              )
+            i.icon.close(
+              v-if="managerValue.length",
+              @click.stop="deleteProject('manager')"
+            )
+          dropdown-component.teams-dropdown(
+            :isOpen="dropdownStates.manager.isOpen",
+            :data="leadNames",
+            @selectedItem="selectedItem",
+            :type="'lead'"
           )
-        dropdown-component.teams-dropdown(
-          :isOpen="dropdownStates.department.isOpen",
-          :data="departmentNames",
-          @selectedItem="selectedItem"
-        )
-    common-button.btn-secondary.reset.desktop(
-      v-if="searchText || managerValue.length || departmentValue.length || projectValue.length",
-      @click="reset"
-    ) Reset
-    common-button.btn-secondary.mobile(
-      v-if="searchText || managerValue.length || departmentValue.length || projectValue.length",
-      @click="reset"
-    )
-      i.icon.reset
-  .box-container(v-if="!isLoader")
-    .box-item(
-      v-for="(lead, index) in processUsersData.slice(0, 20)",
-      :key="index"
-    )
-      router-link.flip-box(
-        :to="{ name: 'teamsUser', params: { id: lead.id } }"
+        .teams-block__button-dropdown
+          common-button.btn_primary.btn_icon(
+            @click="toggleDropdown('department')",
+            :class="{ selected: departmentValue.length }"
+          ) {{ departmentValue.length ? departmentValue[0].name : "Department" }}
+            i.icon.department_another
+            i.icon.close(
+              v-if="departmentValue.length",
+              @click.stop="deleteProject('department')"
+            )
+          dropdown-component.teams-dropdown(
+            :isOpen="dropdownStates.department.isOpen",
+            :data="departmentNames",
+            @selectedItem="selectedItem"
+          )
+      common-button.btn-secondary.reset.desktop(
+        v-if="searchText || managerValue.length || departmentValue.length || projectValue.length",
+        @click="reset"
+      ) Reset
+      common-button.btn-secondary.mobile(
+        v-if="searchText || managerValue.length || departmentValue.length || projectValue.length",
+        @click="reset"
       )
-        .flip-box-front
-          img.avatar(
-            v-if="lead.logo",
-            :src="JSON.parse(lead.logo.name)",
-            alt="avatar"
-          )
-          img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
-          h3 {{ lead.username }}
-          p {{ lead.department.name }} developer
-        .flip-box-back
-          .flip-box-user
-            div
-              h4 {{ lead.username }}
-              h6 Developer
-              p {{ lead.email }}
+        i.icon.reset
+    .box-container(v-if="!isLoader")
+      .box-item(
+        v-for="(lead, index) in processUsersData.slice(0, 20)",
+        :key="index"
+      )
+        router-link.flip-box(
+          :to="{ name: 'teamsUser', params: { id: lead.id } }"
+        )
+          .flip-box-front
             img.avatar(
               v-if="lead.logo",
               :src="JSON.parse(lead.logo.name)",
               alt="avatar"
             )
-          .flip-box-desc
-            h5 Department:
-              span {{ lead.department.name }}
-            h5(v-for="manager in lead.user_managers", :key="manager") Manager:
-              img(
-                v-if="manager.logo",
-                :src="JSON.parse(manager.logo.name)",
+            img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
+            h3 {{ lead.username }}
+            p {{ lead.department.name }} developer
+          .flip-box-back
+            .flip-box-user
+              div
+                h4 {{ lead.username }}
+                h6 Developer
+                p {{ lead.email }}
+              img.avatar(
+                v-if="lead.logo",
+                :src="JSON.parse(lead.logo.name)",
                 alt="avatar"
               )
-              span {{ manager.username }}
-            h5 Projects:
-              span {{ lead.project_manager.length }} +
-            h5 Assign tasks:
-              span {{ lead.task_reporter.length }} +
-            h5 Hour spent:
-              span 40h
-  no-results(v-if="noDataShow || (noResultsShow && filterUse)", @reset="reset")
-  common-loader(v-if="isLoader")
+            .flip-box-desc
+              h5 Department:
+                span {{ lead.department.name }}
+              h5(
+                v-for="manager in lead.user_managers.slice(0, 1)",
+                :key="manager"
+              ) Manager:
+                img(
+                  v-if="manager.logo",
+                  :src="JSON.parse(manager.logo.name)",
+                  alt="avatar"
+                )
+                span {{ manager.username }}
+              h5 Projects:
+                span {{ lead.project_manager.length }} +
+              h5 Assign tasks:
+                span {{ lead.task_reporter.length }} +
+              h5 Hour spent:
+                span 40h
+    no-results(
+      v-if="noDataShow || (noResultsShow && filterUse)",
+      @reset="reset"
+    )
+    common-loader(v-if="isLoader")
 </template>
 
 <script setup lang="ts">
@@ -317,7 +324,6 @@ onMounted(() => {
 .teams {
   background: var(--background);
   height: 100vh;
-  width: calc(100% - 288px);
   padding: 28px 144px 125px;
   @include media_tablet {
     padding: 28px 20px;
@@ -328,6 +334,10 @@ onMounted(() => {
     width: calc(100% - 32px);
     top: 56px;
     position: absolute;
+  }
+  &-block {
+    max-width: 993px;
+    margin: 0 auto;
   }
   .drop-down {
     &.teams-dropdown {
@@ -514,11 +524,11 @@ onMounted(() => {
     align-items: center;
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 10px;
-    width: 100%;
-    margin-top: 36px;
+    margin: 36px auto 0;
     @include media_tablet {
-      margin-top: 26px;
+      margin: 26px auto 0;
     }
     @include media_mobile {
       margin-top: 16px;
@@ -570,7 +580,8 @@ onMounted(() => {
     }
     @include media_mobile {
       width: 100%;
-      height: 142px;
+      padding: 6px;
+      min-height: 142px;
     }
   }
 
@@ -621,7 +632,6 @@ onMounted(() => {
     top: 0;
     left: 0;
     width: 157px;
-    height: 184px;
     background: var(--secondary);
     box-sizing: border-box;
 
@@ -636,7 +646,6 @@ onMounted(() => {
     }
     @include media_mobile {
       width: 100%;
-      height: 142px;
     }
     .flip-box-user {
       display: flex;
@@ -669,8 +678,14 @@ onMounted(() => {
         margin: 0 0 6px 0;
         display: flex;
         align-items: center;
+        &:last-of-type {
+          margin: 0;
+        }
+        &:nth-child(2) {
+          height: 15px;
+        }
         @include media_mobile {
-          margin: 0 0 4px 0;
+          margin: 0 0 3px 0;
         }
         img {
           width: 15px;
