@@ -4,7 +4,7 @@
     h2 {{ title }}
     div(v-if="project")
       .menu-project(
-        v-for="(project, index) in projects.slice(0, 2)",
+        v-for="(project, index) in projects.slice(0, 5)",
         :key="index"
       ) 
         img.logo(
@@ -19,7 +19,7 @@
         i.icon.star
     div(v-else)
       .menu-project(
-        v-for="(project, index) in users.slice(0, 2)",
+        v-for="(project, index) in users.slice(0, 5)",
         :key="index"
       ) 
         img.logo(

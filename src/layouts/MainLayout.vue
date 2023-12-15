@@ -1,6 +1,6 @@
 <template lang="pug">
 header-component(@newProject="newProject")
-router-view
+router-view(:newProjectShow="newProjectShow")
 footer-component.footer
 </template>
 

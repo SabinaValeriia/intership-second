@@ -43,14 +43,14 @@
     i.icon.setting.header_icon
     img.avatar(
       v-if="userStore.user.image",
-      :src="userStore.user.image",
+      :src="JSON.parse(userStore.user.image.name)",
       :alt="'avatar'"
     )
     .header__avatar.avatar(v-else) {{ logoName }}
   .header__mobile
     img.avatar(
       v-if="userStore.user.image",
-      :src="userStore.user.image",
+      :src="JSON.parse(userStore.user.image.name)",
       :alt="'avatar'",
       @click="openModal(EnumModalKeys.ModalHeader)"
     )
@@ -61,24 +61,25 @@
       v-if="$route.path.includes('projects')",
       @click="openModal(EnumModalKeys.ModalCreate)"
     )
-    i.icon.plus.people
+    i.icon.plus.people(v-if="isRouteActive('teams')")
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
 modal-create(
   v-if="isOpen(EnumModalKeys.ModalCreate)",
   @close="close",
   @newProject="newProject",
-  :create="true"
+  :create="true",
+  @closeModal="close"
 )
 </template>
 
 <script lang="ts" setup>
 import DropdownMenu from "./common/DropdownMenu.vue";
 import CommonButton from "./common/CommonButton.vue";
-import { isOpen, openModal } from "@/composables/modalActions";
+import { isOpen, modalKeys, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
 import ModalCreate from "@/modals/ModalCreate.vue";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 const route = useRoute();
 import { useUserStore } from "../store/user";
 import { useRoute } from "vue-router";
@@ -121,6 +122,19 @@ const isRouteActive = (routeName: string) => {
     return true;
   }
 };
+onMounted(() => {
+  watch(
+    () => route.path,
+    (newPath) => {
+      if (newPath.includes("projects")) {
+        dropdownStates.value.project.isOpen = false;
+      } else {
+        dropdownStates.value.teams.isOpen = false;
+      }
+    }
+  );
+  modalKeys.value["modal-header"] = false;
+});
 </script>
 
 <style scoped lang="scss">

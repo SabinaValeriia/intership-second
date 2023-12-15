@@ -61,7 +61,7 @@
           @click="toggleDropdown('department')",
           :class="{ selected: departmentValue.length }"
         ) {{ departmentValue.length ? departmentValue[0].name : "Department" }}
-          i.icon.department
+          i.icon.department_another
           i.icon.close(
             v-if="departmentValue.length",
             @click.stop="deleteProject('department')"
@@ -458,6 +458,12 @@ onMounted(() => {
               top: 10px;
               left: 10px;
             }
+            &.department {
+              top: 15px;
+              @include media_mobile {
+                top: 11px;
+              }
+            }
           }
           &.selected {
             background: var(--accent);
@@ -526,7 +532,7 @@ onMounted(() => {
     -webkit-backface-visibility: hidden;
     max-width: 100%;
     @include media_mobile {
-      width: 168px;
+      width: 49%;
     }
   }
 
@@ -542,7 +548,7 @@ onMounted(() => {
       width: 174px;
     }
     @include media_mobile {
-      width: 168px;
+      width: 100%;
     }
   }
 
@@ -563,8 +569,8 @@ onMounted(() => {
       width: 174px;
     }
     @include media_mobile {
-      width: 168px;
-      min-height: 142px;
+      width: 100%;
+      height: 142px;
     }
   }
 
@@ -586,7 +592,7 @@ onMounted(() => {
       width: 174px;
     }
     @include media_mobile {
-      width: 168px;
+      width: 100%;
     }
     img {
       width: 90px;
@@ -615,6 +621,7 @@ onMounted(() => {
     top: 0;
     left: 0;
     width: 157px;
+    height: 184px;
     background: var(--secondary);
     box-sizing: border-box;
 
@@ -628,13 +635,17 @@ onMounted(() => {
       width: 174px;
     }
     @include media_mobile {
-      width: 168px;
+      width: 100%;
+      height: 142px;
     }
     .flip-box-user {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 37px;
+      @include media_mobile {
+        margin-bottom: 19px;
+      }
       h4 {
         margin: 0;
         @include font(10px, 500, 14px, var(--text));
@@ -658,6 +669,9 @@ onMounted(() => {
         margin: 0 0 6px 0;
         display: flex;
         align-items: center;
+        @include media_mobile {
+          margin: 0 0 4px 0;
+        }
         img {
           width: 15px;
           height: 15px;

@@ -64,7 +64,7 @@ router.beforeEach((to, from, next) => {
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (isAuthenticated) {
-      if (to.path === "/login") {
+      if (to.path.toLowerCase() === "/login") {
         next("/dashboard");
       } else {
         next();
