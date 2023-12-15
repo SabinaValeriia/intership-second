@@ -1,31 +1,48 @@
 <template lang="pug">
 .menu(v-if="isOpen")
-  div(v-if="project && totalProjects")
+  div
     h2 {{ title }}
-    .menu-project(
-      v-for="(project, index) in projects.slice(0, 2)",
-      :key="index"
-    ) 
-      img.logo(
-        v-if="project.logo !== null || project.logo",
-        :src="JSON.parse(project.logo.name)",
-        alt="name"
-      )
-      div
-        h3 {{ project.title }} ({{ project.key }})
-        p {{ project.tags.data[0].attributes.name }}
-      i.icon.unchecked
-      i.icon.star
+    div(v-if="project")
+      .menu-project(
+        v-for="(project, index) in projects.slice(0, 5)",
+        :key="index"
+      ) 
+        img.logo(
+          v-if="project.logo !== null || project.logo",
+          :src="JSON.parse(project.logo.name)",
+          alt="name"
+        )
+        div
+          h3 {{ project.title }} ({{ project.key }})
+          p {{ project.tags.data[0].attributes.name }}
+        i.icon.unchecked
+        i.icon.star
+    div(v-else)
+      .menu-project(
+        v-for="(project, index) in users.slice(0, 5)",
+        :key="index"
+      ) 
+        img.logo(
+          v-if="project.logo !== null || project.logo",
+          :src="JSON.parse(project.logo.name)",
+          alt="name"
+        )
+        img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
+        div
+          h3 {{ project.name }}
+        i.icon.unchecked
+        i.icon.star
     h2 {{ subtitle }}
   div(v-if="project && !totalProjects")
     no-results.menu-no(:noData="true")
-  router-link(to="/dashboard/projects") View all projects
+  router-link(:to="`/dashboard/${type}`") View all {{ type }}
 </template>
 
 <script setup lang="ts">
 import { showProjects } from "@/services/api/projectApi";
 import { onMounted, ref } from "vue";
 import NoResults from "../NoResults.vue";
+import { showUsers } from "@/services/api/userApi";
 
 const props = defineProps({
   type: { type: String },
@@ -36,11 +53,27 @@ const props = defineProps({
   project: Boolean,
 });
 const projects = ref([]);
+const users = ref([]);
 const totalProjects = ref();
 onMounted(() => {
   showProjects("").then(({ data }) => {
     projects.value = data.data.map((project: any) => project.attributes);
     totalProjects.value = projects.value.length;
+  });
+  showUsers("").then(({ data }) => {
+    users.value = data.map(
+      (item: {
+        name: string;
+        logo: {
+          name: string;
+        };
+        id: number;
+      }) => ({
+        name: item.username,
+        logo: item.image,
+        id: item.id,
+      })
+    );
   });
 });
 </script>

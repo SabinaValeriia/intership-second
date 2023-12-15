@@ -22,13 +22,13 @@ ul(
     )
       i.check.icon
     button.checkbox(
-      v-else-if="checkedItem",
+      v-else-if="type === 'checkbox' && checkedItem",
       @click.prevent="toggleSelect(item)",
       :class="{ active: checkedItem.includes(item) }"
     )
       i.check.icon
     button.checkbox(
-      v-else-if="allItems",
+      v-else-if="type === 'checkbox' && allItems",
       @click.prevent="toggleSelect(item)",
       :class="{ active: allItems.includes(item) }"
     )

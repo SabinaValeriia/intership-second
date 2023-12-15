@@ -3,13 +3,19 @@
   .footer__block 
     i.icon.home 
     p Home
-  .footer__block(:class="{ active: isRouteActive('projects') }")
+  router-link.footer__block(
+    to="/dashboard/projects",
+    :class="{ active: isRouteActive('projects') }"
+  )
     i.icon.projects 
     p Projects
-  .footer__block 
+  a.footer__block 
     i.icon.tasks 
     p Issues
-  .footer__block 
+  router-link.footer__block(
+    to="/dashboard/teams",
+    :class="{ active: isRouteActive('teams') }"
+  ) 
     i.icon.user 
     p Members
 </template>
@@ -40,6 +46,7 @@ const isRouteActive = (routeName: string) => {
     display: flex;
     align-items: center;
     flex-direction: column;
+    text-decoration: none;
     &:hover {
       color: var(--background);
 

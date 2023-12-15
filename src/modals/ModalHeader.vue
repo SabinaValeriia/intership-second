@@ -10,7 +10,7 @@ app-modal
         h3 {{ userStore.user.email || "" }}
       img.profile--avatar--icon(
         v-if="userStore.user.image",
-        :src="userStore.user.image",
+        :src="JSON.parse(userStore.user.image.name)",
         :alt="'avatar'"
       )
       .modal__avatar(v-else) {{ logoName }}
@@ -37,7 +37,7 @@ import { computed } from "vue";
 const userStore = useUserStore();
 const logOut = () => {
   userStore.clear();
-  router.push("/login");
+  router.replace("/login");
 };
 const fullName = computed(() => {
   const username = userStore.user.username || "";

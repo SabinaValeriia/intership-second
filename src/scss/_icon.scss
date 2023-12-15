@@ -93,6 +93,12 @@
     &.reset {
         mask-image: url("@/assets/icons/reset.svg");
     }
+    &.department {
+        mask-image: url("@/assets/icons/department.svg");
+    }
+    &.department_another {
+        mask-image: url("@/assets/icons/department1.svg");
+    }
     @include media_mobile {
         width: 16px;
         height: 16px;

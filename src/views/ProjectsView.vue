@@ -43,7 +43,7 @@
               v-else-if="!leadItem.logo",
               :src="require(`@/assets/icons/default_user.svg`)"
             )
-          i.icon.close(v-if="leadItem", @click="deleteLead")
+          i.icon.close(v-if="leadItem", @click.stop="deleteLead")
         dropdown-component.tags__block(
           v-if="dropdownStates.lead.isOpen",
           :isOpen="dropdownStates.lead.isOpen",
@@ -114,22 +114,22 @@
           ) {{ i.attributes.name }}
         .lead.flex(v-if="item.attributes.lead.data")
           img(
-            v-if="item.attributes.lead.data.attributes.logo",
-            :src="JSON.parse(item.attributes.lead.data.attributes.logo.name)"
+            v-if="item.attributes.lead.data.attributes.image",
+            :src="JSON.parse(item.attributes.lead.data.attributes.image.name)"
           )
           img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
           router-link(
-            :to="{ name: 'teamsItem', params: { id: item.attributes.lead.data.id } }"
+            :to="{ name: 'teamsUser', params: { id: item.attributes.lead.data.id } }"
           ) {{ item.attributes.lead.data.attributes.username }}
         .members.flex(v-if="item.attributes.members.data.length")
           .img(
             v-for="(i, index) in item.attributes.members.data.slice(0, 3)",
             :key="index"
           ) 
-            router-link(:to="{ name: 'teamsItem', params: { id: i.id } }")
+            router-link(:to="{ name: 'teamsUser', params: { id: i.id } }")
               img(
-                v-if="i.attributes.logo",
-                :src="JSON.parse(i.attributes.logo.name)"
+                v-if="i.attributes.image",
+                :src="JSON.parse(i.attributes.image.name)"
               )
               img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
         .star-block.mobile
@@ -157,8 +157,8 @@ import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
-import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
-import { showTag, tagDataShow, tagNames } from "@/composables/tagActions";
+import { computed, onMounted, ref, watch } from "vue";
+import { showTag, tagNames } from "@/composables/tagActions";
 import { filterFunction } from "@/composables/projectsAction";
 import { showUsers } from "@/services/api/userApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
@@ -179,7 +179,6 @@ const projectsArray = ref([]);
 const noResultsShow = ref(false);
 const filterUse = ref(false);
 const noDataShow = ref(false);
-const openDropdown = ref(false);
 const totalProjects = ref(null);
 const tagItem = ref([]);
 const leadItem = ref("");
@@ -212,7 +211,6 @@ const reset = () => {
   showDataUser();
   leadItem.value = "";
   noResultsShow.value = false;
-  fetchProjects("");
   close();
 };
 

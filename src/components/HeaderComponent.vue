@@ -15,12 +15,23 @@
         dropdown-menu(
           :isOpen="dropdownStates.project.isOpen",
           title="Starred",
-          :project="true"
+          :project="true",
+          :type="'projects'"
         )
-      li 
-        a Teams
-        span
-    common-button.btn-secondary(@click="openModal(EnumModalKeys.ModalCreate)") Create
+      li.projects
+        a(
+          :class="{ active: isRouteActive('teams') }",
+          @click="toggleDropdown('teams')"
+        ) Teams
+        dropdown-menu(
+          :isOpen="dropdownStates.teams.isOpen",
+          title="Starred",
+          :type="'teams'"
+        )
+    common-button.btn-secondary(
+      v-if="$route.path.includes('projects')",
+      @click="openModal(EnumModalKeys.ModalCreate)"
+    ) Create
   .header-block__right
     form
       .form-group
@@ -32,37 +43,43 @@
     i.icon.setting.header_icon
     img.avatar(
       v-if="userStore.user.image",
-      :src="userStore.user.image",
+      :src="JSON.parse(userStore.user.image.name)",
       :alt="'avatar'"
     )
     .header__avatar.avatar(v-else) {{ logoName }}
   .header__mobile
     img.avatar(
       v-if="userStore.user.image",
-      :src="userStore.user.image",
+      :src="JSON.parse(userStore.user.image.name)",
       :alt="'avatar'",
       @click="openModal(EnumModalKeys.ModalHeader)"
     )
     .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
     h3(v-if="isRouteActive('projects')") Projects
-    i.icon.plus(@click="openModal(EnumModalKeys.ModalCreate)")
+    h3(v-if="isRouteActive('teams')") People
+    i.icon.plus(
+      v-if="$route.path.includes('projects')",
+      @click="openModal(EnumModalKeys.ModalCreate)"
+    )
+    i.icon.plus.people(v-if="isRouteActive('teams')")
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
 modal-create(
   v-if="isOpen(EnumModalKeys.ModalCreate)",
   @close="close",
   @newProject="newProject",
-  :create="true"
+  :create="true",
+  @closeModal="close"
 )
 </template>
 
 <script lang="ts" setup>
 import DropdownMenu from "./common/DropdownMenu.vue";
 import CommonButton from "./common/CommonButton.vue";
-import { isOpen, openModal } from "@/composables/modalActions";
+import { isOpen, modalKeys, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
 import ModalCreate from "@/modals/ModalCreate.vue";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 const route = useRoute();
 import { useUserStore } from "../store/user";
 import { useRoute } from "vue-router";
@@ -75,6 +92,7 @@ const emit = defineEmits(["newProject"]);
 const dropdownStates = ref({
   work: { isOpen: false },
   project: { isOpen: false },
+  teams: { isOpen: false },
 });
 
 const newProject = () => {
@@ -104,6 +122,19 @@ const isRouteActive = (routeName: string) => {
     return true;
   }
 };
+onMounted(() => {
+  watch(
+    () => route.path,
+    (newPath) => {
+      if (newPath.includes("projects")) {
+        dropdownStates.value.project.isOpen = false;
+      } else {
+        dropdownStates.value.teams.isOpen = false;
+      }
+    }
+  );
+  modalKeys.value["modal-header"] = false;
+});
 </script>
 
 <style scoped lang="scss">
@@ -169,6 +200,11 @@ const isRouteActive = (routeName: string) => {
         position: relative;
         &::before {
           background: var(--white);
+        }
+        &.people {
+          &::before {
+            background: var(--accent);
+          }
         }
       }
       h3 {
