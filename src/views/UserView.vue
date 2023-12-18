@@ -14,33 +14,34 @@
         )
         .mobile-user
           h2 {{ item.name }}
-          p {{ item.email }}
+          p {{ item.name }}
 
     .user--info
       .tablet
         .user--info-left
           .tablet-user
             h2 {{ item.name }}
-            p {{ item.email }}
+            p {{ item.name }}
           .block
             h4 About
-            .block-user(v-if="item.name")
-              img(
-                v-if="item.logo",
-                :src="JSON.parse(item.logo.name)",
-                alt="user"
-              )
-              img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
-              p {{ item.name }}
-            .block-user
+            div(v-for="manager in item.user_managers", :key="manager")
+              .block-user(v-if="manager.username")
+                img(
+                  v-if="manager.logo",
+                  :src="JSON.parse(manager.logo.name)",
+                  alt="user"
+                )
+                img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
+                p(v-for="manager in item.user_managers", :key="manager") {{ manager.username }}
+            .block-user(v-if="item.user_role")
               i.icon.company
-              p Frontend developer
+              p 
             .block-user(v-if="item.department")
               i.icon.department
               p {{ item.department.name }} dept
-            .block-user
+            .block-user(v-if="item.location")
               i.icon.compass
-              p Ukraine, Krop
+              p 
             h4.distance Contact
             .block-user(v-if="item.email")
               i.icon.case
@@ -50,11 +51,10 @@
           h3 Worked on
           .block(v-if="item.tasks.length")
             router-link.block-user(
-              v-for="(task, index) in item.tasks.slice(0, 3)",
+              v-for="(task, index) in item.tasks.slice(0, 5)",
               :key="index",
               :to="{ name: 'projectsTask', params: { id: task.id, key: task.key } }"
             )
-              //- to="{ name: 'projectsTask', params: { id: 3 } }"
               div(v-for="(taskItem, index) in tasks", :key="index")
                 i.icon(
                   v-if="taskItem.title === task.title",
@@ -73,7 +73,7 @@
                     ) {{ member.attributes.username }}
                     span {{ p.members.data.length > 2 ? `, and ${p.members.data.length} others all worked on this` : "" }}
           .block.no-result(v-else)
-            no-results.user-results(:noUser="'true'")
+            no-results.user-results(:noUser="'true'", :userName="item.name")
           h3 Places they work in
           .block(v-if="item.projects.length")
             router-link.block-user(
@@ -88,13 +88,14 @@
               )
               p.project-item {{ project.title }} ({{ project.key }})
           .block.no-result(v-else)
-            no-results.user-results(:noPlace="'true'")
+            no-results.user-results(:noPlace="'true'", :userName="item.name")
 .loader(v-else)
-  .loader-user
-    .loader-user--img
-      i.icon.foto
-    .loader-block
-  common-loader
+  .loader--bg
+    .loader-user
+      .loader-user--img
+        i.icon.foto
+      .loader-block
+  common-loader.user
 </template>
 
 <script setup lang="ts">
@@ -134,6 +135,7 @@ const fetchData = () => {
             tasks: foundUser.value.task_reporter,
             projects: foundUser.value.project_members,
             manager: foundUser.value.user_developers,
+            user_managers: foundUser.value.user_managers,
           },
         ];
       }
@@ -141,6 +143,13 @@ const fetchData = () => {
     .finally(() => {
       isLoader.value = false;
     });
+  showProjects("").then(({ data }) => {
+    projects.value = data.data.map((project: any) => project.attributes);
+  });
+
+  showTasks().then(({ data }) => {
+    tasks.value = data.data.map((task: ShowTasks) => task.attributes);
+  });
 };
 
 onMounted(fetchData);
@@ -152,6 +161,9 @@ watch(() => route.params.id, fetchData);
 .loader {
   background: var(--background);
   height: 100vh;
+  &--bg {
+    background: var(--secondary);
+  }
   &-block {
     background: var(--background);
     height: 76vh;
@@ -160,9 +172,10 @@ watch(() => route.params.id, fetchData);
   }
   &-user {
     height: 120px;
-    background: var(--secondary);
-    padding: 29px 0 0 184px;
+    padding: 29px 0 0 6px;
     box-sizing: border-box;
+    max-width: 924px;
+    margin: 0 auto;
     @include media_tablet {
       padding: 29px 0 0 20px;
     }
@@ -173,6 +186,8 @@ watch(() => route.params.id, fetchData);
     }
     &--img {
       border: 1px solid var(--white);
+      box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.05);
+
       border-radius: 75px;
       width: 130px;
       height: 130px;
@@ -214,10 +229,10 @@ watch(() => route.params.id, fetchData);
     box-sizing: border-box;
     padding: 29px 0 0 0;
     &-block {
-      width: 924px;
+      max-width: 924px;
       margin: 0 auto;
       @include media_mobile {
-        width: 100%;
+        max-width: 100%;
       }
     }
     @include media_tablet {
@@ -251,12 +266,16 @@ watch(() => route.params.id, fetchData);
       }
     }
     &-icon {
-      border: 1px solid var(--white);
+      border: 3px solid var(--white);
       border-radius: 75px;
       width: 130px;
       height: 130px;
       display: flex;
       align-items: center;
+      z-index: 3;
+      position: relative;
+      box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.05);
+
       @include media_mobile {
         width: 84px;
         height: 84px;
@@ -265,6 +284,7 @@ watch(() => route.params.id, fetchData);
         top: 75px;
         transform: translateX(-50%);
         z-index: 4;
+        border: 2px solid var(--white);
       }
     }
   }
@@ -305,7 +325,7 @@ watch(() => route.params.id, fetchData);
       gap: 36px;
     }
     &-left {
-      margin-right: 38px;
+      margin-right: 36px;
       flex: 1;
       @include media_tablet {
         margin-right: 20px;
@@ -367,6 +387,7 @@ watch(() => route.params.id, fetchData);
             border-radius: 11px;
           }
           p {
+            text-decoration: none;
             margin: 0 0 0 12px;
             @include font(14px, 400, 20px, var(--text));
             @include media_mobile {
@@ -433,10 +454,6 @@ watch(() => route.params.id, fetchData);
             background: var(--white);
             border-radius: 3px;
             box-shadow: 0 0 10px rgba(244, 244, 244, 0.5);
-            p.project-item {
-              color: var(--accent);
-              border-bottom: 1px solid var(--accent);
-            }
           }
           @include media_mobile {
             padding: 4px 0;
@@ -462,6 +479,7 @@ watch(() => route.params.id, fetchData);
             i.dot {
               width: 5px;
               height: 5px;
+              margin-left: 3px;
             }
 
             p {

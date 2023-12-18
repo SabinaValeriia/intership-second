@@ -1,5 +1,4 @@
 <template lang="pug">
-.backdrop(@click="closeDropdown")
 .header 
   .header-block__left 
     a
@@ -367,12 +366,5 @@ onMounted(() => {
       }
     }
   }
-}
-.backdrop {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
 }
 </style>

@@ -8,13 +8,11 @@
   p(v-if="noResults") No results found, try to reset filters
   div(v-if="noUser")
     h3 There is no work to see here
-    p Things
-      s Selected Names
+    p Things {{ userName + " " }}
       | worked on in the last 90 days.
   div(v-if="noPlace")
     h3 We don’t have places to show here yet
-    p
-      s Selected Names
+    p {{ userName + " " }}
       | hasn’t worked in any projects in the last 90 days.
   common-button.btn-secondary(
     v-if="noData || noResults",
@@ -43,6 +41,9 @@ const props = defineProps({
   noPlace: {
     type: Boolean,
     default: false,
+  },
+  userName: {
+    type: String,
   },
 });
 

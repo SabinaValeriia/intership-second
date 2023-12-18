@@ -50,11 +50,6 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/ProjectsView.vue"),
       },
       {
-        path: "teams/:id",
-        name: "teamsUser",
-        component: () => import("../views/ProjectsView.vue"),
-      },
-      {
         path: "teams",
         name: "teams",
         component: () => import("../views/TeamsView.vue"),

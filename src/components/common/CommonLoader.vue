@@ -12,6 +12,13 @@
   @include media_mobile {
     margin: 71% 0;
   }
+  &.user {
+    .loader {
+      position: absolute;
+      top: 63%;
+      left: 48%;
+    }
+  }
 }
 .loader {
   position: relative;
