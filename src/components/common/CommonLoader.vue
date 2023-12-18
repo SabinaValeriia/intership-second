@@ -9,9 +9,24 @@
   align-items: center;
   justify-content: center;
   margin: 20% 0;
+  @include media_mobile {
+    margin: 71% 0;
+  }
+  &.user {
+    .loader {
+      position: absolute;
+      top: 63%;
+      left: 48%;
+    }
+  }
 }
 .loader {
   position: relative;
+  @include media_mobile {
+    position: absolute;
+    left: 41%;
+    top: 50%;
+  }
 }
 .loader:before,
 .loader:after {
@@ -21,14 +36,14 @@
   height: 13px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 26px 0 var(--accent);
+  box-shadow: 20px 0 var(--accent);
   left: 0;
   top: 0;
   animation: ballMoveX 1s linear infinite;
 }
 .loader:after {
   box-shadow: none;
-  transform-origin: 34px 0;
+  transform-origin: 28px 0;
   transform: rotate(210deg);
   animation: rotateLoader 1s linear infinite;
 }
@@ -40,13 +55,13 @@
   }
   90%,
   100% {
-    transform: rotate(210deg);
+    transform: rotate(150deg);
   }
 }
 @keyframes ballMoveX {
   0%,
   10% {
-    transform: translateX(26px);
+    transform: translateX(20px);
   }
   90%,
   100% {

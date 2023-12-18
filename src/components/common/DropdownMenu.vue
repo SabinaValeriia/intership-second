@@ -18,9 +18,10 @@
         i.icon.unchecked
         i.icon.star
     div(v-else)
-      .menu-project(
+      router-link.menu-project(
         v-for="(project, index) in users.slice(0, 5)",
-        :key="index"
+        :key="index",
+        :to="{ name: 'teamsUser', params: { id: project.id } }"
       ) 
         img.logo(
           v-if="project.logo !== null || project.logo",
@@ -80,6 +81,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .menu {
+  left: 0;
   position: absolute;
   top: 55px;
   padding: 16px 0;
@@ -87,13 +89,16 @@ onMounted(() => {
   border-radius: 6px;
   box-sizing: border-box;
   min-width: 351px;
-  z-index: 3;
+  z-index: 10;
   box-shadow: 0px 4px 8px rgba(61, 55, 52, 0.08);
 
   a {
     @include font(16px, 500, 24px, var(--text));
     text-decoration: none;
     margin: 16px;
+    &.menu-project {
+      margin: 0;
+    }
   }
 
   &-project {

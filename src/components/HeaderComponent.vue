@@ -1,5 +1,4 @@
 <template lang="pug">
-.backdrop(@click="closeDropdown")
 .header 
   .header-block__left 
     a
@@ -9,7 +8,7 @@
         a(@click="toggleDropdown('work')") Your work
       li.projects
         a(
-          :class="{ active: isRouteActive('projects') }",
+          :class="{ active: $route.path.includes('projects') }",
           @click="toggleDropdown('project')"
         ) Projects
         dropdown-menu(
@@ -20,7 +19,7 @@
         )
       li.projects
         a(
-          :class="{ active: isRouteActive('teams') }",
+          :class="{ active: $route.path.includes('teams') }",
           @click="toggleDropdown('teams')"
         ) Teams
         dropdown-menu(
@@ -56,12 +55,12 @@
     )
     .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
     h3(v-if="isRouteActive('projects')") Projects
-    h3(v-if="isRouteActive('teams')") People
+    h3(v-if="$route.path.includes('teams')") People
     i.icon.plus(
       v-if="$route.path.includes('projects')",
       @click="openModal(EnumModalKeys.ModalCreate)"
     )
-    i.icon.plus.people(v-if="isRouteActive('teams')")
+    i.icon.plus.people(v-if="$route.path.includes('teams')")
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
 modal-create(
   v-if="isOpen(EnumModalKeys.ModalCreate)",
@@ -367,12 +366,5 @@ onMounted(() => {
       }
     }
   }
-}
-.backdrop {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
 }
 </style>

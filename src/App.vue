@@ -23,4 +23,10 @@ onMounted(() => {
 });
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+#app {
+  @include media_mobile {
+    overflow: hidden;
+  }
+}
+</style>

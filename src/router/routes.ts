@@ -40,14 +40,24 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/ProjectsView.vue"),
       },
       {
-        path: "teams/:id",
-        name: "teamsUser",
+        path: "projects/:key/:id",
+        name: "projectsTask",
+        component: () => import("../views/ProjectsView.vue"),
+      },
+      {
+        path: "projects/:key",
+        name: "projectsProject",
         component: () => import("../views/ProjectsView.vue"),
       },
       {
         path: "teams",
         name: "teams",
         component: () => import("../views/TeamsView.vue"),
+      },
+      {
+        path: "teams/:id",
+        name: "teamsUser",
+        component: () => import("../views/UserView.vue"),
       },
     ],
   },

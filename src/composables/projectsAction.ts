@@ -33,3 +33,14 @@ export const filterFunction = (data: string[]) => {
     },
   };
 };
+
+export const getTaskTypeName = (taskItem: string) => {
+  const lowercaseTaskItem = taskItem.toLowerCase();
+  if (lowercaseTaskItem === "bug") {
+    return "bug";
+  } else if (lowercaseTaskItem === "implementation") {
+    return "implementation";
+  } else if (lowercaseTaskItem === "feature") {
+    return "feature";
+  }
+};

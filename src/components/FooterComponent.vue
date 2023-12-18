@@ -14,7 +14,7 @@
     p Issues
   router-link.footer__block(
     to="/dashboard/teams",
-    :class="{ active: isRouteActive('teams') }"
+    :class="{ active: isRouteActive('teams') || $route.path.includes('teams') }"
   ) 
     i.icon.user 
     p Members

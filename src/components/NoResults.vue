@@ -1,9 +1,23 @@
 <template lang="pug">
 .no-results
-  img(:src="require(`@/assets/icons/${noData ? 'no-search' : 'no-data'}.svg`)")
+  img(
+    :src="require(`@/assets/icons/${noData || noUser || noPlace ? 'no-search' : 'no-data'}.svg`)"
+  )
   h2(v-if="noData") Wait!
-  p {{ noData ? "You have no projects created, please create new one." : "No results found, try to reset filters" }}
-  common-button.btn-secondary(@click="noData ? create() : reset()") {{ noData ? "Create" : "Reset" }}
+  p(v-if="noData") You have no projects created, please create new one.
+  p(v-if="noResults") No results found, try to reset filters
+  div(v-if="noUser")
+    h3 There is no work to see here
+    p Things {{ userName + " " }}
+      | worked on in the last 90 days.
+  div(v-if="noPlace")
+    h3 We don’t have places to show here yet
+    p {{ userName + " " }}
+      | hasn’t worked in any projects in the last 90 days.
+  common-button.btn-secondary(
+    v-if="noData || noResults",
+    @click="noData ? create() : reset()"
+  ) {{ noData ? "Create" : "Reset" }}
 </template>
 
 <script setup lang="ts">
@@ -19,6 +33,17 @@ const props = defineProps({
   noData: {
     type: Boolean,
     default: false,
+  },
+  noUser: {
+    type: Boolean,
+    default: false,
+  },
+  noPlace: {
+    type: Boolean,
+    default: false,
+  },
+  userName: {
+    type: String,
   },
 });
 
@@ -39,6 +64,55 @@ const create = () => {
   flex-direction: column;
   button {
     z-index: 5;
+  }
+  &.user-results {
+    flex-direction: row;
+    padding: 16px 8px;
+    @include media_tablet {
+      padding: 26px 18px;
+    }
+    @include media_mobile {
+      padding: 16px 26px;
+      flex-direction: column;
+    }
+    img {
+      height: 120px;
+      width: 140px;
+      margin: 0 36px 0 0;
+      @include media_tablet {
+        height: 106px;
+        width: 122px;
+      }
+      @include media_mobile {
+        height: 84px;
+        width: 98px;
+        margin: 0;
+      }
+    }
+    h3 {
+      @include font(16px, 500, 20px, var(--text));
+      margin: 0 0 6px 0;
+      @include media_mobile {
+        font-size: 14px;
+        line-height: 20px;
+        margin: 10px 0 6px;
+        text-align: center;
+      }
+    }
+    p {
+      @include font(12px, 400, 16px, var(--text));
+      max-width: 229px;
+      text-align: left;
+      @include media_mobile {
+        font-size: 11px;
+        line-height: 14px;
+        text-align: center;
+      }
+
+      s {
+        margin: 0 3px;
+      }
+    }
   }
   &.menu-no {
     border-bottom: 1px solid var(--primary);

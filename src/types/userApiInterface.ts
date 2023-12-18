@@ -23,3 +23,17 @@ export interface ResUser {
     updatedAt: string;
   };
 }
+
+export interface UserInterface {
+  id: number;
+  name: string;
+  email: string;
+  department: {
+    id: number;
+    name: string;
+  };
+  logo: {
+    name: string;
+  };
+  manager: string;
+}

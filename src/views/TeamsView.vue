@@ -62,7 +62,7 @@
             @click="toggleDropdown('department')",
             :class="{ selected: departmentValue.length }"
           ) {{ departmentValue.length ? departmentValue[0].name : "Department" }}
-            i.icon.department_another
+            i.icon.department
             i.icon.close(
               v-if="departmentValue.length",
               @click.stop="deleteProject('department')"
@@ -334,6 +334,7 @@ onMounted(() => {
     width: calc(100% - 32px);
     top: 56px;
     position: absolute;
+    height: calc(100vh - -139px);
   }
   &-block {
     max-width: 993px;
@@ -543,6 +544,9 @@ onMounted(() => {
     max-width: 100%;
     @include media_mobile {
       width: 49%;
+      &:last-of-type {
+        margin-bottom: 69px;
+      }
     }
   }
 
