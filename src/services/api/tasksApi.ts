@@ -3,5 +3,5 @@ import axiosInstance from ".";
 import { ResTasks } from "@/types/tasksApiInterface";
 
 export const showTasks = (): Promise<AxiosResponse<ResTasks>> => {
-  return axiosInstance.get("tasks?populate=*");
+  return axiosInstance.get("task?populate=*");
 };

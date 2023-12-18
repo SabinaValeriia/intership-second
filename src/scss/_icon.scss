@@ -81,17 +81,20 @@
     &.sort_down {
         mask-image: url("@/assets/icons/sort_down.svg");
     }
+    &.default_user {
+        mask-image: url("@/assets/icons/default_user.svg");
+    }
+    &.plus {
+        mask-image: url("@/assets/icons/plus.svg");
+    }
     &.member {
         mask-image: url("@/assets/icons/member.svg");
     }
-    &.projects {
-        mask-image: url("@/assets/icons/projects.svg");
+    &.reset {
+        mask-image: url("@/assets/icons/reset.svg");
     }
     &.department {
         mask-image: url("@/assets/icons/department.svg");
-    }
-    &.reset-icon {
-        mask-image: url("@/assets/icons/reset.svg");
     }
     &.foto {
         mask-image: url("@/assets/icons/foto.svg");

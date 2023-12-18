@@ -32,6 +32,7 @@ export const useUserStore = defineStore(
       data.value = {};
       user.value = { ...defaultUser };
       accessToken.value = "";
+      projectData.value = {};
     };
 
     return {

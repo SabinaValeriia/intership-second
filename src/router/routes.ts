@@ -35,6 +35,26 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/ProjectsView.vue"),
       },
       {
+        path: "projects/:id",
+        name: "projectsItem",
+        component: () => import("../views/ProjectsView.vue"),
+      },
+      {
+        path: "projects/:key/:id",
+        name: "projectsTask",
+        component: () => import("../views/ProjectsView.vue"),
+      },
+      {
+        path: "projects/:key",
+        name: "projectsProject",
+        component: () => import("../views/ProjectsView.vue"),
+      },
+      {
+        path: "teams/:id",
+        name: "teamsUser",
+        component: () => import("../views/ProjectsView.vue"),
+      },
+      {
         path: "teams",
         name: "teams",
         component: () => import("../views/TeamsView.vue"),
@@ -59,7 +79,7 @@ router.beforeEach((to, from, next) => {
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (isAuthenticated) {
-      if (to.path === "/login") {
+      if (to.path.toLowerCase() === "/login") {
         next("/dashboard");
       } else {
         next();

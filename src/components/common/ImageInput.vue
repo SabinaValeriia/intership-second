@@ -2,7 +2,7 @@
 .form-group.image(:class="type")
   .label-group(@click="toggleInput")
     label(for="logo") Image logo
-    i.icon.arrow.mobile(:class="{ active: open }")
+    i.icon.arrow.mobile.image(:class="{ active: open }")
   .form-item(v-if="!userImage.length && open")
     input.img(
       type="file",

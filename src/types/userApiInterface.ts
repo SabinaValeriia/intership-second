@@ -4,6 +4,13 @@ export interface AuthUserInterface {
 }
 
 export interface ResUser {
+  map(
+    arg0: (item: { name: string; logo: { name: string }; id: number }) => {
+      name: any;
+      logo: { name: string };
+      id: number;
+    }
+  ): never[];
   jwt: string;
   user: {
     id: number;

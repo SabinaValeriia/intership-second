@@ -1,6 +1,7 @@
 <template lang="pug">
 app-modal
   template(v-slot:content)
+    .backdrop(@click="closeDropdown")
     .modal-header
       h1 Create project
     .modal-body
@@ -10,7 +11,7 @@ app-modal
             :class="getValidationClass($v, 'title')",
             :type="`title`",
             :value-input="form.title",
-            :is-error="$v.title.required.$invalid",
+            :isError="getValidationClass($v, 'title')",
             @set-data="form.title = $event"
           )
             template(v-slot:errors, v-if="$v.title.required.$invalid")
@@ -30,7 +31,7 @@ app-modal
         .form-group.desc(:class="getValidationClass($v, 'description')")
           .label-group
             label(for="description") Description
-            i.icon.arrow.mobile(
+            i.icon.arrow.mobile.desc(
               @click="toggleBlock('description')",
               :class="{ active: showInput === 'description' }"
             )
@@ -53,16 +54,17 @@ app-modal
             ) Add
           dropdown-component.tag(
             :isOpen="dropdownStates.tags.isOpen",
-            :data="tagNames",
+            :data="tagData",
             @selectedItem="selectedItem",
-            :type="'tags'"
+            :type="'tags'",
+            :classType="'small'"
           )
         .position.mobile
           .position-dropdown
             base-input(
               :class="getValidationClass($v, 'lead')",
               :type="'lead'",
-              :value-input="form.lead.name ? form.lead.name : leadName",
+              :value-input="form.lead.name",
               @click="toggleDropdown('lead')",
               :withIcon="true"
             )
@@ -72,7 +74,7 @@ app-modal
                   :src="JSON.parse(form.lead.logo.name)",
                   alt="name"
                 )
-                .grey-circle(v-else)
+                img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
               template(v-slot:errors, v-if="$v.lead.required.$invalid")
                 span This field is required.
               template(v-slot:suffix)
@@ -87,7 +89,7 @@ app-modal
             base-input(
               :class="getValidationClass($v, 'members')",
               :type="`members`",
-              :value-input="form.members",
+              :value-input="form.members.length > 2 ? `${form.members[0]}, ${form.members[1]}, ${form.members.length - 2} more` : form.members",
               @click="toggleDropdown('members')"
             )
               template(v-slot:suffix)
@@ -101,7 +103,11 @@ app-modal
               :data="membersNames",
               @selectedItem="selectedItem",
               :iconHere="true",
-              :type="'members'"
+              :title="'Members'",
+              @clear="clear",
+              :type="'checkbox'",
+              :checkedItem="memberItem",
+              @allItem="allItem"
             )
     .modal-footer.create
       common-button.cancel.btn-secondary-line(@click="close") Cancel
@@ -125,10 +131,15 @@ import {
   pushNotification,
 } from "@/composables/notification";
 import { ProjectInterface } from "@/types/projectApiInterface";
-import { showTag, tagNames } from "@/composables/tagActions";
+import { showTag, tagData } from "@/composables/tagActions";
 import { ImageInterface } from "../types/ImageInterface";
 import { filterFunction, projects } from "@/composables/projectsAction";
 import { useUserStore } from "../store/user";
+import {
+  showDataUser,
+  leadNames,
+  membersNames,
+} from "@/composables/userActions";
 
 const userStore = useUserStore();
 
@@ -142,14 +153,13 @@ interface ProjectData {
   tags: string[];
 }
 
-const emit = defineEmits(["close", "pushTask"]);
+const emit = defineEmits(["close", "newProject"]);
 const members = ref([]);
 const tags = ref([]);
-const leadNames = ref([]);
-const membersNames = ref([]);
 const showInput = ref("");
 const leadName = ref("");
 const showAdd = ref(true);
+const memberItem = ref([]);
 
 const defaultState: ProjectData = {
   title: "",
@@ -206,6 +216,20 @@ const toggleBlock = (inputType: string) => {
   showInput.value = showInput.value === inputType ? "" : inputType;
 };
 
+const allItem = (item) => {
+  if (!form.value.members.some((tag) => tag.id === item.id)) {
+    form.value.members.push(item.name);
+    members.value.push(item.id.toString());
+  }
+  dropdownStates.value.members.isOpen = false;
+};
+
+const clear = () => {
+  memberItem.value = [];
+  form.value.members = [];
+  showDataUser();
+};
+
 const toggleDropdown = (dropdownName: string) => {
   Object.keys(dropdownStates.value).forEach((name) => {
     if (name !== dropdownName) {
@@ -216,39 +240,56 @@ const toggleDropdown = (dropdownName: string) => {
     !dropdownStates.value[dropdownName].isOpen;
 };
 
+const closeDropdown = () => {
+  dropdownStates.value.tags.isOpen = false;
+  dropdownStates.value.lead.isOpen = false;
+  dropdownStates.value.members.isOpen = false;
+};
 const { selected, filtered } = filterFunction([]);
 
 const selectedItem = (tag: string) => {
   if (dropdownStates.value.lead.isOpen) {
     form.value.lead = tag;
-    const tagIndexToRemove = leadNames.value.findIndex((m) => m.id === tag.id);
-    if (tagIndexToRemove !== -1) {
-      leadNames.value.splice(tagIndexToRemove, 1);
-    }
+
     dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
   } else if (dropdownStates.value.tags.isOpen) {
-    if (!selected.includes(tag)) {
+    if (!form.value.tags.includes(tag)) {
       form.value.tags.push(tag);
     }
-    const tagIndexToRemove = tagNames.value.findIndex((t) => t.id === tag.id);
+
+    const updatedTagNames = [...tagData.value];
+    const tagIndexToRemove = updatedTagNames.findIndex((t) => t.id === tag.id);
+
     if (tagIndexToRemove !== -1) {
-      tagNames.value.splice(tagIndexToRemove, 1);
+      updatedTagNames.splice(tagIndexToRemove, 1);
+      tagData.value = updatedTagNames;
     }
-    if (!tagNames.value.length) {
+
+    if (!tagData.value.length) {
       dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
       showAdd.value = false;
     }
+
     tags.value.push(tag.id.toString());
   } else {
-    if (!selected.includes(tag.name)) {
+    if (!memberItem.value.includes(tag)) {
       form.value.members.push(tag.name);
+      memberItem.value.push(tag);
+    } else {
+      const indexToRemove = memberItem.value.findIndex(
+        (item) => item.id === tag.id
+      );
       const tagIndexToRemove = membersNames.value.findIndex(
         (m) => m.id === tag.id
       );
-      if (tagIndexToRemove !== -1) {
+      if (tagIndexToRemove !== -1 && indexToRemove !== -1) {
         membersNames.value.splice(tagIndexToRemove, 1);
+        memberItem.value.splice(tagIndexToRemove, 1);
+        form.value.members.splice(tagIndexToRemove, 1);
+        showDataUser();
       }
-      if (form.value.members.length === membersNames.value.length) {
+
+      if (memberItem.value.length === membersNames.value.length) {
         dropdownStates.value.members.isOpen =
           !dropdownStates.value.members.isOpen;
       }
@@ -262,7 +303,7 @@ const deleteTag = (tag: { name: string; id: number }) => {
 
   if (tagIndex !== -1) {
     form.value.tags.splice(tagIndex, 1);
-    tagNames.value.push(tag);
+    tagData.value = [...tagData.value, tag];
   }
 
   showAdd.value = true;
@@ -287,12 +328,14 @@ const save = () => {
       lead: form.value.lead.id.toString(),
       members: Array.from(members.value),
       tags: Array.from(tags.value),
+      manager: leadName.value.toString(),
     },
   };
   projectPost(dataProject)
     .then(({ data }) => {
       userStore.showProjectsData(data);
       close();
+      emit("newProject");
       pushNotification({
         text: "The project has been added successfully",
         type: NotificationType.Success,
@@ -314,25 +357,9 @@ const close = () => {
 
 onMounted(() => {
   showTag();
-
-  showUsers().then(({ data }) => {
-    leadNames.value = data.map(
-      (item: {
-        name: string;
-        logo: {
-          name: string;
-        };
-        id: number;
-      }) => ({
-        name: item.username,
-        logo: item.logo,
-        id: item.id,
-      })
-    );
-    membersNames.value = [...leadNames.value];
-  });
+  showDataUser();
   showMe().then(({ data }) => {
-    leadName.value = data.username;
+    leadName.value = data.id;
   });
 });
 </script>
@@ -360,6 +387,8 @@ onMounted(() => {
     height: 11px;
     @include media_mobile {
       right: 12px;
+      width: 12px;
+      height: 8px;
     }
     &.active {
       transform: rotate(180deg);
@@ -380,9 +409,11 @@ onMounted(() => {
       .position {
         display: flex;
         align-items: center;
+        width: fit-content;
         &.mobile {
           @include media_mobile {
             flex-direction: column;
+            width: 100%;
           }
         }
         &-dropdown {
@@ -420,8 +451,10 @@ onMounted(() => {
           top: 14px;
           left: 16px;
           @include media_mobile {
-            top: 10px;
+            top: 12px;
             left: 12px;
+            width: 16px;
+            height: 16px;
           }
         }
         label {
@@ -450,8 +483,8 @@ onMounted(() => {
           margin: 0 16px 0 0;
           width: 224px;
           @include media_mobile {
-            margin: 0 0 10px 0;
             width: 100%;
+            margin: 0 0 16px 0;
             input {
               width: 100%;
             }
@@ -496,6 +529,9 @@ onMounted(() => {
           &:before {
             mask-image: url("@/assets/icons/plus.svg");
             background: var(--white);
+            width: 12px;
+            height: 12px;
+            margin-right: 4px;
           }
           @include media_mobile {
             padding: 4px 8px;
@@ -515,6 +551,10 @@ onMounted(() => {
           background: var(--accent);
           @include font(14px, 400, 20px, var(--white));
           margin-left: 8px;
+          cursor: pointer;
+          &:hover {
+            background: var(--accent_hover);
+          }
           i.close {
             top: 11px;
             left: 8px;
@@ -522,6 +562,17 @@ onMounted(() => {
             height: 10px;
             &::before {
               background: var(--white);
+            }
+          }
+          @include media_mobile {
+            padding: 4px 6px 4px 18px;
+            font-size: 12px;
+            line-height: 16px;
+            i.close {
+              top: 9px;
+              left: 6px;
+              width: 8px;
+              height: 8px;
             }
           }
         }

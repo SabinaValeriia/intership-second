@@ -2,7 +2,7 @@
 .form-group(:class="type")
   .label-group
     label {{ capitalizeFirstLetter(`${type}`) }}
-    i.icon.arrow.mobile(:class="{ active: open }", @click="toggleInput")
+    i.icon.arrow.mobile(@click="toggleInput", :class="{ open }")
   .form-icon(v-if="open")
     slot(name="prefix")
     input(
@@ -17,12 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed, ref } from "vue";
+import { defineProps, defineEmits, computed, ref, watch } from "vue";
 const props = defineProps({
   type: { type: String },
   valueInput: {
     type: String,
   },
+  isError: { type: Boolean },
   withIcon: { type: Boolean, default: false },
 });
 
@@ -43,6 +44,15 @@ const capitalizeFirstLetter = (word: string) => {
   return word.charAt(0).toUpperCase() + word.slice(1);
 };
 const toggleInput = () => {
+  event.stopPropagation();
   open.value = !open.value;
 };
+watch(
+  () => props.isError.error,
+  (newError) => {
+    if (newError) {
+      open.value = true;
+    }
+  }
+);
 </script>

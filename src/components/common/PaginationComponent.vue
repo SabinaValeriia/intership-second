@@ -7,10 +7,10 @@
     )
       i.icon.arrow
     li(
-      v-for="pageNumber in totalPages",
-      :key="pageNumber",
-      @click="changePage(pageNumber)",
-      :class="{ active: currentPage === pageNumber }"
+      v-for="(pageNumber, index) in totalPages",
+      :key="index",
+      :class="{ active: currentPage === pageNumber }",
+      @click="changePage(pageNumber)"
     ) {{ pageNumber }}
     li(
       @click="changePage(currentPage + 1)",
@@ -20,9 +20,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, ref } from "vue";
+import { computed, defineProps, ref, watch } from "vue";
 
-const props = defineProps(["totalItems", "itemsPerPage", "onPageChange"]);
+const props = defineProps({
+  totalItems: {},
+  itemsPerPage: {},
+  isLoaded: { default: true, type: Boolean },
+});
 
 const emit = defineEmits(["onPageChange"]);
 
@@ -32,10 +36,8 @@ const totalPages = computed(() =>
   Math.ceil(props.totalItems / props.itemsPerPage)
 );
 const changePage = (newPage: number) => {
-  if (newPage >= 1 && newPage <= totalPages.value) {
-    currentPage.value = newPage;
-    emit("onPageChange", newPage);
-  }
+  currentPage.value = newPage;
+  emit("onPageChange", newPage);
 };
 </script>
 
@@ -43,7 +45,7 @@ const changePage = (newPage: number) => {
 .pagination {
   margin: 40px 0 16px;
   @include media_mobile {
-    margin: 20px 0 0;
+    margin: 20px 0 76px 0;
   }
   ul {
     list-style-type: none;
@@ -62,26 +64,37 @@ const changePage = (newPage: number) => {
       height: 44px;
       margin: 0 5px;
       border-radius: 4px;
+      z-index: 3;
       @include font(16px, 400, 24px, var(--text));
       @include media_mobile {
         width: 36px;
         height: 36px;
         font-size: 14px;
+        border-radius: 8px;
       }
       &:hover {
         background-color: var(--primary);
+        i.arrow {
+          &::before {
+            background: var(--text);
+          }
+        }
       }
       i.arrow {
+        height: 11px;
         &::before {
           background: var(--accent);
         }
       }
       &.disabled {
+        pointer-events: none;
         i.arrow {
-          height: 12px;
           &::before {
             background: var(--placeholder);
           }
+        }
+        &:hover {
+          background: transparent;
         }
       }
       &:first-child {
@@ -102,6 +115,9 @@ const changePage = (newPage: number) => {
     .active {
       background-color: var(--accent);
       color: var(--white);
+      &:hover {
+        background-color: var(--accent);
+      }
     }
   }
 }

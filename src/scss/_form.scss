@@ -1,9 +1,56 @@
 form {
+    &.create {
+        .form-group {
+            label {
+                font-size: 14px;
+                line-height: 20px;
+                @include media_mobile {
+                    font-size: 12px;
+                    line-height: 16px;
+                }
+            }
+            .form-icon {
+                input {
+                    @include media_mobile {
+                        height: 40px;
+                        padding: 12px;
+                    }
+                }
+            }
+        }
+    }
     .form-group {
         display: flex;
         flex-direction: column;
         position: relative;
         margin-bottom: 20px;
+        &.tags-block {
+            label {
+                display: none;
+            }
+            input {
+                font-size: 16px;
+                font-weight: 500;
+                line-height: 24px;
+                @include media_mobile {
+                    font-size: 12px;
+                    line-height: 16px;
+                }
+            }
+            i.icon.arrow.mobile {
+                display: none;
+            }
+            &.select {
+                input {
+                    color: var(--accent);
+                }
+                i.arrow {
+                    &::before {
+                        background: var(--accent);
+                    }
+                }
+            }
+        }
         &.image {
             margin-bottom: 16px;
             @include media_mobile {
@@ -16,6 +63,15 @@ form {
             align-items: center;
             input {
                 padding: 14px 16px;
+                @include media_mobile {
+                    padding: 9px 10px;
+                    height: 34px;
+                }
+                @include media_mobile {
+                    &.withIcon {
+                        padding: 12px 12px 12px 34px;
+                    }
+                }
             }
         }
         .label-group {
@@ -24,6 +80,15 @@ form {
             align-items: center;
             i.arrow.mobile {
                 display: none;
+                &.desc {
+                    transform: rotate(0deg);
+                    &.active {
+                        transform: rotate(-90deg);
+                    }
+                }
+                &.active {
+                    transform: rotate(0deg);
+                }
                 @include media_mobile {
                     display: block;
                     width: 12px;
@@ -33,7 +98,7 @@ form {
                     top: -3px;
                     transform: rotate(-90deg);
                 }
-                &.active {
+                &.open {
                     transform: rotate(0deg);
                 }
             }

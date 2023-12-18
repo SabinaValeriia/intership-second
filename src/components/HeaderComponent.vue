@@ -1,14 +1,15 @@
 <template lang="pug">
+.backdrop(@click="closeDropdown")
 .header 
   .header-block__left 
     a
       i.icon.logo_header
     ul
       li 
-        a Your work
+        a(@click="toggleDropdown('work')") Your work
       li.projects
         a(
-          :class="{ active: isRouteActive('projects') }",
+          :class="{ active: $route.path.includes('projects') }",
           @click="toggleDropdown('project')"
         ) Projects
         dropdown-menu(
@@ -17,18 +18,20 @@
           :project="true",
           :type="'projects'"
         )
-      li 
+      li.projects
         a(
-          :class="{ active: isRouteActive('teams') }",
+          :class="{ active: $route.path.includes('teams') }",
           @click="toggleDropdown('teams')"
-        ) Team
+        ) Teams
         dropdown-menu(
           :isOpen="dropdownStates.teams.isOpen",
-          title="Your Collaborators",
+          title="Starred",
           :type="'teams'"
         )
-        span
-    common-button.btn-secondary(@click="openModal(EnumModalKeys.ModalCreate)") Create
+    common-button.btn-secondary(
+      v-if="$route.path.includes('projects')",
+      @click="openModal(EnumModalKeys.ModalCreate)"
+    ) Create
   .header-block__right
     form
       .form-group
@@ -39,60 +42,78 @@
     i.icon.info_second.header_icon
     i.icon.setting.header_icon
     img.avatar(
-      v-if="userStore.user.logo",
-      :src="JSON.parse(userStore.user.logo.name)",
+      v-if="userStore.user.image",
+      :src="JSON.parse(userStore.user.image.name)",
       :alt="'avatar'"
     )
     .header__avatar.avatar(v-else) {{ logoName }}
   .header__mobile
     img.avatar(
-      v-if="userStore.user.logo",
-      :src="JSON.parse(userStore.user.logo.name)",
+      v-if="userStore.user.image",
+      :src="JSON.parse(userStore.user.image.name)",
       :alt="'avatar'",
       @click="openModal(EnumModalKeys.ModalHeader)"
     )
     .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
-    button(@click="openModal(EnumModalKeys.ModalCreate)") Create issue
+    h3(v-if="isRouteActive('projects')") Projects
+    h3(v-if="$route.path.includes('teams')") People
+    i.icon.plus(
+      v-if="$route.path.includes('projects')",
+      @click="openModal(EnumModalKeys.ModalCreate)"
+    )
+    i.icon.plus.people(v-if="$route.path.includes('teams')")
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
 modal-create(
   v-if="isOpen(EnumModalKeys.ModalCreate)",
   @close="close",
-  :create="true"
+  @newProject="newProject",
+  :create="true",
+  @closeModal="close"
 )
 </template>
 
 <script lang="ts" setup>
 import DropdownMenu from "./common/DropdownMenu.vue";
 import CommonButton from "./common/CommonButton.vue";
-import { isOpen, openModal } from "@/composables/modalActions";
+import { isOpen, modalKeys, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
 import ModalCreate from "@/modals/ModalCreate.vue";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
+const route = useRoute();
 import { useUserStore } from "../store/user";
 import { useRoute } from "vue-router";
 const userStore = useUserStore();
-const route = useRoute();
-
+const fullName = computed(() => {
+  const username = userStore.user.username || "";
+  return username;
+});
+const emit = defineEmits(["newProject"]);
 const dropdownStates = ref({
   work: { isOpen: false },
   project: { isOpen: false },
   teams: { isOpen: false },
 });
 
-const fullName = computed(() => {
-  const username = userStore.user.username || "";
-  return username;
-});
+const newProject = () => {
+  emit("newProject");
+};
+
+const closeDropdown = () => {
+  dropdownStates.value.work.isOpen = false;
+  dropdownStates.value.project.isOpen = false;
+};
+
+const toggleDropdown = (dropdownName) => {
+  dropdownStates.value[dropdownName].isOpen =
+    !dropdownStates.value[dropdownName].isOpen;
+};
 
 const logoName = computed(() => {
   const fullNameValue = fullName.value;
   return fullNameValue ? fullNameValue.charAt(0).toUpperCase() : 0;
 });
-const toggleDropdown = (dropdownName: string) => {
-  dropdownStates.value[dropdownName].isOpen =
-    !dropdownStates.value[dropdownName].isOpen;
-};
+
 const close = () => {
   openModal(EnumModalKeys.ModalCreate);
 };
@@ -101,6 +122,19 @@ const isRouteActive = (routeName: string) => {
     return true;
   }
 };
+onMounted(() => {
+  watch(
+    () => route.path,
+    (newPath) => {
+      if (newPath.includes("projects")) {
+        dropdownStates.value.project.isOpen = false;
+      } else {
+        dropdownStates.value.teams.isOpen = false;
+      }
+    }
+  );
+  modalKeys.value["modal-header"] = false;
+});
 </script>
 
 <style scoped lang="scss">
@@ -114,6 +148,11 @@ const isRouteActive = (routeName: string) => {
   height: 80px;
   box-sizing: border-box;
   @include media_mobile {
+    position: fixed;
+    width: 100%;
+    z-index: 3;
+    top: 0;
+
     height: 56px;
   }
   &__avatar {
@@ -156,12 +195,21 @@ const isRouteActive = (routeName: string) => {
           outline: 8px solid var(--secondary);
         }
       }
-      button {
-        @include font(14px, 500, 20px, var(--white));
-        border: none;
-        background: transparent;
-        padding: 0;
-        cursor: pointer;
+      i.plus {
+        z-index: 3;
+        position: relative;
+        &::before {
+          background: var(--white);
+        }
+        &.people {
+          &::before {
+            background: var(--accent);
+          }
+        }
+      }
+      h3 {
+        @include font(16px, 500, 24px, var(--white));
+        margin: 0;
       }
     }
   }
@@ -172,6 +220,9 @@ const isRouteActive = (routeName: string) => {
       justify-content: space-between;
       @include media_mobile {
         display: none;
+      }
+      button {
+        z-index: 10;
       }
       a {
         margin-right: 46px;
@@ -196,10 +247,12 @@ const isRouteActive = (routeName: string) => {
           cursor: pointer;
           height: 34px;
           box-sizing: border-box;
-          position: relative;
 
           &.projects {
             position: relative;
+            .menu {
+              left: -2px;
+            }
           }
 
           a {
@@ -240,6 +293,9 @@ const isRouteActive = (routeName: string) => {
         line-height: 20px;
         margin-left: 10px;
         width: 77px;
+        @include media_tablet {
+          margin-left: 6px;
+        }
       }
     }
     &__right {
@@ -311,5 +367,12 @@ const isRouteActive = (routeName: string) => {
       }
     }
   }
+}
+.backdrop {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 </style>

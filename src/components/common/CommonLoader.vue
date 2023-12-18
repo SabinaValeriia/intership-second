@@ -9,9 +9,17 @@
   align-items: center;
   justify-content: center;
   margin: 20% 0;
+  @include media_mobile {
+    margin: 71% 0;
+  }
 }
 .loader {
   position: relative;
+  @include media_mobile {
+    position: absolute;
+    left: 41%;
+    top: 50%;
+  }
 }
 .loader:before,
 .loader:after {

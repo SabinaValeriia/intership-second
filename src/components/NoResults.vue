@@ -1,13 +1,23 @@
 <template lang="pug">
 .no-results
-  img.img(
-    :src="require(`@/assets/icons/${noData ? 'no-search' : 'no-data'}.svg`)"
+  img(
+    :src="require(`@/assets/icons/${noData || noUser || noPlace ? 'no-search' : 'no-data'}.svg`)"
   )
-  div
-    h2 {{ title }}
-    p {{ desc }}
+  h2(v-if="noData") Wait!
+  p(v-if="noData") You have no projects created, please create new one.
+  p(v-if="noResults") No results found, try to reset filters
+  div(v-if="noUser")
+    h3 There is no work to see here
+    p Things
+      s Selected Names
+      | worked on in the last 90 days.
+  div(v-if="noPlace")
+    h3 We don’t have places to show here yet
+    p
+      s Selected Names
+      | hasn’t worked in any projects in the last 90 days.
   common-button.btn-secondary(
-    v-if="isButton",
+    v-if="noData || noResults",
     @click="noData ? create() : reset()"
   ) {{ noData ? "Create" : "Reset" }}
 </template>
@@ -26,15 +36,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  desc: {
-    type: String,
-  },
-  title: {
-    type: String,
-  },
-  isButton: {
+  noUser: {
     type: Boolean,
-    default: true,
+    default: false,
+  },
+  noPlace: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -53,48 +61,55 @@ const create = () => {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  &.no-results {
+  button {
+    z-index: 5;
+  }
+  &.user-results {
     flex-direction: row;
-    justify-content: flex-start;
-    margin-left: 65px;
+    padding: 16px 8px;
     @include media_tablet {
-      margin-left: 0;
+      padding: 26px 18px;
     }
     @include media_mobile {
-      flex-direction: column;
       padding: 16px 26px;
-      border: 1px solid var(--primary);
-      border-radius: 4px;
+      flex-direction: column;
     }
-
-    .img {
-      width: 140px;
+    img {
       height: 120px;
+      width: 140px;
       margin: 0 36px 0 0;
+      @include media_tablet {
+        height: 106px;
+        width: 122px;
+      }
       @include media_mobile {
-        width: 98px;
         height: 84px;
+        width: 98px;
         margin: 0;
       }
     }
-    p {
-      @include font(12px, 400, 16px, var(--text));
-      width: 191px;
-      text-align: left;
-      @include media_mobile {
-        width: 100%;
-        font-size: 11px;
-        line-height: 14px;
-        text-align: center;
-      }
-    }
-    h2 {
+    h3 {
       @include font(16px, 500, 20px, var(--text));
       margin: 0 0 6px 0;
       @include media_mobile {
         font-size: 14px;
+        line-height: 20px;
         margin: 10px 0 6px;
         text-align: center;
+      }
+    }
+    p {
+      @include font(12px, 400, 16px, var(--text));
+      max-width: 229px;
+      text-align: left;
+      @include media_mobile {
+        font-size: 11px;
+        line-height: 14px;
+        text-align: center;
+      }
+
+      s {
+        margin: 0 3px;
       }
     }
   }
@@ -152,6 +167,10 @@ const create = () => {
     margin-top: 16px;
     width: 100px;
     height: 52px;
+    @include media_mobile {
+      height: 44px;
+      width: 71px;
+    }
   }
 }
 </style>

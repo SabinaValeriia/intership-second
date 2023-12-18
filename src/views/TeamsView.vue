@@ -1,114 +1,138 @@
 <template lang="pug">
 .teams 
-  h1 People
-  form.position
-    .form-group.search
-      .form-icon 
-        input(v-model="searchText", placeholder="Search teams")
-        i.icon.search
-  .teams-block__button(:class="{ selected: projectValue.length }")
-    .teams-block__button-dropdown
-      common-button.btn_primary.btn_icon(
-        @click="toggleDropdown('project')",
-        :class="{ selected: projectValue.length }"
-      ) {{ projectValue.length ? projectValue[0].name : "Project" }}
-        i.icon.projects(v-if="!projectValue.length")
-        img(v-else, :src="JSON.parse(projectValue[0].logo.name)", alt="avatar")
-        i.icon.close(
-          v-if="projectValue.length",
-          @click="deleteProject('project')"
-        )
-      dropdown-component.teams-dropdown(
-        :isOpen="dropdownStates.project.isOpen",
-        :data="projectNames",
-        @selectedItem="selectedItem",
-        :iconHere="true",
-        :type="'lead'"
-      )
-    .teams-block__button-dropdown
-      common-button.btn_primary.btn_icon(
-        @click="toggleDropdown('manager')",
-        :class="{ selected: managerValue.length }"
-      ) {{ managerValue.length ? managerValue[0].name : "Manager" }}
-        i.icon.member(v-if="!managerValue.logo")
-        img(v-else, :src="JSON.parse(managerValue[0].logo.name)", alt="avatar")
-        i.icon.close(
-          v-if="managerValue.length",
-          @click="deleteProject('manager')"
-        )
-      dropdown-component.teams-dropdown(
-        :isOpen="dropdownStates.manager.isOpen",
-        :data="leadNames",
-        @selectedItem="selectedItem",
-        :iconHere="true",
-        :type="'lead'"
-      )
-    .teams-block__button-dropdown
-      common-button.btn_primary.btn_icon(
-        @click="toggleDropdown('department')",
-        :class="{ selected: departmentValue.length }"
-      ) {{ departmentValue.length ? departmentValue[0].name : "Department" }}
-        i.icon.department
-        i.icon.close(
-          v-if="departmentValue.length",
-          @click="deleteProject('department')"
-        )
-      dropdown-component.teams-dropdown(
-        :isOpen="dropdownStates.department.isOpen",
-        :data="departmentNames",
-        @selectedItem="selectedItem"
-      )
-    common-button.btn-secondary.reset.desktop(
-      v-if="searchText || managerValue.length || departmentValue.length || projectValue.length",
-      @click="reset"
-    ) Reset
-    common-button.btn-secondary.mobile(
-      v-if="searchText || managerValue.length || departmentValue.length || projectValue.length",
-      @click="reset"
-    )
-      i.icon.reset-icon
-  .box-container
-    .box-item(v-for="(lead, index) in computedFilteredTeams", :key="index")
-      router-link.flip-box(
-        :to="{ name: 'teamsUser', params: { id: lead.id } }"
-      )
-        .flip-box-front
-          img.avatar(
-            v-if="lead.logo",
-            :src="JSON.parse(lead.logo.name)",
-            alt="avatar"
+  .teams-block
+    h1 People
+    form.position
+      .form-group.search
+        .form-icon 
+          input(v-model="searchText", placeholder="Search teams")
+          i.icon.search
+    .teams-block__button(:class="{ selected: projectValue.length }")
+      .teams-block__button(:class="{ selected: projectValue.length }")
+        .teams-block__button-dropdown
+          common-button.btn_primary.btn_icon(
+            @click="toggleDropdown('project')",
+            :class="{ selected: projectValue.length }"
+          ) {{ projectValue.length ? projectValue[0].name : "Project" }}
+            i.icon.projects(v-if="!projectValue.length")
+            img(
+              v-else,
+              :src="JSON.parse(projectValue[0].logo.name)",
+              alt="avatar"
+            )
+            i.icon.close(
+              v-if="projectValue.length",
+              @click.stop="deleteProject('project')"
+            )
+          dropdown-component.teams-dropdown(
+            :isOpen="dropdownStates.project.isOpen",
+            :data="projectNames",
+            @selectedItem="selectedItem",
+            :iconHere="true",
+            :type="'lead'"
           )
-          h3 {{ lead.username }}
-          p {{ lead.department.name }} developer
-        .flip-box-back
-          .flip-box-user
-            div
-              h4 {{ lead.username }}
-              h6 Developer
-              p {{ lead.email }}
+        .teams-block__button-dropdown
+          common-button.btn_primary.btn_icon(
+            @click="toggleDropdown('manager')",
+            :class="{ selected: managerValue.length }"
+          ) {{ managerValue.length ? managerValue[0].name : "Manager" }}
+            i.icon.member(v-if="!managerValue.length")
+            div(v-else)
+              img.logo(
+                v-if="managerValue[0].logo",
+                :src="JSON.parse(managerValue[0].logo.name)",
+                alt="name"
+              )
+              img(
+                v-else-if="!managerValue[0].logo",
+                :src="require(`@/assets/icons/default_user.svg`)"
+              )
+            i.icon.close(
+              v-if="managerValue.length",
+              @click.stop="deleteProject('manager')"
+            )
+          dropdown-component.teams-dropdown(
+            :isOpen="dropdownStates.manager.isOpen",
+            :data="leadNames",
+            @selectedItem="selectedItem",
+            :type="'lead'"
+          )
+        .teams-block__button-dropdown
+          common-button.btn_primary.btn_icon(
+            @click="toggleDropdown('department')",
+            :class="{ selected: departmentValue.length }"
+          ) {{ departmentValue.length ? departmentValue[0].name : "Department" }}
+            i.icon.department
+            i.icon.close(
+              v-if="departmentValue.length",
+              @click.stop="deleteProject('department')"
+            )
+          dropdown-component.teams-dropdown(
+            :isOpen="dropdownStates.department.isOpen",
+            :data="departmentNames",
+            @selectedItem="selectedItem"
+          )
+      common-button.btn-secondary.reset.desktop(
+        v-if="searchText || managerValue.length || departmentValue.length || projectValue.length",
+        @click="reset"
+      ) Reset
+      common-button.btn-secondary.mobile(
+        v-if="searchText || managerValue.length || departmentValue.length || projectValue.length",
+        @click="reset"
+      )
+        i.icon.reset
+    .box-container(v-if="!isLoader")
+      .box-item(
+        v-for="(lead, index) in processUsersData.slice(0, 20)",
+        :key="index"
+      )
+        router-link.flip-box(
+          :to="{ name: 'teamsUser', params: { id: lead.id } }"
+        )
+          .flip-box-front
             img.avatar(
               v-if="lead.logo",
               :src="JSON.parse(lead.logo.name)",
               alt="avatar"
             )
-          .flip-box-desc
-            h5 Department:
-              span {{ lead.department.name }}
-            h5 Manager:
-              img(
+            img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
+            h3 {{ lead.username }}
+            p {{ lead.department.name }} developer
+          .flip-box-back
+            .flip-box-user
+              div
+                h4 {{ lead.username }}
+                h6 Developer
+                p {{ lead.email }}
+              img.avatar(
                 v-if="lead.logo",
                 :src="JSON.parse(lead.logo.name)",
                 alt="avatar"
               )
-              span {{ lead.username }}
-            h5 Projects:
-              span {{ lead.projects.length }} +
-            h5 Assign tasks:
-              span {{ lead.tasks.length }} +
-            h5 Hour spent:
-              span 40h
-    no-results(v-if="noResultsShow", @reset="reset")
-  common-loader(v-if="isLoader")
+            .flip-box-desc
+              h5 Department:
+                span {{ lead.department.name }}
+              h5(
+                v-for="manager in lead.user_managers.slice(0, 1)",
+                :key="manager"
+              ) Manager:
+                img(
+                  v-if="manager.logo",
+                  :src="JSON.parse(manager.logo.name)",
+                  alt="avatar"
+                )
+                span {{ manager.username }}
+              h5 Projects:
+                span {{ lead.project_manager.length }} +
+              h5 Assign tasks:
+                span {{ lead.task_reporter.length }} +
+              h5 Hour spent:
+                span 40h
+    no-results(
+      v-if="noDataShow || (noResultsShow && filterUse)",
+      @reset="reset"
+    )
+    common-loader(v-if="isLoader")
 </template>
 
 <script setup lang="ts">
@@ -117,27 +141,30 @@ import NoResults from "@/components/NoResults.vue";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { showUsers } from "@/services/api/userApi";
 import { UserInterface } from "@/types/UserInterface";
-import { computed, ref, watchEffect, onMounted } from "vue";
+import { computed, ref, watchEffect, onMounted, watch } from "vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showDepartments } from "@/services/api/departmentApi";
 import { showProjects } from "@/services/api/projectApi";
-const leadNames = ref();
+import { leadNames, showDataUser } from "@/composables/userActions";
 const teams = ref([]);
 const searchText = ref("");
 const noResultsShow = ref(false);
+const noDataShow = ref(false);
 const departmentNames = ref();
 const projectNames = ref();
 const projectValue = ref([]);
 const managerValue = ref([]);
 const departmentValue = ref([]);
+const filterUse = ref(false);
 const isLoader = ref(false);
+const filter = ref("");
 const dropdownStates = ref({
   project: { isOpen: false },
   manager: { isOpen: false },
   department: { isOpen: false },
 });
 
-const computedFilteredTeams = computed(() => {
+const processUsersData = computed(() => {
   return teams.value;
 });
 const toggleDropdown = (dropdownName: string) => {
@@ -149,63 +176,66 @@ const toggleDropdown = (dropdownName: string) => {
   dropdownStates.value[dropdownName].isOpen =
     !dropdownStates.value[dropdownName].isOpen;
 };
+watch(
+  [
+    () => searchText.value,
+    () => departmentValue.value,
+    () => managerValue.value,
+    () => projectValue.value,
+  ],
+  ([searchTextValue, departmentItem, managerItem, projectItem]) => {
+    const filters = [];
 
-const fetchAndSetProjects = () => {
-  const searchTerm = searchText.value.toLowerCase();
-
-  if (searchTerm) {
-    teams.value = teams.value.filter((item: { username: string }) => {
-      const title = item.username.toLowerCase();
-      return title.includes(searchTerm);
-    });
-    if (!teams.value.length) {
-      noResultsShow.value = true;
-    } else {
-      noResultsShow.value = false;
+    if (searchTextValue) {
+      filters.push(`filters[username][$contains]=${searchTextValue}`);
     }
-  } else if (departmentValue.value.length) {
-    isLoader.value = true;
-    showUsers(`filters[department]=${departmentValue.value[0].id}`).then(
-      (response) => {
-        teams.value = teams.value = response.data.map(
-          (team: UserInterface) => team
-        );
-        isLoader.value = false;
-      }
-    );
-  } else if (projectValue.value.length) {
-    isLoader.value = true;
-    showUsers(`filters[project]=${projectValue.value[0].id}`).then(
-      (response) => {
-        teams.value = teams.value = response.data.map(
-          (team: UserInterface) => team
-        );
-        isLoader.value = false;
-      }
-    );
-  } else if (managerValue.value.length) {
-    isLoader.value = true;
-    showUsers(`filters[manager]=${managerValue.value[0].id}`).then(
-      (response) => {
-        teams.value = teams.value = response.data.map(
-          (team: UserInterface) => team
-        );
-        isLoader.value = false;
-      }
-    );
-  } else if (searchTerm === "") {
-    showUsers("").then(({ data }) => {
-      teams.value = data.map((item: UserInterface) => item);
-    });
-    noResultsShow.value = false;
-  } else {
-    return teams.value;
-  }
-};
 
-watchEffect(() => {
-  fetchAndSetProjects();
-});
+    if (projectItem && projectValue.value.length) {
+      filters.push(
+        `filters[$and][${projectValue.value[0].id}][project_members][title][$eq]=${projectValue.value[0].name}`
+      );
+    }
+
+    if (departmentItem && departmentValue.value.length) {
+      filters.push(
+        `filters[$and][${departmentValue.value[0].id}][department][name][$eq]=${departmentValue.value[0].name}`
+      );
+    }
+
+    if (managerItem && managerValue.value.length) {
+      filters.push(
+        `filters[$and][${managerValue.value[0].id}][user_managers][username][$eq]=${managerValue.value[0].name}`
+      );
+    }
+
+    if (filters.length > 0) {
+      noResultsShow.value = false;
+      filterUse.value = true;
+    } else {
+      noResultsShow.value = true;
+      filterUse.value = false;
+    }
+
+    filter.value = filters.length ? `${filters.join("&")}` : "";
+    fetchUsers(filter.value);
+  },
+  { deep: true }
+);
+
+const fetchUsers = (filters: string) => {
+  isLoader.value = true;
+  return new Promise(() => {
+    showUsers(`${filter.value}`).then(({ data }) => {
+      teams.value = data.map((item: UserInterface) => item);
+      isLoader.value = false;
+      if (!teams.value.length && filterUse.value) {
+        noResultsShow.value = true;
+      } else if (!teams.value.length) {
+        noDataShow.value = true;
+      }
+    });
+  });
+};
 
 const reset = () => {
   searchText.value = "";
@@ -213,32 +243,19 @@ const reset = () => {
   managerValue.value = [];
   departmentValue.value = [];
   noResultsShow.value = false;
-  showUsers("").then(({ data }) => {
-    teams.value = data.map((item: UserInterface) => item);
-  });
 };
 
 const selectedItem = (item: { name: string; logo: string; id: number }) => {
   if (dropdownStates.value.project.isOpen) {
     projectValue.value.push(item);
-    const index = projectNames.value.findIndex(
-      (project: string) => project.id === item.id
-    );
-    if (index !== -1) {
-      projectNames.value.splice(index, 1);
-    }
     dropdownStates.value.project.isOpen = !dropdownStates.value.project.isOpen;
-  } else if (dropdownStates.value.manager.isOpen) {
+  }
+  if (dropdownStates.value.manager.isOpen) {
     managerValue.value.push(item);
-    dropdownStates.value.manager.isOpen = !dropdownStates.value.manager.isOpen;
-  } else {
+    dropdownStates.value.manager.isOpen = false;
+  }
+  if (dropdownStates.value.department.isOpen) {
     departmentValue.value.push(item);
-    const index = departmentNames.value.findIndex(
-      (project: string) => project.id === item.id
-    );
-    if (index !== -1) {
-      departmentNames.value.splice(index, 1);
-    }
     dropdownStates.value.department.isOpen =
       !dropdownStates.value.department.isOpen;
   }
@@ -263,25 +280,8 @@ const deleteProject = (type: string) => {
   }
 };
 onMounted(() => {
-  isLoader.value = true;
-  showUsers("").then(({ data }) => {
-    teams.value = data.map((item: UserInterface) => item);
-    leadNames.value = data.map(
-      (item: {
-        name: string;
-        logo: {
-          name: string;
-        };
-        id: number;
-      }) => ({
-        name: item.username,
-        logo: item.logo,
-        id: item.id,
-      })
-    );
-    isLoader.value = false;
-  });
-
+  fetchUsers("");
+  showDataUser();
   showDepartments().then(({ data }) => {
     departmentNames.value = data.data.map(
       (item: {
@@ -307,7 +307,6 @@ onMounted(() => {
             logo: {
               name: string;
             };
-            managers: string;
           };
           id: number;
         };
@@ -315,7 +314,6 @@ onMounted(() => {
         name: item.attributes.title,
         id: item.id,
         logo: item.attributes.logo,
-        managers: item.attributes.managers.data[0],
       })
     );
   });
@@ -326,15 +324,21 @@ onMounted(() => {
 .teams {
   background: var(--background);
   height: 100vh;
-  width: calc(100% - 288px);
   padding: 28px 144px 125px;
   @include media_tablet {
     padding: 28px 20px;
     width: calc(100% - 40px);
   }
-  @include media_tablet {
+  @include media_mobile {
     padding: 12px 16px;
     width: calc(100% - 32px);
+    top: 56px;
+    position: absolute;
+    height: calc(100vh - -139px);
+  }
+  &-block {
+    max-width: 993px;
+    margin: 0 auto;
   }
   .drop-down {
     &.teams-dropdown {
@@ -418,13 +422,16 @@ onMounted(() => {
     &__button {
       display: flex;
       &.selected {
-        overflow: auto;
+        @include media_mobile {
+          overflow: auto;
+        }
       }
       button {
         &.reset {
           padding: 12px 26px;
           margin-left: 8px;
           width: 91px;
+          z-index: 3;
         }
         &.desktop {
           @include media_mobile {
@@ -440,7 +447,7 @@ onMounted(() => {
             width: 36px;
             margin-left: 6px;
           }
-          i.icon.reset-icon {
+          i.icon.reset {
             top: 9px;
             left: 11px;
           }
@@ -462,10 +469,16 @@ onMounted(() => {
               top: 10px;
               left: 10px;
             }
+            &.department {
+              top: 15px;
+              @include media_mobile {
+                top: 11px;
+              }
+            }
           }
           &.selected {
             background: var(--accent);
-            padding: 12px 32px 12px 16px;
+            padding: 12px 34px 12px 16px;
             img {
               position: absolute;
               width: 20px;
@@ -511,39 +524,46 @@ onMounted(() => {
   .box-container {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 10px;
-    width: 100%;
-    margin-top: 40px;
+    margin: 36px auto 0;
     @include media_tablet {
-      margin-top: 26px;
+      margin: 26px auto 0;
     }
     @include media_mobile {
       margin-top: 16px;
-      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: 6px;
     }
   }
 
   .box-item {
     position: relative;
     -webkit-backface-visibility: hidden;
-    width: 157px;
-    @include media_tablet {
-      width: 174px;
-    }
+    max-width: 100%;
     @include media_mobile {
-      width: 48%;
+      width: 49%;
+      &:last-of-type {
+        margin-bottom: 69px;
+      }
     }
   }
 
   .flip-box {
-    text-decoration: none;
     -ms-transform-style: preserve-3d;
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;
     perspective: 1000px;
     -webkit-perspective: 1000px;
+    width: 157px;
+    text-decoration: none;
+    @include media_tablet {
+      width: 174px;
+    }
+    @include media_mobile {
+      width: 100%;
+    }
   }
 
   .flip-box-front,
@@ -551,7 +571,7 @@ onMounted(() => {
     background-size: cover;
     background-position: center;
     border-radius: 4px;
-    max-height: 184px;
+    min-height: 157px;
     background: var(--white);
     -ms-transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
     transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
@@ -559,13 +579,13 @@ onMounted(() => {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     padding: 12px 6px;
-    width: 157px;
     @include media_tablet {
       width: 174px;
     }
     @include media_mobile {
-      max-height: 142px;
       width: 100%;
+      padding: 6px;
+      min-height: 142px;
     }
   }
 
@@ -581,7 +601,14 @@ onMounted(() => {
     justify-content: center;
     flex-direction: column;
     padding: 20px;
+    width: 157px;
     box-sizing: border-box;
+    @include media_tablet {
+      width: 174px;
+    }
+    @include media_mobile {
+      width: 100%;
+    }
     img {
       width: 90px;
       height: 90px;
@@ -608,6 +635,7 @@ onMounted(() => {
     position: absolute;
     top: 0;
     left: 0;
+    width: 157px;
     background: var(--secondary);
     box-sizing: border-box;
 
@@ -617,11 +645,20 @@ onMounted(() => {
     -webkit-transform-style: preserve-3d;
     -ms-transform-style: preserve-3d;
     transform-style: preserve-3d;
+    @include media_tablet {
+      width: 174px;
+    }
+    @include media_mobile {
+      width: 100%;
+    }
     .flip-box-user {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 37px;
+      @include media_mobile {
+        margin-bottom: 19px;
+      }
       h4 {
         margin: 0;
         @include font(10px, 500, 14px, var(--text));
@@ -645,11 +682,19 @@ onMounted(() => {
         margin: 0 0 6px 0;
         display: flex;
         align-items: center;
+        &:last-of-type {
+          margin: 0;
+        }
+        &:nth-child(2) {
+          height: 15px;
+        }
+        @include media_mobile {
+          margin: 0 0 3px 0;
+        }
         img {
           width: 15px;
           height: 15px;
           margin: 0 0 0 8px;
-          border-radius: 18px;
         }
         span {
           font-weight: 400;
