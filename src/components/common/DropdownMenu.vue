@@ -89,7 +89,7 @@ onMounted(() => {
   border-radius: 6px;
   box-sizing: border-box;
   min-width: 351px;
-  z-index: 3;
+  z-index: 10;
   box-shadow: 0px 4px 8px rgba(61, 55, 52, 0.08);
 
   a {

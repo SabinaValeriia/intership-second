@@ -185,7 +185,7 @@ watch(() => route.params.id, fetchData);
       margin-top: 25px;
     }
     &--img {
-      border: 1px solid var(--white);
+      outline: 3px solid var(--white);
       box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.05);
 
       border-radius: 75px;
@@ -266,7 +266,7 @@ watch(() => route.params.id, fetchData);
       }
     }
     &-icon {
-      border: 3px solid var(--white);
+      outline: 3px solid var(--white);
       border-radius: 75px;
       width: 130px;
       height: 130px;
@@ -275,7 +275,7 @@ watch(() => route.params.id, fetchData);
       z-index: 3;
       position: relative;
       box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.05);
-
+      margin: 0 0 0 6px;
       @include media_mobile {
         width: 84px;
         height: 84px;
