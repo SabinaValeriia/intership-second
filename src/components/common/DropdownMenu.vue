@@ -31,8 +31,6 @@
         img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
         div
           h3 {{ project.name }}
-        i.icon.unchecked
-        i.icon.star
     h2 {{ subtitle }}
   div(v-if="project && !totalProjects")
     no-results.menu-no(:noData="true")

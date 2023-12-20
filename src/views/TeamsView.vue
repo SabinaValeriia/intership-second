@@ -602,6 +602,7 @@ onMounted(() => {
     flex-direction: column;
     padding: 20px;
     width: 157px;
+    max-height: 184px;
     box-sizing: border-box;
     @include media_tablet {
       width: 174px;
@@ -636,9 +637,12 @@ onMounted(() => {
     top: 0;
     left: 0;
     width: 157px;
+    min-height: 184px;
     background: var(--secondary);
     box-sizing: border-box;
-
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     -ms-transform: rotateY(180deg);
     -webkit-transform: rotateY(180deg);
     transform: rotateY(180deg);
@@ -650,12 +654,12 @@ onMounted(() => {
     }
     @include media_mobile {
       width: 100%;
+      min-height: 142px;
     }
     .flip-box-user {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 37px;
       @include media_mobile {
         margin-bottom: 19px;
       }

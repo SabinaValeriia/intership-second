@@ -129,6 +129,21 @@
             background: var(--accent);
         }
     }
+    &.tasks_board {
+        mask-image: url("@/assets/icons/tasks_board.svg");
+    }
+    &.kanban {
+        mask-image: url("@/assets/icons/kanban.svg");
+    }
+    &.archive {
+        mask-image: url("@/assets/icons/archive.svg");
+    }
+    &.details {
+        mask-image: url("@/assets/icons/details.svg");
+    }
+    &.arrow-long {
+        mask-image: url("@/assets/icons/arrow-long.svg");
+    }
     @include media_mobile {
         width: 16px;
         height: 16px;

@@ -284,7 +284,8 @@ watch(() => route.params.id, fetchData);
         top: 75px;
         transform: translateX(-50%);
         z-index: 4;
-        border: 2px solid var(--white);
+        outline: 2px solid var(--white);
+        margin: 0;
       }
     }
   }

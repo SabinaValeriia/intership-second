@@ -56,6 +56,7 @@
     .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
     h3(v-if="isRouteActive('projects')") Projects
     h3(v-if="$route.path.includes('teams')") People
+    h3(v-if="$route.path.includes('issues')") Issues
     i.icon.plus(
       v-if="$route.path.includes('projects')",
       @click="openModal(EnumModalKeys.ModalCreate)"
