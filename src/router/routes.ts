@@ -40,6 +40,40 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/ProjectsView.vue"),
       },
       {
+        path: "projects/:key",
+        name: "projectsIssues",
+        component: () => import("../layouts/ProjectLayout.vue"),
+        redirect: (to) => {
+          return { name: "projectsTasks" };
+        },
+        children: [
+          {
+            path: "issues",
+            name: "projectsTasks",
+            component: () => import("../components/ProjectsIssues.vue"),
+            children: [
+              {
+                path: ":id",
+                name: "issuesItem",
+                component: () => import("../components/ProjectsIssues.vue"),
+              },
+            ],
+          },
+          {
+            path: "archive",
+            name: "archiveTasks",
+            component: () => import("../views/ArchiveView.vue"),
+            children: [
+              {
+                path: ":id",
+                name: "issuesItem",
+                component: () => import("../components/ProjectsIssues.vue"),
+              },
+            ],
+          },
+        ],
+      },
+      {
         path: "projects/:key/:id",
         name: "projectsTask",
         component: () => import("../views/ProjectsView.vue"),

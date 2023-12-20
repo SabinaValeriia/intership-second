@@ -105,7 +105,9 @@
             v-if="item.attributes.logo",
             :src="JSON.parse(item.attributes.logo.name)"
           )
-          router-link(:to="{ name: 'projectsItem', params: { id: item.id } }") {{ item.attributes.title }}
+          router-link(
+            :to="{ name: 'projectsIssues', params: { key: item.attributes.key } }"
+          ) {{ item.attributes.title }}
         .key {{ item.attributes.key }}
         .tags.tags-block
           .tags-block(
