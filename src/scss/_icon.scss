@@ -111,8 +111,8 @@
     &.dot {
         mask-image: url("@/assets/icons/dot.svg");
     }
-    &.implementation {
-        mask-image: url("@/assets/icons/implementation.svg");
+    &.improvement {
+        mask-image: url("@/assets/icons/improvement.svg");
         &::before {
             background: var(--notify_warning);
         }

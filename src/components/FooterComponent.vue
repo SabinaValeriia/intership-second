@@ -4,12 +4,20 @@
     i.icon.home 
     p Home
   a.footer__block(
+    v-if="$route.path.includes('issues') || $route.path.includes('archive')",
     @click="openModal(EnumModalKeys.ModalMenu)",
-    :class="{ active: isRouteActive('projects') }"
+    :class="{ active: $route.path.includes('projects') }"
   )
     i.icon.projects 
     p Projects
-  a.footer__block(:class="{ active: $route.path.includes('issues') }")
+  router-link.footer__block(
+    v-else,
+    :class="{ active: $route.path.includes('projects') }",
+    to="/dashboard/projects"
+  )
+    i.icon.projects 
+    p Projects
+  a.footer__block
     i.icon.tasks 
     p Issues
   router-link.footer__block(
@@ -18,7 +26,11 @@
   ) 
     i.icon.user 
     p Members
-modal-menu(v-if="isOpen(EnumModalKeys.ModalMenu)", :menu="true")
+modal-menu(
+  v-if="isOpen(EnumModalKeys.ModalMenu)",
+  :menu="true",
+  @close="close"
+)
 </template>
 
 <script setup lang="ts">
@@ -33,6 +45,9 @@ const isRouteActive = (routeName: string) => {
   if (route.name === routeName) {
     return true;
   }
+};
+const close = () => {
+  openModal(EnumModalKeys.ModalMenu);
 };
 </script>
 

@@ -1,6 +1,6 @@
 <template lang="pug">
 .issues
-  h3 Issues
+  h3 Archive
   .issues-panel
     form
       .form-group
@@ -10,10 +10,11 @@
     .flex
       .dropdown-block
         common-button.btn-secondary-line.btn_arrow(
+          :class="{ select: typeItem.length }",
           @click.prevent="toggleDropdown('typeTasks')"
         ) {{ typeItem.length > 0 ? `Type: ${typeItem[0].name}` : "Type" }}
           span.selected(v-if="typeItem.length > 1") + {{ typeItem.length - 1 }}
-          i.icon.arrow
+          i.icon.arrow(:class="{ active: dropdownStates.typeTasks.isOpen }")
         dropdown-component(
           v-if="dropdownStates.typeTasks.isOpen",
           :isOpen="dropdownStates.typeTasks.isOpen",
@@ -27,8 +28,9 @@
         )
       .dropdown-block
         common-button.btn_primary.btn_icon(
+          :class="{ selectBtn: assigneeItem }",
           @click.prevent="toggleDropdown('assignee')"
-        ) {{ assigneeItem ? `Assignee: ${assigneeItem.name}` : "Assignee" }}
+        ) {{ assigneeItem ? `${assigneeItem.name}` : "Assignee" }}
           i.icon.user(v-if="!assigneeItem")
           div(v-else)
             img.logo(
@@ -46,8 +48,17 @@
           :isOpen="dropdownStates.assignee.isOpen",
           :data="leadNames",
           @selectedItem="selectedItem",
-          :type="'assignee'"
+          :type="'lead'"
         )
+      common-button.reset.btn-secondary.laptop(
+        v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
+        @click.prevent="reset"
+      ) Reset
+      common-button.reset.btn-secondary.mobile(
+        v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
+        @click.prevent="reset"
+      ) 
+        i.icon.reset
   .issues-table 
     .column.type Type
     .column.key Key
@@ -85,7 +96,10 @@
         p {{ t.attributes.username }}
       .created 
         p {{ formatDate(item.attributes.dueDate) }}
-  .mobile-block(v-if="!isLoader")
+  .mobile-block(
+    v-if="!isLoader",
+    :class="{ pagination: totalTasks > itemsPerPage }"
+  )
     .issues-block(v-for="item in tasks", :key="item")
       .block
         .type(v-for="t in item.attributes.type", :key="t")
@@ -443,6 +457,35 @@ onMounted(() => {
     .dropdown-block {
       position: relative;
       margin-left: 10px;
+      .active {
+        transform: rotate(180deg);
+      }
+      .selected {
+        background: var(--accent);
+        @include font(12px, 500, 16px, var(--white));
+        padding: 4px 8px;
+        border-radius: 12px;
+        width: fit-content;
+        z-index: 2;
+        margin-left: 6px;
+        @include media_mobile {
+          font-size: 8px;
+          line-height: 12px;
+          right: 23px;
+          top: 8px;
+        }
+      }
+      .selectBtn {
+        background: var(--accent);
+      }
+      .select {
+        color: var(--accent);
+        i.arrow {
+          &::before {
+            background: var(--accent);
+          }
+        }
+      }
       @include media_tablet {
         margin-left: 8px;
         &:first-of-type {
@@ -457,6 +500,7 @@ onMounted(() => {
         @include media_mobile {
           top: 196px;
           position: fixed;
+          left: 16px;
         }
       }
     }
@@ -572,24 +616,25 @@ onMounted(() => {
     width: 6%;
     i {
       position: relative;
-      left: 6px;
+      left: 13%;
       @include media_mobile {
         left: 1px;
         top: 7px;
       }
     }
     @include media_mobile {
-      width: 5%;
+      width: auto;
     }
   }
   .task-name {
     width: 59%;
     @include media_mobile {
-      margin: 0 0 2px 20px;
-      width: 96%;
+      margin: 0 0 0 10px;
+      width: auto;
     }
     a {
       @include font(12px, 500, 16px, var(--accent));
+      white-space: nowrap;
     }
     div {
       display: flex;
@@ -600,11 +645,9 @@ onMounted(() => {
       }
       .key {
         width: auto;
-        margin-top: 3px;
         p {
           font-size: 10px;
           line-height: 14px;
-          margin-right: 6px;
         }
       }
     }
@@ -615,7 +658,6 @@ onMounted(() => {
     align-items: center;
     justify-content: space-between;
     p {
-      margin-left: -11px;
       @include font(14px, 500, 20px, var(--text));
     }
     button {
@@ -634,7 +676,6 @@ onMounted(() => {
     width: 37%;
     text-decoration: none;
     a {
-      margin-left: -8px;
       @include font(14px, 500, 20px, var(--accent));
     }
   }
@@ -646,7 +687,7 @@ onMounted(() => {
     img {
       width: 32px;
       height: 32px;
-      margin: 0 10px 0 1px;
+      margin-right: 10px;
     }
     a {
       @include font(14px, 500, 20px, var(--accent));
@@ -657,16 +698,15 @@ onMounted(() => {
     width: 22%;
     p {
       @include font(14px, 500, 20px, var(--text));
-      margin-left: 8px;
       @include media_mobile {
         font-size: 10px;
         line-height: 14px;
         white-space: nowrap;
-        margin: 0 0 0 3px;
+        margin: 0 0 0 10px;
       }
     }
     @include media_mobile {
-      width: 30%;
+      width: auto;
     }
   }
   .tablet {
@@ -678,11 +718,15 @@ onMounted(() => {
     display: none;
     @include media_mobile {
       display: block;
+      &.pagination {
+        min-height: 364px;
+      }
     }
   }
   &-table {
     display: flex;
     align-items: center;
+    gap: 16px;
     border-bottom: 1px solid var(--primary);
     height: 30px;
     margin-bottom: 20px;
@@ -695,7 +739,6 @@ onMounted(() => {
       display: none;
     }
     .column {
-      margin-right: 16px;
       @include font(16px, 500, 24px, var(--text));
       &:last-of-type {
         margin-right: 0;
@@ -705,17 +748,20 @@ onMounted(() => {
   .issues-block {
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
+    gap: 16px;
     height: 44px;
     margin-bottom: 4px;
     @include media_mobile {
       justify-content: space-between;
       .block {
         display: flex;
-        width: 50%;
+        width: auto;
         &.block-right {
-          margin-left: 159px;
           align-items: center;
+          img {
+            height: 28px;
+            width: 28px;
+          }
         }
       }
     }
@@ -742,12 +788,20 @@ onMounted(() => {
     }
     i.search {
       right: 16px;
+      @include media_mobile {
+        left: 10px;
+      }
     }
     input {
       width: 220px;
       @include media_tablet {
         width: 100%;
       }
+    }
+  }
+  .no-results {
+    @include media_mobile {
+      width: calc(100% - 32px);
     }
   }
 }
