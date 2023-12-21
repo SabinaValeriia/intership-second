@@ -50,12 +50,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             path: "issues",
             name: "projectsTasks",
-            component: () => import("../components/ProjectsIssues.vue"),
+            component: () => import("../views/ProjectsIssues.vue"),
             children: [
               {
                 path: ":id",
                 name: "issuesItem",
-                component: () => import("../components/ProjectsIssues.vue"),
+                component: () => import("../views/ProjectsIssues.vue"),
               },
             ],
           },
@@ -67,7 +67,7 @@ const routes: Array<RouteRecordRaw> = [
               {
                 path: ":id",
                 name: "issuesItem",
-                component: () => import("../components/ProjectsIssues.vue"),
+                component: () => import("../views/ProjectsIssues.vue"),
               },
             ],
           },

@@ -2,7 +2,10 @@
 .checkbox-block(v-if="type === 'checkbox'")
   p {{ title }}
   div
-    button(@click.prevent="selectAll") Select All
+    button(
+      v-if="checkedItem.length !== filteredData.length",
+      @click.prevent="selectAll"
+    ) Select All
     button(@click.prevent="clearAll") Clear
 ul(
   v-if="filteredData.length",

@@ -91,7 +91,7 @@ onUnmounted(() => {
   border-radius: 8px;
   color: var(--black);
   border: 1px solid var(--grey-line);
-  z-index: 3;
+  z-index: 100;
   position: absolute;
   top: 47px;
   &.big {

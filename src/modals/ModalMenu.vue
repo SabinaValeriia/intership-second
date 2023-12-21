@@ -33,7 +33,7 @@ app-modal.menu
         i.icon.details
         p Project details
         .hover-block
-      a.position
+      router-link.position(:to="{ name: 'projects' }")
         i.icon.projects
         p Projects
         .hover-block
@@ -41,14 +41,23 @@ app-modal.menu
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import AppModal from "./AppModal.vue";
 import { showProjects } from "@/services/api/projectApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
 import { useRoute } from "vue-router";
+const emit = defineEmits(["close"]);
 const route = useRoute();
 const foundProject = ref();
 const project = ref([]);
+watch(
+  () => route.params.key,
+  (newKey, oldKey) => {
+    if (newKey !== oldKey) {
+      emit("close");
+    }
+  }
+);
 onMounted(() => {
   showProjects("").then(({ data }) => {
     foundProject.value = data.data.find(

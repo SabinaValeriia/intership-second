@@ -3,9 +3,10 @@
   div
     h2 {{ title }}
     div(v-if="project")
-      .menu-project(
+      router-link.menu-project(
         v-for="(project, index) in projects.slice(0, 5)",
-        :key="index"
+        :key="index",
+        :to="{ name: 'projectsIssues', params: { key: project.key } }"
       ) 
         img.logo(
           v-if="project.logo !== null || project.logo",

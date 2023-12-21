@@ -145,6 +145,10 @@ const create = () => {
   img {
     margin-top: 74px;
     margin-bottom: 24px;
+    @include media_mobile {
+      width: 140px;
+      height: 120px;
+    }
   }
   h2 {
     @include font(24px, 500, 28px, var(--text));
@@ -162,6 +166,7 @@ const create = () => {
     @include media_mobile {
       font-size: 14px;
       line-height: 20px;
+      width: 200px;
     }
   }
   button {
