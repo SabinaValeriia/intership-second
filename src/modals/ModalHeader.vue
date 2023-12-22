@@ -1,6 +1,6 @@
 <template lang="pug">
 app-modal
-  template(v-slot:content)
+  template(#content)
     .modal-header
       img(:src="require(`@/assets/icons/logo_modal.svg`)", alt="header_logo")
     .modal-body

@@ -2,8 +2,8 @@
 .pagination
   ul
     li(
-      @click="changePage(currentPage - 1)",
-      :class="{ disabled: currentPage === 1 }"
+      :class="{ disabled: currentPage === 1 }",
+      @click="changePage(currentPage - 1)"
     )
       i.icon.arrow
     li(
@@ -13,8 +13,8 @@
       @click="changePage(pageNumber)"
     ) {{ pageNumber }}
     li(
-      @click="changePage(currentPage + 1)",
-      :class="{ disabled: currentPage === totalPages }"
+      :class="{ disabled: currentPage === totalPages }",
+      @click="changePage(currentPage + 1)"
     )
       i.icon.arrow
 </template>
