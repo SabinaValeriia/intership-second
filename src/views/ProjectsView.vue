@@ -504,6 +504,8 @@ onMounted(() => {
       }
 
       .selected {
+        display: flex;
+        align-items: center;
         background: var(--accent);
         @include font(12px, 500, 16px, var(--white));
         padding: 4px 8px;
@@ -514,8 +516,10 @@ onMounted(() => {
         @include media_mobile {
           font-size: 8px;
           line-height: 12px;
-          right: 23px;
-          top: 8px;
+          margin-left: 4px;
+          border-radius: 14px;
+          height: 14px;
+          box-sizing: border-box;
         }
       }
 
@@ -643,6 +647,11 @@ onMounted(() => {
           color: var(--text);
           height: 48px;
           width: auto;
+
+          &:hover {
+            border-color: var(--accent);
+            background: var(--white_shadow, #f4f4f4);
+          }
 
           &.select {
             color: var(--accent);

@@ -19,8 +19,8 @@
       i.icon.arrow
 </template>
 
-<script setup lang="ts">
-import { computed, defineProps, ref, watch } from "vue";
+<script lang="ts" setup>
+import { computed, defineProps, ref } from "vue";
 
 const props = defineProps({
   totalItems: {},
@@ -41,12 +41,13 @@ const changePage = (newPage: number) => {
 };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .pagination {
   margin: 40px 0 16px;
   @include media_mobile {
     margin: 20px 0 76px 0;
   }
+
   ul {
     list-style-type: none;
     padding: 0;
@@ -55,6 +56,7 @@ const changePage = (newPage: number) => {
     @include media_mobile {
       justify-content: center;
     }
+
     li {
       display: flex;
       align-items: center;
@@ -62,41 +64,48 @@ const changePage = (newPage: number) => {
       cursor: pointer;
       width: 44px;
       height: 44px;
-      margin: 0 5px;
-      border-radius: 4px;
+      margin: 0 4px;
+      border-radius: 8px;
       z-index: 3;
       @include font(16px, 400, 24px, var(--text));
       @include media_mobile {
         width: 36px;
         height: 36px;
         font-size: 14px;
-        border-radius: 8px;
       }
+
       &:hover {
         background-color: var(--primary);
+
         i.arrow {
           &::before {
             background: var(--text);
           }
         }
       }
+
       i.arrow {
         height: 11px;
+
         &::before {
           background: var(--accent);
         }
       }
+
       &.disabled {
         pointer-events: none;
+
         i.arrow {
           &::before {
             background: var(--placeholder);
           }
         }
+
         &:hover {
           background: transparent;
         }
       }
+
       &:first-child {
         transform: rotate(90deg);
         @include media_mobile {
@@ -104,6 +113,7 @@ const changePage = (newPage: number) => {
           left: 0;
         }
       }
+
       &:last-child {
         transform: rotate(-90deg);
         @include media_mobile {
@@ -112,9 +122,11 @@ const changePage = (newPage: number) => {
         }
       }
     }
+
     .active {
       background-color: var(--accent);
       color: var(--white);
+
       &:hover {
         background-color: var(--accent);
       }
