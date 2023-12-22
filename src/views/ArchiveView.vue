@@ -1,66 +1,67 @@
 <template lang="pug">
 .issues
   h3 Archive
-  .issues-panel
-    form
-      .form-group
-        .form-icon
-          input(v-model="searchText", placeholder="")
-          i.icon.search
-    .flex
-      .dropdown-block
-        common-button.btn-secondary-line.btn_arrow(
-          :class="{ select: typeItem.length }",
-          @click.prevent="toggleDropdown('typeTasks')"
-        ) {{ typeItem.length > 0 ? `Type: ${typeItem[0].name}` : "Type" }}
-          span.selected(v-if="typeItem.length > 1")
-            i.icon.plus
-            span {{ typeItem.length - 1 }}
-          i.icon.arrow(:class="{ active: dropdownStates.typeTasks.isOpen }")
-        dropdown-component(
-          v-if="dropdownStates.typeTasks.isOpen",
-          :is-open="dropdownStates.typeTasks.isOpen",
-          :data="types",
-          :checked-item="typeItem",
-          :type="'checkbox'",
-          :title="'Project types'",
-          @selectedItem="selectedItem",
-          @clear="clear",
-          @allItem="selectAllType"
+  .blocks
+    .issues-panel
+      form
+        .form-group
+          .form-icon
+            input(v-model="searchText", placeholder="")
+            i.icon.search
+      .flex
+        .dropdown-block
+          common-button.btn-secondary-line.btn_arrow(
+            :class="{ select: typeItem.length }",
+            @click.prevent="toggleDropdown('typeTasks')"
+          ) {{ typeItem.length > 0 ? `Type: ${typeItem[0].name}` : "Type" }}
+            span.selected(v-if="typeItem.length > 1")
+              i.icon.plus
+              span {{ typeItem.length - 1 }}
+            i.icon.arrow(:class="{ active: dropdownStates.typeTasks.isOpen }")
+          dropdown-component(
+            v-if="dropdownStates.typeTasks.isOpen",
+            :is-open="dropdownStates.typeTasks.isOpen",
+            :data="types",
+            :checked-item="typeItem",
+            :type="'checkbox'",
+            :title="'Project types'",
+            @selectedItem="selectedItem",
+            @clear="clear",
+            @allItem="selectAllType"
+          )
+        .dropdown-block
+          common-button.btn_primary.btn_icon(
+            :class="{ selectBtn: assigneeItem }",
+            @click.prevent="toggleDropdown('assignee')"
+          ) {{ assigneeItem ? `${assigneeItem.name}` : "Assignee" }}
+            i.icon.user(v-if="!assigneeItem")
+            div(v-else)
+              img.logo(
+                v-if="assigneeItem.logo",
+                :src="JSON.parse(assigneeItem.logo.name)",
+                alt="name"
+              )
+              img(
+                v-else-if="!assigneeItem.logo",
+                :src="require(`@/assets/icons/default_user.svg`)"
+              )
+            i.icon.close(v-if="assigneeItem", @click.stop="deleteAssignee")
+          dropdown-component.tags__block(
+            v-if="dropdownStates.assignee.isOpen",
+            :is-open="dropdownStates.assignee.isOpen",
+            :data="leadNames",
+            :type="'lead'",
+            @selectedItem="selectedItem"
+          )
+        common-button.reset.btn-secondary.laptop(
+          v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
+          @click.prevent="reset"
+        ) Reset
+        common-button.reset.btn-secondary.mobile(
+          v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
+          @click.prevent="reset"
         )
-      .dropdown-block
-        common-button.btn_primary.btn_icon(
-          :class="{ selectBtn: assigneeItem }",
-          @click.prevent="toggleDropdown('assignee')"
-        ) {{ assigneeItem ? `${assigneeItem.name}` : "Assignee" }}
-          i.icon.user(v-if="!assigneeItem")
-          div(v-else)
-            img.logo(
-              v-if="assigneeItem.logo",
-              :src="JSON.parse(assigneeItem.logo.name)",
-              alt="name"
-            )
-            img(
-              v-else-if="!assigneeItem.logo",
-              :src="require(`@/assets/icons/default_user.svg`)"
-            )
-          i.icon.close(v-if="assigneeItem", @click.stop="deleteAssignee")
-        dropdown-component.tags__block(
-          v-if="dropdownStates.assignee.isOpen",
-          :is-open="dropdownStates.assignee.isOpen",
-          :data="leadNames",
-          :type="'lead'",
-          @selectedItem="selectedItem"
-        )
-      common-button.reset.btn-secondary.laptop(
-        v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
-        @click.prevent="reset"
-      ) Reset
-      common-button.reset.btn-secondary.mobile(
-        v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
-        @click.prevent="reset"
-      )
-        i.icon.reset
+          i.icon.reset
   .issues-table
     .column.type Type
     .column.key Key
@@ -446,226 +447,256 @@ watch(
     }
   }
 
-  &-panel {
+  .blocks {
+    display: flex;
     margin: 28px 0 36px;
+    @include media_tablet {
+      flex-direction: column;
+      margin: 28px 0 26px;
+    }
+    @include media_mobile {
+      margin: 0 0 16px;
+    }
+  }
+
+  &-panel {
     display: flex;
     align-items: center;
     @include media_tablet {
       flex-direction: column;
       align-items: flex-start;
       width: 100%;
-      margin: 28px 0 26px;
+      position: relative;
     }
+  }
+
+  .flex {
+    display: flex;
     @include media_mobile {
-      margin: 0 0 16px;
-    }
-
-    .flex {
-      display: flex;
-    }
-
-    .dropdown-block {
-      position: relative;
-      margin-left: 10px;
-
-      .active {
-        transform: rotate(180deg);
-        @include media_mobile {
-          margin: 2px 0 6px 6px;
-        }
-      }
-
+      overflow-x: auto;
+      overflow-y: hidden;
+      width: calc(100% - 32px);
       .selected {
-        display: flex;
-        align-items: center;
-        background: var(--accent);
-        @include font(12px, 500, 16px, var(--white));
-        padding: 4px 8px;
-        border-radius: 12px;
-        width: fit-content;
-        z-index: 2;
-        margin-left: 6px;
-        @include media_mobile {
-          font-size: 8px;
-          line-height: 12px;
-          right: 23px;
-          top: 8px;
-        }
-
-        i.plus {
-          position: relative;
-          width: 10px;
-          height: 10px;
-          margin-right: 4px;
-          @include media_mobile {
-            width: 5px;
-            height: 5px;
-            margin-right: 2px;
-          }
-
-          &::before {
-            background: var(--white);
-          }
-        }
+        overflow-x: auto;
+        overflow-y: hidden;
       }
+    }
+  }
 
-      .selectBtn {
-        background: var(--accent);
-      }
+  .mobile-flex {
+    display: flex;
+  }
 
-      .select {
-        color: var(--accent);
+  .dropdown-block {
+    position: relative;
+    margin-left: 10px;
+    @include media_mobile {
+      position: inherit;
+    }
 
-        i.arrow {
-          &::before {
-            background: var(--accent);
-          }
-        }
-      }
-
-      @include media_tablet {
-        margin-left: 8px;
-        &:first-of-type {
-          margin-left: 0;
-        }
-      }
+    .active {
+      transform: rotate(180deg);
       @include media_mobile {
-        margin-left: 6px;
+        margin: 2px 0 6px 6px;
+      }
+    }
+
+    .selected {
+      display: flex;
+      align-items: center;
+      background: var(--accent);
+      @include font(12px, 500, 16px, var(--white));
+      padding: 4px 8px;
+      border-radius: 12px;
+      width: fit-content;
+      z-index: 2;
+      margin-left: 6px;
+      @include media_mobile {
+        font-size: 8px;
+        line-height: 12px;
+        margin-left: 4px;
+        border-radius: 14px;
+        height: 14px;
+        box-sizing: border-box;
       }
 
-      .drop-down {
-        top: 61px;
+      i.plus {
+        position: relative;
+        width: 10px;
+        height: 10px;
+        margin-right: 4px;
+
+        &::before {
+          background: var(--white);
+        }
+
         @include media_mobile {
-          top: 47px;
-          left: 16px;
-          position: absolute;
-          width: 344px;
-          left: 0;
+          width: 5px;
+          height: 5px;
+          margin-right: 2px;
         }
       }
     }
 
-    button {
-      padding: 14px 16px;
-      height: 48px;
-      box-sizing: border-box;
-      position: relative;
-      width: fit-content;
-      @include media_mobile {
-        padding: 9px 10px;
-        height: 34px;
-        font-size: 12px;
-        line-height: 16px;
-        font-weight: 500;
-      }
+    .selectBtn {
+      background: var(--accent);
+    }
 
-      &.btn_icon {
-        img {
-          width: 20px;
-          height: 20px;
-          left: 16px;
-          top: 14px;
-          position: absolute;
-          border-radius: 11px;
-          @include media_mobile {
-            width: 13px;
-            height: 13px;
-            top: 11px;
-            left: 10px;
-          }
-        }
-
-        i.close {
-          position: relative;
-          width: 12px;
-          height: 12px;
-          margin-left: 6px;
-
-          &::before {
-            background: var(--white);
-          }
-
-          @include media_mobile {
-            width: 8px;
-            height: 8px;
-          }
-        }
-      }
-
-      &.reset {
-        margin-left: 10px;
-        padding: 12px 26px;
-        font-size: 14px;
-        line-height: 20px;
-        @include media_mobile {
-          padding: 10px;
-          margin-left: 6px;
-          width: 36px;
-          height: 34px;
-          box-sizing: border-box;
-          i.reset {
-            position: relative;
-
-            &::before {
-              background: var(--white);
-            }
-          }
-        }
-
-        &.mobile {
-          display: none;
-          @include media_mobile {
-            display: block;
-          }
-        }
-
-        &.laptop {
-          @include media_mobile {
-            display: none;
-          }
-        }
-      }
-
-      &.btn_arrow {
-        background: var(--white);
-        border-color: var(--primary);
-        color: var(--text);
-      }
+    .select {
+      color: var(--accent);
 
       i.arrow {
+        &::before {
+          background: var(--accent);
+        }
+      }
+    }
+
+    @include media_tablet {
+      margin-left: 8px;
+      &:first-of-type {
+        margin-left: 0;
+      }
+    }
+    @include media_mobile {
+      margin-left: 6px;
+    }
+
+    .drop-down {
+      top: 61px;
+      @include media_mobile {
+        top: 88px;
+        left: 0;
+        position: absolute;
+      }
+    }
+  }
+
+  button {
+    padding: 14px 16px;
+    height: 48px;
+    box-sizing: border-box;
+    position: relative;
+    width: fit-content;
+    @include media_mobile {
+      padding: 9px 10px;
+      height: 34px;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 500;
+    }
+
+    &.btn_icon {
+      img {
+        width: 20px;
+        height: 20px;
+        left: 16px;
+        top: 14px;
+        position: absolute;
+        border-radius: 11px;
+        @include media_mobile {
+          width: 13px;
+          height: 13px;
+          top: 11px;
+          left: 10px;
+        }
+      }
+
+      i.close {
         position: relative;
-        width: 16px;
-        height: 9px;
-        margin: 2px 0 0 12px;
-        @include media_mobile {
-          width: 10px;
-          height: 7px;
-          margin: 2px 0 0 6px;
-        }
-      }
-
-      i.user {
-        left: 16px;
+        width: 12px;
+        height: 12px;
+        margin-left: 6px;
 
         &::before {
           background: var(--white);
         }
 
         @include media_mobile {
-          left: 10px;
+          width: 8px;
+          height: 8px;
+        }
+      }
+    }
+
+    &.reset {
+      margin-left: 10px;
+      padding: 12px 26px;
+      font-size: 14px;
+      line-height: 20px;
+      @include media_mobile {
+        padding: 10px;
+        margin-left: 6px;
+        width: 36px;
+        height: 34px;
+        box-sizing: border-box;
+        i.reset {
+          position: relative;
+
+          &::before {
+            background: var(--white);
+          }
         }
       }
 
-      i.member {
-        left: 16px;
-
-        &::before {
-          background: var(--white);
-        }
-
+      &.mobile {
+        display: none;
         @include media_mobile {
-          left: 10px;
+          display: block;
         }
+      }
+
+      &.laptop {
+        @include media_mobile {
+          display: none;
+        }
+      }
+    }
+
+    &.btn_arrow {
+      background: var(--white);
+      border-color: var(--primary);
+      color: var(--text);
+
+      &:hover {
+        border-color: var(--accent);
+        background: var(--white_shadow, #f4f4f4);
+      }
+    }
+
+    i.arrow {
+      position: relative;
+      width: 16px;
+      height: 9px;
+      margin: 2px 0 0 12px;
+      @include media_mobile {
+        width: 10px;
+        height: 7px;
+        margin: 2px 0 0 6px;
+      }
+    }
+
+    i.user {
+      left: 16px;
+
+      &::before {
+        background: var(--white);
+      }
+
+      @include media_mobile {
+        left: 10px;
+      }
+    }
+
+    i.member {
+      left: 16px;
+
+      &::before {
+        background: var(--white);
+      }
+
+      @include media_mobile {
+        left: 10px;
       }
     }
   }
