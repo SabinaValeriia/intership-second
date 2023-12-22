@@ -1,7 +1,7 @@
 <template lang="pug">
 teleport(to="body")
   .modal(:class="{ create, menu }")
-    .modal--backdrop(@click="close", :class="{ backdrop: hide }")
+    .modal--backdrop(:class="{ backdrop: hide }", @click="close")
     transition(name="block", appear)
       .modal--container(
         v-if="isOpen(currentKey)",

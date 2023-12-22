@@ -14,3 +14,10 @@ export const showProjects = (
   const url = `projects?populate=*&${queryParam}`;
   return axiosInstance.get(url);
 };
+
+export const showProjectById = (
+  id: number
+): Promise<AxiosResponse<ResProject>> => {
+  const url = `projects/${id}`;
+  return axiosInstance.get(url);
+};

@@ -5,8 +5,8 @@
     p Home
   a.footer__block(
     v-if="$route.path.includes('issues') || $route.path.includes('archive')",
-    @click="openModal(EnumModalKeys.ModalMenu)",
-    :class="{ active: $route.path.includes('projects') }"
+    :class="{ active: $route.path.includes('projects') }",
+    @click="openModal(EnumModalKeys.ModalMenu)"
   )
     i.icon.projects 
     p Projects

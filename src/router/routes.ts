@@ -40,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/ProjectsView.vue"),
       },
       {
-        path: "projects/:key",
+        path: "projects/:key/:projectId",
         name: "projectsIssues",
         component: () => import("../layouts/ProjectLayout.vue"),
         redirect: (to) => {

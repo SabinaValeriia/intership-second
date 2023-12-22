@@ -2,15 +2,15 @@
 .form-group(:class="type")
   .label-group
     label {{ capitalizeFirstLetter(`${type}`) }}
-    i.icon.arrow.mobile(@click="toggleInput", :class="{ open }")
+    i.icon.arrow.mobile(:class="{ open }", @click="toggleInput")
   .form-icon(v-if="open")
     slot(name="prefix")
     input(
+      v-model="inputVal",
       :type="type",
       :placeholder="capitalizeFirstLetter(`${type}`)",
-      v-model="inputVal",
-      @focus="isFocused = true",
-      :class="{ withIcon }"
+      :class="{ withIcon }",
+      @focus="isFocused = true"
     )
     slot(name="suffix")
   slot(name="errors")

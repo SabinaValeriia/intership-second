@@ -4,7 +4,7 @@
   .issues-panel
     form
       .form-group
-        .form-icon 
+        .form-icon
           input(v-model="searchText", placeholder="")
           i.icon.search
     .flex
@@ -13,16 +13,18 @@
           :class="{ select: typeItem.length }",
           @click.prevent="toggleDropdown('typeTasks')"
         ) {{ typeItem.length > 0 ? `Type: ${typeItem[0].name}` : "Type" }}
-          span.selected(v-if="typeItem.length > 1") + {{ typeItem.length - 1 }}
+          span.selected(v-if="typeItem.length > 1")
+            i.icon.plus
+            span {{ typeItem.length - 1 }}
           i.icon.arrow(:class="{ active: dropdownStates.typeTasks.isOpen }")
         dropdown-component(
           v-if="dropdownStates.typeTasks.isOpen",
-          :isOpen="dropdownStates.typeTasks.isOpen",
+          :is-open="dropdownStates.typeTasks.isOpen",
           :data="types",
-          :checkedItem="typeItem",
-          @selectedItem="selectedItem",
+          :checked-item="typeItem",
           :type="'checkbox'",
           :title="'Project types'",
+          @selectedItem="selectedItem",
           @clear="clear",
           @allItem="selectAllType"
         )
@@ -45,10 +47,10 @@
           i.icon.close(v-if="assigneeItem", @click.stop="deleteAssignee")
         dropdown-component.tags__block(
           v-if="dropdownStates.assignee.isOpen",
-          :isOpen="dropdownStates.assignee.isOpen",
+          :is-open="dropdownStates.assignee.isOpen",
           :data="leadNames",
-          @selectedItem="selectedItem",
-          :type="'lead'"
+          :type="'lead'",
+          @selectedItem="selectedItem"
         )
       common-button.reset.btn-secondary.laptop(
         v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
@@ -57,14 +59,14 @@
       common-button.reset.btn-secondary.mobile(
         v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
         @click.prevent="reset"
-      ) 
+      )
         i.icon.reset
-  .issues-table 
+  .issues-table
     .column.type Type
     .column.key Key
       button.sort(
-        @click="sort('key', sortAction.status)",
-        :class="{ active: sortAction.name === 'key' }"
+        :class="{ active: sortAction.name === 'key' }",
+        @click="sort('key', sortAction.status)"
       )
         i.icon(
           :class="{ sort: sortAction.status === 'ASC', sort_down: sortAction.status === 'DESC' }"
@@ -76,7 +78,7 @@
     .issues-block(v-for="item in tasks", :key="item")
       .type(v-for="t in item.attributes.type", :key="t")
         i.icon(:class="getTaskTypeName(t.attributes.name)")
-      .key 
+      .key
         p {{ item.attributes.key }}
       router-link.summary(
         :to="{ name: 'issuesItem', params: { id: item.id } }"
@@ -94,7 +96,7 @@
         )
         img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
         p {{ t.attributes.username }}
-      .created 
+      .created
         p {{ formatDate(item.attributes.dueDate) }}
   .mobile-block(
     v-if="!isLoader",
@@ -109,7 +111,7 @@
             :to="{ name: 'issuesItem', params: { id: item.id } }"
           ) {{ item.attributes.title }}
           div
-            .key 
+            .key
               p {{ item.attributes.key }}
       .block.block-right
         router-link.reporter(
@@ -123,33 +125,31 @@
             alt="name"
           )
           img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
-        .created 
+        .created
           p {{ formatDateDue(item.attributes.dueDate) }}
   common-loader(v-if="isLoader")
   pagination-component(
     v-show="totalTasks > itemsPerPage && !isLoader",
-    :totalItems="totalTasks",
-    :itemsPerPage="itemsPerPage",
+    :total-items="totalTasks",
+    :items-per-page="itemsPerPage",
     @onPageChange="handlePageChange"
   )
   no-results(
     v-if="noDataShow || (noResultsShow && filterUse)",
-    :noData="noDataShow",
-    :noResults="noResultsShow",
+    :no-data="noDataShow",
+    :no-results="noResultsShow",
     @reset="reset"
   )
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import NoResults from "@/components/NoResults.vue";
-import { showDataUser, leadNames } from "@/composables/userActions";
+import { leadNames, showDataUser } from "@/composables/userActions";
 import PaginationComponent from "@/components/common/PaginationComponent.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
 import { onMounted, ref, watch } from "vue";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { getTaskTypeName } from "@/composables/projectsAction";
-import { ProjectInterfaceItem } from "@/types/projectApiInterface";
-import { showProjects } from "@/services/api/projectApi";
 import {
   endIndex,
   itemsPerPage,
@@ -161,6 +161,7 @@ import { showTasks } from "@/services/api/tasksApi";
 import { showTypes } from "@/services/api/typeApi";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showStatus } from "@/services/api/statusApi";
+
 const foundProject = ref();
 const tasks = ref([]);
 const isLoader = ref(false);
@@ -264,12 +265,9 @@ const fetchTasks = (filters: string) => {
   noResultsShow.value = false;
   return new Promise(() => {
     showTasks(
-      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=key:ASC&filters[$and][0][status][name][$eq]=Archive${filters}`
+      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&sort=key:ASC&filters[$and][0][status][name][$eq]=Archive&filters[$and][0][project][key][$eq]=${route.params.key}${filters}`
     ).then((response) => {
-      tasks.value = response.data.data.filter(
-        (task: any) =>
-          task.attributes.project.data.attributes.key === route.params.key
-      );
+      tasks.value = response.data.data;
       totalTasks.value = tasks.value.length;
       isLoader.value = false;
       if (!totalTasks.value && filterUse.value) {
@@ -417,6 +415,13 @@ onMounted(() => {
   });
   showDataUser();
 });
+watch(
+  [() => route.params.key, () => route.params.projectId],
+  ([newKey, newProjectId], [oldKey, oldProjectId]) => {
+    fetchTasks("");
+  },
+  { immediate: true }
+);
 </script>
 
 <style lang="scss" scoped>
@@ -430,7 +435,9 @@ onMounted(() => {
   @include media_mobile {
     padding: 0 16px;
     overflow: hidden;
+    height: 100vh;
   }
+
   h3 {
     @include font(24px, 500, 28px, var(--text));
     margin: 0;
@@ -438,6 +445,7 @@ onMounted(() => {
       display: none;
     }
   }
+
   &-panel {
     margin: 28px 0 36px;
     display: flex;
@@ -451,16 +459,25 @@ onMounted(() => {
     @include media_mobile {
       margin: 0 0 16px;
     }
+
     .flex {
       display: flex;
     }
+
     .dropdown-block {
       position: relative;
       margin-left: 10px;
+
       .active {
         transform: rotate(180deg);
+        @include media_mobile {
+          margin: 2px 0 6px 6px;
+        }
       }
+
       .selected {
+        display: flex;
+        align-items: center;
         background: var(--accent);
         @include font(12px, 500, 16px, var(--white));
         padding: 4px 8px;
@@ -474,18 +491,38 @@ onMounted(() => {
           right: 23px;
           top: 8px;
         }
+
+        i.plus {
+          position: relative;
+          width: 10px;
+          height: 10px;
+          margin-right: 4px;
+          @include media_mobile {
+            width: 5px;
+            height: 5px;
+            margin-right: 2px;
+          }
+
+          &::before {
+            background: var(--white);
+          }
+        }
       }
+
       .selectBtn {
         background: var(--accent);
       }
+
       .select {
         color: var(--accent);
+
         i.arrow {
           &::before {
             background: var(--accent);
           }
         }
       }
+
       @include media_tablet {
         margin-left: 8px;
         &:first-of-type {
@@ -495,15 +532,19 @@ onMounted(() => {
       @include media_mobile {
         margin-left: 6px;
       }
+
       .drop-down {
         top: 61px;
         @include media_mobile {
-          top: 196px;
-          position: fixed;
+          top: 47px;
           left: 16px;
+          position: absolute;
+          width: 344px;
+          left: 0;
         }
       }
     }
+
     button {
       padding: 14px 16px;
       height: 48px;
@@ -517,6 +558,7 @@ onMounted(() => {
         line-height: 16px;
         font-weight: 500;
       }
+
       &.btn_icon {
         img {
           width: 20px;
@@ -532,20 +574,24 @@ onMounted(() => {
             left: 10px;
           }
         }
+
         i.close {
           position: relative;
           width: 12px;
           height: 12px;
           margin-left: 6px;
+
           &::before {
             background: var(--white);
           }
+
           @include media_mobile {
             width: 8px;
             height: 8px;
           }
         }
       }
+
       &.reset {
         margin-left: 10px;
         padding: 12px 26px;
@@ -559,28 +605,33 @@ onMounted(() => {
           box-sizing: border-box;
           i.reset {
             position: relative;
+
             &::before {
               background: var(--white);
             }
           }
         }
+
         &.mobile {
           display: none;
           @include media_mobile {
             display: block;
           }
         }
+
         &.laptop {
           @include media_mobile {
             display: none;
           }
         }
       }
+
       &.btn_arrow {
         background: var(--white);
         border-color: var(--primary);
         color: var(--text);
       }
+
       i.arrow {
         position: relative;
         width: 16px;
@@ -592,28 +643,36 @@ onMounted(() => {
           margin: 2px 0 0 6px;
         }
       }
+
       i.user {
         left: 16px;
+
         &::before {
           background: var(--white);
         }
+
         @include media_mobile {
           left: 10px;
         }
       }
+
       i.member {
         left: 16px;
+
         &::before {
           background: var(--white);
         }
+
         @include media_mobile {
           left: 10px;
         }
       }
     }
   }
+
   .type {
     width: 6%;
+
     i {
       position: relative;
       left: 13%;
@@ -622,29 +681,36 @@ onMounted(() => {
         top: 7px;
       }
     }
+
     @include media_mobile {
       width: auto;
     }
   }
+
   .task-name {
     width: 59%;
     @include media_mobile {
       margin: 0 0 0 10px;
       width: auto;
     }
+
     a {
       @include font(12px, 500, 16px, var(--accent));
       white-space: nowrap;
     }
+
     div {
       display: flex;
       align-items: center;
+
       p {
         margin: 0;
         white-space: nowrap;
       }
+
       .key {
         width: auto;
+
         p {
           font-size: 10px;
           line-height: 14px;
@@ -652,43 +718,53 @@ onMounted(() => {
       }
     }
   }
+
   .key {
     width: 9%;
     display: flex;
     align-items: center;
     justify-content: space-between;
+
     p {
       @include font(14px, 500, 20px, var(--text));
     }
+
     button {
       background: transparent;
       border: none;
       padding: 0;
+
       i.sort {
         position: relative;
       }
+
       i.sort_down {
         position: relative;
       }
     }
   }
+
   .summary {
     width: 37%;
     text-decoration: none;
+
     a {
       @include font(14px, 500, 20px, var(--accent));
     }
   }
+
   .assignee {
     width: 20%;
     display: flex;
     align-items: center;
     text-decoration: none;
+
     img {
       width: 32px;
       height: 32px;
       margin-right: 10px;
     }
+
     a {
       @include font(14px, 500, 20px, var(--accent));
     }
@@ -696,6 +772,7 @@ onMounted(() => {
 
   .created {
     width: 22%;
+
     p {
       @include font(14px, 500, 20px, var(--text));
       @include media_mobile {
@@ -705,15 +782,18 @@ onMounted(() => {
         margin: 0 0 0 10px;
       }
     }
+
     @include media_mobile {
       width: auto;
     }
   }
+
   .tablet {
     @include media_mobile {
       display: none;
     }
   }
+
   .mobile-block {
     display: none;
     @include media_mobile {
@@ -723,6 +803,7 @@ onMounted(() => {
       }
     }
   }
+
   &-table {
     display: flex;
     align-items: center;
@@ -738,13 +819,16 @@ onMounted(() => {
       width: 100%;
       display: none;
     }
+
     .column {
       @include font(16px, 500, 24px, var(--text));
+
       &:last-of-type {
         margin-right: 0;
       }
     }
   }
+
   .issues-block {
     display: flex;
     align-items: center;
@@ -756,8 +840,10 @@ onMounted(() => {
       .block {
         display: flex;
         width: auto;
+
         &.block-right {
           align-items: center;
+
           img {
             height: 28px;
             width: 28px;
@@ -773,10 +859,12 @@ onMounted(() => {
       height: 40px;
     }
   }
+
   form {
     @include media_tablet {
       width: calc(100% - 32px);
     }
+
     .form-group {
       margin-bottom: 0;
       @include media_tablet {
@@ -786,19 +874,25 @@ onMounted(() => {
         margin-bottom: 6px;
       }
     }
+
     i.search {
       right: 16px;
       @include media_mobile {
         left: 10px;
+        height: 13px;
+        width: 13px;
       }
     }
+
     input {
       width: 220px;
       @include media_tablet {
         width: 100%;
+        padding: 9px 10px 9px 29px;
       }
     }
   }
+
   .no-results {
     @include media_mobile {
       width: calc(100% - 32px);

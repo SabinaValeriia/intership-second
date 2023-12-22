@@ -26,24 +26,24 @@ ul(
       i.check.icon
     button.checkbox(
       v-else-if="type === 'checkbox' && checkedItem",
-      @click.prevent="toggleSelect(item)",
-      :class="{ active: checkedItem.includes(item) }"
+      :class="{ active: checkedItem.includes(item) }",
+      @click.prevent="toggleSelect(item)"
     )
       i.check.icon
     button.checkbox(
       v-else-if="type === 'checkbox' && allItems",
-      @click.prevent="toggleSelect(item)",
-      :class="{ active: allItems.includes(item) }"
+      :class="{ active: allItems.includes(item) }",
+      @click.prevent="toggleSelect(item)"
     )
       i.check.icon
     p {{ item.name }}
 ul.not-founds(v-else)
-  li 
+  li
     i.icon.user
     p Not results
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { filterFunction } from "@/composables/projectsAction";
 import { defineProps, ref } from "vue";
 
@@ -91,19 +91,38 @@ const clearAll = () => {
   cursor: pointer;
   @include media_mobile {
     top: 32px;
+    height: 40px;
+    padding: 0 12px;
   }
+
   p {
     @include font(14px, 400, 20px, var(--text));
     text-wrap: nowrap;
+    @include media_mobile {
+      font-size: 11px;
+      line-height: 14px;
+    }
   }
+
   button {
     background: transparent;
     border: none;
     cursor: pointer;
     @include font(12px, 600, 16px, var(--blue));
     text-decoration: underline;
+    padding: 0;
+
+    &:last-of-type {
+      margin-left: 10px;
+    }
+
+    @include media_mobile {
+      font-size: 11px;
+      line-height: 14px;
+    }
   }
 }
+
 ul {
   border-style: solid;
   border-width: 0 1px 1px 1px;
@@ -114,16 +133,18 @@ ul {
   top: 44px;
   padding: 0;
   margin: 0;
-  max-height: 200px;
+  max-height: 147px;
   overflow-x: scroll;
   width: calc(100% - 2px);
 
   @include media_mobile {
     top: 32px;
+    max-height: 122px;
   }
 
   &.not-founds {
     width: calc(100% - 2px);
+
     i.user {
       left: 16px;
     }
@@ -140,18 +161,21 @@ ul {
     top: 88px;
     width: calc(100% - 2px);
     @include media_mobile {
-      top: 76px;
+      top: 72px;
     }
   }
 
   &.not-founds {
     height: fit-content;
+
     p {
       margin-left: 30px;
     }
   }
+
   &.tag {
     z-index: 1;
+
     input {
       width: 220px;
       @include media_mobile {
@@ -159,6 +183,7 @@ ul {
       }
     }
   }
+
   &.lead {
     input {
       @include media_mobile {
@@ -166,6 +191,7 @@ ul {
       }
     }
   }
+
   li {
     cursor: pointer;
     list-style: none;
@@ -174,14 +200,17 @@ ul {
     @include font(16px, 400, 24px, var(--text));
     display: flex;
     align-items: center;
+
     &:last-of-type {
       border: none;
     }
+
     .image-item {
       width: 20px;
       height: 20px;
-      margin-right: 8px;
+      margin-right: 12px;
     }
+
     .checkbox {
       width: 16px;
       height: 16px;
@@ -193,45 +222,61 @@ ul {
       display: flex;
       align-items: center;
       justify-content: center;
+
+      @include media_mobile {
+        margin-right: 8px;
+      }
+
       &.active {
         background: var(--accent);
         border: none;
+
         i.icon.check {
           display: block;
+
           &::before {
             background: var(--white);
           }
         }
       }
+
       &:active {
         background: var(--accent);
         border: none;
+
         i.icon.check {
           display: block;
+
           &::before {
             background: var(--white);
           }
         }
       }
+
       i.icon.check {
         display: none;
         width: 8px;
         height: 8px;
         left: 20px;
+
         &::before {
           background: var(--white);
         }
+
         @include media_mobile {
           left: 16px;
         }
       }
     }
+
     &:hover {
       background: var(--background_hover);
+
       .checkbox {
         border-color: var(--accent);
       }
     }
+
     @include media_mobile {
       font-size: 12px;
       line-height: 16px;
@@ -239,19 +284,22 @@ ul {
       height: 40px;
       box-sizing: border-box;
     }
+
     img.logo {
       width: 20px;
       height: 20px;
       border-radius: 10px;
-      margin-right: 8px;
+      margin-right: 12px;
       position: relative;
       top: 0;
       left: 0;
     }
+
     p {
       margin: 0;
       padding: 0;
     }
+
     .grey-block {
       width: 20px;
       height: 20px;

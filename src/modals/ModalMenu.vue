@@ -1,6 +1,6 @@
 <template lang="pug">
 app-modal.menu
-  template(v-slot:content)
+  template(#content)
     .modal-header
       .project-name(v-for="item in project", :key="item")
         p {{ item.name }}
@@ -50,6 +50,14 @@ const emit = defineEmits(["close"]);
 const route = useRoute();
 const foundProject = ref();
 const project = ref([]);
+watch(route, (to, from) => {
+  const newPath = to.path;
+  if (newPath.includes("/archive")) {
+    emit("close");
+  } else if (newPath.includes("/issues")) {
+    emit("close");
+  }
+});
 watch(
   () => route.params.key,
   (newKey, oldKey) => {

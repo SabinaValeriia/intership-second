@@ -11,8 +11,8 @@
       .teams-block__button(:class="{ selected: projectValue.length }")
         .teams-block__button-dropdown
           common-button.btn_primary.btn_icon(
-            @click="toggleDropdown('project')",
-            :class="{ selected: projectValue.length }"
+            :class="{ selected: projectValue.length }",
+            @click="toggleDropdown('project')"
           ) {{ projectValue.length ? projectValue[0].name : "Project" }}
             i.icon.projects(v-if="!projectValue.length")
             img(
@@ -25,16 +25,16 @@
               @click.stop="deleteProject('project')"
             )
           dropdown-component.teams-dropdown(
-            :isOpen="dropdownStates.project.isOpen",
+            :is-open="dropdownStates.project.isOpen",
             :data="projectNames",
-            @selectedItem="selectedItem",
-            :iconHere="true",
-            :type="'lead'"
+            :icon-here="true",
+            :type="'lead'",
+            @selectedItem="selectedItem"
           )
         .teams-block__button-dropdown
           common-button.btn_primary.btn_icon(
-            @click="toggleDropdown('manager')",
-            :class="{ selected: managerValue.length }"
+            :class="{ selected: managerValue.length }",
+            @click="toggleDropdown('manager')"
           ) {{ managerValue.length ? managerValue[0].name : "Manager" }}
             i.icon.member(v-if="!managerValue.length")
             div(v-else)
@@ -52,15 +52,15 @@
               @click.stop="deleteProject('manager')"
             )
           dropdown-component.teams-dropdown(
-            :isOpen="dropdownStates.manager.isOpen",
+            :is-open="dropdownStates.manager.isOpen",
             :data="leadNames",
-            @selectedItem="selectedItem",
-            :type="'lead'"
+            :type="'lead'",
+            @selectedItem="selectedItem"
           )
         .teams-block__button-dropdown
           common-button.btn_primary.btn_icon(
-            @click="toggleDropdown('department')",
-            :class="{ selected: departmentValue.length }"
+            :class="{ selected: departmentValue.length }",
+            @click="toggleDropdown('department')"
           ) {{ departmentValue.length ? departmentValue[0].name : "Department" }}
             i.icon.department
             i.icon.close(
@@ -68,7 +68,7 @@
               @click.stop="deleteProject('department')"
             )
           dropdown-component.teams-dropdown(
-            :isOpen="dropdownStates.department.isOpen",
+            :is-open="dropdownStates.department.isOpen",
             :data="departmentNames",
             @selectedItem="selectedItem"
           )

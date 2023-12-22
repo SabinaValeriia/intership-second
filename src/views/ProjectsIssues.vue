@@ -4,7 +4,7 @@
   .issues-panel
     form
       .form-group
-        .form-icon 
+        .form-icon
           input(v-model="searchText", placeholder="")
           i.icon.search
     .flex
@@ -16,16 +16,18 @@
             :class="{ select: typeItem.length }",
             @click.prevent="toggleDropdown('typeTasks')"
           ) {{ typeItem.length > 0 ? `Type: ${typeItem[0].name}` : "Type" }}
-            span.selected(v-if="typeItem.length > 1") + {{ typeItem.length - 1 }}
+            span.selected(v-if="typeItem.length > 1")
+              i.icon.plus
+              span {{ typeItem.length - 1 }}
             i.icon.arrow(:class="{ active: dropdownStates.typeTasks.isOpen }")
           dropdown-component(
             v-if="dropdownStates.typeTasks.isOpen",
-            :isOpen="dropdownStates.typeTasks.isOpen",
+            :is-open="dropdownStates.typeTasks.isOpen",
             :data="types",
-            :checkedItem="typeItem",
-            @selectedItem="selectedItem",
+            :checked-item="typeItem",
             :type="'checkbox'",
             :title="'Project types'",
+            @selectedItem="selectedItem",
             @clear="clear",
             @allItem="selectAllType"
           )
@@ -34,16 +36,18 @@
             :class="{ select: statusItem.length }",
             @click.prevent="toggleDropdown('status')"
           ) {{ statusItem.length > 0 ? `Status: ${statusItem[0].name}` : "Status" }}
-            span.selected(v-if="statusItem.length > 1") + {{ statusItem.length - 1 }}
+            span.selected(v-if="statusItem.length > 1")
+              i.icon.plus
+              span {{ statusItem.length - 1 }}
             i.icon.arrow(:class="{ active: dropdownStates.status.isOpen }")
           dropdown-component(
             v-if="dropdownStates.status.isOpen",
-            :isOpen="dropdownStates.status.isOpen",
+            :is-open="dropdownStates.status.isOpen",
             :data="statuses",
-            :checkedItem="statusItem",
-            @selectedItem="selectedItem",
+            :checked-item="statusItem",
             :type="'checkbox'",
             :title="'Status types'",
+            @selectedItem="selectedItem",
             @clear="clear",
             @allItem="selectAllStatus"
           )
@@ -66,10 +70,10 @@
             i.icon.close(v-if="assigneeItem", @click.stop="deleteAssignee")
           dropdown-component.tags__block(
             v-if="dropdownStates.assignee.isOpen",
-            :isOpen="dropdownStates.assignee.isOpen",
+            :is-open="dropdownStates.assignee.isOpen",
             :data="leadNames",
-            @selectedItem="selectedItem",
-            :type="'lead'"
+            :type="'lead'",
+            @selectedItem="selectedItem"
           )
         .dropdown-block
           common-button.btn_primary.btn_icon(
@@ -90,10 +94,10 @@
             i.icon.close(v-if="reporterItem", @click.stop="deleteReporter")
           dropdown-component.tags__block(
             v-if="dropdownStates.reporter.isOpen",
-            :isOpen="dropdownStates.reporter.isOpen",
+            :is-open="dropdownStates.reporter.isOpen",
             :data="leadNames",
-            @selectedItem="selectedItem",
-            :type="'lead'"
+            :type="'lead'",
+            @selectedItem="selectedItem"
           )
       common-button.reset.btn-secondary.laptop(
         v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
@@ -102,14 +106,14 @@
       common-button.reset.btn-secondary.mobile(
         v-if="assigneeItem || searchText || typeItem.length || statusItem.length || reporterItem",
         @click.prevent="reset"
-      ) 
+      )
         i.icon.reset
-  .issues-table 
+  .issues-table
     .column.type Type
     .column.key Key
       button.sort(
-        @click="sort('key', sortAction.status)",
-        :class="{ active: sortAction.name === 'key' }"
+        :class="{ active: sortAction.name === 'key' }",
+        @click="sort('key', sortAction.status)"
       )
         i.icon(
           :class="{ sort: sortAction.status === 'ASC', sort_down: sortAction.status === 'DESC' }"
@@ -123,7 +127,7 @@
     .issues-block(v-for="item in tasks", :key="item")
       .type(v-for="t in item.attributes.type", :key="t")
         i.icon(:class="getTaskTypeName(t.attributes.name)")
-      .key 
+      .key
         p {{ item.attributes.key }}
       router-link.summary(
         :to="{ name: 'issuesItem', params: { id: item.id } }"
@@ -156,10 +160,10 @@
       .status(
         v-for="t in item.attributes.status",
         :key="t",
-        :class="getSecondWord(t.attributes.name)"
+        :class="t.attributes.key"
       )
         p {{ t.attributes.name }}
-      .created 
+      .created
         p {{ formatDate(item.attributes.dueDate) }}
   .mobile-block(
     v-if="!isLoader",
@@ -174,12 +178,12 @@
             :to="{ name: 'issuesItem', params: { id: item.id } }"
           ) {{ item.attributes.title }}
           div
-            .key 
+            .key
               p {{ item.attributes.key }}
             .status(
               v-for="t in item.attributes.status",
               :key="t",
-              :class="getSecondWord(t.attributes.name)"
+              :class="t.attributes.key"
             )
               p {{ t.attributes.name }}
       .block-right
@@ -194,33 +198,31 @@
             alt="name"
           )
           img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
-        .created 
+        .created
           p {{ formatDate(item.attributes.dueDate) }}
-    common-loader(v-if="isLoader")
+  common-loader(v-if="isLoader")
   pagination-component(
-    v-show="lengthByProject > itemsPerPage && !noResultsShow && !isLoader",
-    :totalItems="totalTasks",
-    :itemsPerPage="itemsPerPage",
+    v-show="totalTasks > itemsPerPage && !noResultsShow && !isLoader",
+    :total-items="totalTasks",
+    :items-per-page="itemsPerPage",
     @onPageChange="handlePageChange"
   )
   no-results(
     v-if="noDataShow || (noResultsShow && filterUse)",
-    :noData="noDataShow",
-    :noResults="noResultsShow",
+    :no-data="noDataShow",
+    :no-results="noResultsShow",
     @reset="reset"
   )
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import NoResults from "@/components/NoResults.vue";
-import { showDataUser, leadNames } from "@/composables/userActions";
+import { leadNames, showDataUser } from "@/composables/userActions";
 import PaginationComponent from "@/components/common/PaginationComponent.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
 import { onMounted, ref, watch } from "vue";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { getTaskTypeName } from "@/composables/projectsAction";
-import { ProjectInterfaceItem } from "@/types/projectApiInterface";
-import { showProjects } from "@/services/api/projectApi";
 import {
   endIndex,
   itemsPerPage,
@@ -232,7 +234,7 @@ import { showTasks } from "@/services/api/tasksApi";
 import { showTypes } from "@/services/api/typeApi";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showStatus } from "@/services/api/statusApi";
-const foundProject = ref();
+
 const tasks = ref([]);
 const isLoader = ref(false);
 const typeItem = ref([]);
@@ -246,7 +248,7 @@ const reporterItem = ref("");
 const reporters = ref([]);
 const route = useRoute();
 const totalTasks = ref(null);
-const lengthByProject = ref(null);
+const lengthTasksByProject = ref(null);
 const noResultsShow = ref(false);
 const types = ref([]);
 const searchText = ref("");
@@ -297,7 +299,7 @@ const selectAllStatus = (item: [{ name: string; id: number }]) => {
   }
   dropdownStates.value.status.isOpen = false;
 };
-const selectedItem = (tag: { id: any; name: string }) => {
+const selectedItem = (tag: { id: number; name: string }) => {
   if (dropdownStates.value.typeTasks.isOpen) {
     if (!typeItem.value.includes(tag)) {
       typeItem.value.push(tag);
@@ -362,24 +364,17 @@ const fetchTasks = (filters: string) => {
   isLoader.value = true;
   noResultsShow.value = false;
   noDataShow.value = false;
-  showTasks(
-    `sort=key:ASC&filters[$and][0][project][key][$eq]=${route.params.key}`
-  ).then(({ data }) => {
-    lengthByProject.value = data.meta.pagination.total;
-  });
   return new Promise(() => {
     showTasks(
-      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&filters[$and][0][status][name][$ne]=Archive${filters}`
+      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&filters[$and][0][status][name][$ne]=Archive&filters[$and][0][project][key][$eq]=${route.params.key}${filters}`
     ).then((response) => {
-      tasks.value = response.data.data.filter(
-        (task: any) =>
-          task.attributes.project.data.attributes.key === route.params.key
-      );
+      tasks.value = response.data.data;
       totalTasks.value = response.data.meta.pagination.total;
+      lengthTasksByProject.value = response.data.data.length;
       isLoader.value = false;
       if (!totalTasks.value && filterUse.value) {
         noResultsShow.value = true;
-      } else if (!lengthByProject.value) {
+      } else if (!totalTasks.value) {
         noDataShow.value = true;
       }
     });
@@ -490,14 +485,6 @@ watch(
   },
   { deep: true }
 );
-const getSecondWord = (text: string) => {
-  const words = text.split(" ");
-  if (words.length >= 2) {
-    return words[1];
-  } else {
-    return words[0].toLowerCase();
-  }
-};
 onMounted(() => {
   fetchTasks("");
   showTypes().then(({ data }) => {
@@ -518,12 +505,13 @@ onMounted(() => {
   });
   showDataUser();
 });
+
 watch(
-  [() => route.params.key, lengthByProject],
-  ([newId, newLengthByProject], [oldId, oldLengthByProject]) => {
-    // Your logic here
+  [() => route.params.key, () => route.params.projectId],
+  ([newKey, newProjectId], [oldKey, oldProjectId]) => {
     fetchTasks("");
-  }
+  },
+  { immediate: true }
 );
 </script>
 
@@ -539,30 +527,39 @@ watch(
   @include media_mobile {
     padding: 0 16px;
     overflow: hidden;
+    height: 100vh;
   }
+
   &.toggle {
     .type {
       width: 3%;
     }
+
     .key {
       width: 7%;
     }
+
     .summary {
       width: 35%;
     }
+
     .assignee {
       width: 15%;
     }
+
     .reporter {
       width: 15%;
     }
+
     .status {
       width: 8%;
     }
+
     .created {
       width: 9%;
     }
   }
+
   h3 {
     @include font(24px, 500, 28px, var(--text));
     margin: 0;
@@ -570,6 +567,7 @@ watch(
       display: none;
     }
   }
+
   &-panel {
     margin: 28px 0 36px;
     display: flex;
@@ -579,29 +577,43 @@ watch(
       align-items: flex-start;
       width: 100%;
       margin: 28px 0 26px;
+      position: relative;
     }
     @include media_mobile {
       margin: 0 0 16px;
     }
+
     .flex {
       display: flex;
       @include media_mobile {
         .selected {
           overflow-x: auto;
-          width: 297px;
+          width: 301px;
         }
       }
     }
+
     .mobile-flex {
       display: flex;
     }
+
     .dropdown-block {
       position: relative;
       margin-left: 10px;
+      @include media_mobile {
+        position: inherit;
+      }
+
       .active {
         transform: rotate(180deg);
+        @include media_mobile {
+          margin: 2px 0 6px 6px;
+        }
       }
+
       .selected {
+        display: flex;
+        align-items: center;
         background: var(--accent);
         @include font(12px, 500, 16px, var(--white));
         padding: 4px 8px;
@@ -615,18 +627,39 @@ watch(
           right: 23px;
           top: 8px;
         }
+
+        i.plus {
+          position: relative;
+          width: 10px;
+          height: 10px;
+          margin-right: 4px;
+
+          &::before {
+            background: var(--white);
+          }
+
+          @include media_mobile {
+            width: 5px;
+            height: 5px;
+            margin-right: 2px;
+          }
+        }
       }
+
       .selectBtn {
         background: var(--accent);
       }
+
       .select {
         color: var(--accent);
+
         i.arrow {
           &::before {
             background: var(--accent);
           }
         }
       }
+
       @include media_tablet {
         margin-left: 8px;
         &:first-of-type {
@@ -636,15 +669,19 @@ watch(
       @include media_mobile {
         margin-left: 6px;
       }
+
       .drop-down {
         top: 61px;
         @include media_mobile {
-          top: 196px;
+          top: 87px;
           left: 16px;
-          position: fixed;
+          position: absolute;
+          width: 344px;
+          left: 0;
         }
       }
     }
+
     button {
       padding: 14px 16px;
       height: 48px;
@@ -658,6 +695,7 @@ watch(
         line-height: 16px;
         font-weight: 500;
       }
+
       &.btn_icon {
         img {
           width: 20px;
@@ -673,20 +711,24 @@ watch(
             left: 10px;
           }
         }
+
         i.close {
           position: relative;
           width: 12px;
           height: 12px;
           margin-left: 6px;
+
           &::before {
             background: var(--white);
           }
+
           @include media_mobile {
             width: 8px;
             height: 8px;
           }
         }
       }
+
       &.reset {
         margin-left: 10px;
         padding: 12px 26px;
@@ -700,28 +742,33 @@ watch(
           box-sizing: border-box;
           i.reset {
             position: relative;
+
             &::before {
               background: var(--white);
             }
           }
         }
+
         &.mobile {
           display: none;
           @include media_mobile {
             display: block;
           }
         }
+
         &.laptop {
           @include media_mobile {
             display: none;
           }
         }
       }
+
       &.btn_arrow {
         background: var(--white);
         border-color: var(--primary);
         color: var(--text);
       }
+
       i.arrow {
         position: relative;
         width: 16px;
@@ -733,26 +780,33 @@ watch(
           margin: 2px 0 0 6px;
         }
       }
+
       i.user {
         left: 16px;
+
         &::before {
           background: var(--white);
         }
+
         @include media_mobile {
           left: 10px;
         }
       }
+
       i.member {
         left: 16px;
+
         &::before {
           background: var(--white);
         }
+
         @include media_mobile {
           left: 10px;
         }
       }
     }
   }
+
   .type {
     width: 4%;
 
@@ -764,27 +818,34 @@ watch(
         top: 0;
       }
     }
+
     @include media_mobile {
       width: auto;
     }
   }
+
   .task-name {
     width: auto;
     @include media_mobile {
       margin-left: 10px;
     }
+
     a {
       @include font(12px, 500, 16px, var(--accent));
     }
+
     div {
       display: flex;
       align-items: center;
+
       p {
         margin: 0;
         white-space: nowrap;
       }
+
       .key {
         width: auto;
+
         p {
           font-size: 10px;
           line-height: 14px;
@@ -792,54 +853,66 @@ watch(
       }
     }
   }
+
   .key {
     width: 8%;
     display: flex;
     align-items: center;
     justify-content: space-between;
+
     p {
       @include font(14px, 500, 20px, var(--text));
     }
+
     button {
       background: transparent;
       border: none;
       padding: 0;
+
       i.sort {
         position: relative;
       }
+
       i.sort_down {
         position: relative;
       }
     }
   }
+
   .summary {
     width: 24%;
     text-decoration: none;
     @include media_small_laptop {
     }
+
     a {
       @include font(14px, 500, 20px, var(--accent));
     }
   }
+
   .assignee {
     width: 17%;
     display: flex;
     align-items: center;
     text-decoration: none;
+
     img {
       width: 32px;
       height: 32px;
       margin-right: 10px;
     }
+
     p {
       @include font(14px, 500, 20px, var(--accent));
     }
   }
+
   .reporter {
     width: 17%;
     display: flex;
     align-items: center;
     text-decoration: none;
+
     img {
       width: 32px;
       height: 32px;
@@ -850,19 +923,23 @@ watch(
         margin: 0 10px 0 0px;
       }
     }
+
     p {
       @include font(14px, 500, 20px, var(--accent));
     }
+
     @include media_mobile {
       width: auto;
       margin: 0 0 0 14px;
     }
   }
+
   .status {
     width: 10%;
     @include media_mobile {
       margin-left: 6px;
     }
+
     p {
       padding: 4px 6px;
       border-radius: 6px;
@@ -875,40 +952,48 @@ watch(
         line-height: 12px;
       }
     }
+
     &.progress {
       p {
         background: var(--notify_warning);
       }
     }
-    &.do {
+
+    &.to-do {
       p {
         background: var(--primary);
       }
     }
+
     &.review {
       p {
         background: var(--primary_hover);
       }
     }
+
     &.failed {
       p {
         background: var(--error);
       }
     }
+
     &.done {
       p {
         background: var(--notify_success);
       }
     }
+
     &.archive {
       p {
         background: var(--placeholder);
       }
     }
   }
+
   .created {
     width: 9%;
     white-space: nowrap;
+
     p {
       @include font(14px, 500, 20px, var(--text));
       @include media_mobile {
@@ -918,15 +1003,18 @@ watch(
         margin: 0 0 0 3px;
       }
     }
+
     @include media_mobile {
       width: auto;
     }
   }
+
   .tablet {
     @include media_mobile {
       display: none;
     }
   }
+
   .mobile-block {
     display: none;
     @include media_mobile {
@@ -936,6 +1024,7 @@ watch(
       }
     }
   }
+
   &-table {
     display: flex;
     align-items: center;
@@ -951,13 +1040,16 @@ watch(
       width: 100%;
       display: none;
     }
+
     .column {
       @include font(16px, 500, 24px, var(--text));
+
       &:last-of-type {
         margin-right: 0;
       }
     }
   }
+
   .issues-block {
     display: flex;
     align-items: center;
@@ -981,10 +1073,12 @@ watch(
       }
     }
   }
+
   form {
     @include media_tablet {
       width: calc(100% - 32px);
     }
+
     .form-group {
       margin-bottom: 0;
       @include media_tablet {
@@ -994,19 +1088,25 @@ watch(
         margin-bottom: 6px;
       }
     }
+
     i.search {
       right: 16px;
       @include media_mobile {
         left: 10px;
+        height: 13px;
+        width: 13px;
       }
     }
+
     input {
       width: 220px;
       @include media_tablet {
         width: 100%;
+        padding: 9px 10px 9px 29px;
       }
     }
   }
+
   .no-results {
     @include media_mobile {
       width: calc(100% - 32px);

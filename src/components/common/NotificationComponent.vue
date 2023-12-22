@@ -2,9 +2,9 @@
 .notification-block
   transition-group(name="block", tag="div")
     .notification(
-      :class="notification.type",
+      v-for="notification in notifications",
       :key="notification.key",
-      v-for="notification in notifications"
+      :class="notification.type"
     )
       p {{ notification.text }}
       button.icon.close(@click="removeNotification(notification.key)")
