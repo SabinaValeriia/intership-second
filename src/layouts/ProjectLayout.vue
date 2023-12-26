@@ -1,9 +1,9 @@
 <template lang="pug">
-.project-layout
+.project-layout(:class="{ toggle: isTablet() }")
   .project-layout__sidebar(:class="{ toggle }")
     .project-name(v-for="item in project", :key="item")
       img(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
-      p(v-if="!toggle") {{ item.name }}
+      p(v-if="!toggle", :class="{ toggle: isTablet() }") {{ item.name }}
     h2(v-if="!toggle") PLANNING
     router-link(
       :class="{ active: $route.path.includes('issues') }",
@@ -14,7 +14,10 @@
       .block-black
         i.icon.arrow-long
       .hover-block
-    a
+    router-link(
+      :class="{ active: $route.path.includes('board') }",
+      :to="{ name: 'boardItem' }"
+    )
       i.icon.kanban
       p(v-if="!toggle") Kanban board
       .block-black
@@ -57,6 +60,18 @@ const toggleBlock = () => {
   toggle.value = !toggle.value;
 };
 
+const isTablet = () => {
+  const minWidth = 600;
+  const maxWidth = 1024;
+
+  const screenWidth =
+    window.innerWidth ||
+    document.documentElement.clientWidth ||
+    document.body.clientWidth;
+
+  return screenWidth >= minWidth && screenWidth <= maxWidth;
+};
+
 const fetchProjects = () => {
   showProjectById(route.params.projectId).then(({ data }) => {
     project.value = [
@@ -81,6 +96,24 @@ watchEffect(() => {
   display: flex;
   background: var(--background);
   height: 100vh;
+
+  &.toggle {
+    @include media_tablet {
+      .project-layout__sidebar {
+        min-width: 64px;
+        max-width: 64px;
+        padding: 28px 6px;
+
+        h2 {
+          display: none;
+        }
+
+        p {
+          display: none;
+        }
+      }
+    }
+  }
 
   .mobile {
     display: none;
@@ -177,6 +210,11 @@ watchEffect(() => {
 
       .project-name {
         justify-content: center;
+        @include media_tablet {
+          p {
+            display: none;
+          }
+        }
       }
 
       a {
@@ -206,6 +244,9 @@ watchEffect(() => {
       display: flex;
       align-items: center;
       padding: 0 16px;
+      @include media_tablet {
+        justify-content: center;
+      }
 
       img {
         width: 32px;
@@ -229,6 +270,12 @@ watchEffect(() => {
 
       &:first-of-type {
         margin: 10px 0 0 0;
+      }
+
+      @include media_tablet {
+        &:first-of-type {
+          margin: 60px 0 0 0;
+        }
       }
 
       i.arrow-long {

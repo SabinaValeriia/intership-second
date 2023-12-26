@@ -1,30 +1,30 @@
 <template lang="pug">
 .footer
-  .footer__block 
-    i.icon.home 
+  .footer__block
+    i.icon.home
     p Home
   a.footer__block(
-    v-if="$route.path.includes('issues') || $route.path.includes('archive')",
+    v-if="$route.path.includes('issues') || $route.path.includes('archive') || $route.path.includes('board')",
     :class="{ active: $route.path.includes('projects') }",
     @click="openModal(EnumModalKeys.ModalMenu)"
   )
-    i.icon.projects 
+    i.icon.projects
     p Projects
   router-link.footer__block(
     v-else,
     :class="{ active: $route.path.includes('projects') }",
     to="/dashboard/projects"
   )
-    i.icon.projects 
+    i.icon.projects
     p Projects
   a.footer__block
-    i.icon.tasks 
+    i.icon.tasks
     p Issues
   router-link.footer__block(
     to="/dashboard/teams",
     :class="{ active: isRouteActive('teams') || $route.path.includes('teams') }"
-  ) 
-    i.icon.user 
+  )
+    i.icon.user
     p Members
 modal-menu(
   v-if="isOpen(EnumModalKeys.ModalMenu)",
@@ -33,13 +33,12 @@ modal-menu(
 )
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useRoute } from "vue-router";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
-import { openModal, isOpen } from "@/composables/modalActions";
-import ModalHeader from "@/modals/ModalHeader.vue";
-import ModalCreate from "@/modals/ModalCreate.vue";
+import { isOpen, openModal } from "@/composables/modalActions";
 import ModalMenu from "@/modals/ModalMenu.vue";
+
 const route = useRoute();
 const isRouteActive = (routeName: string) => {
   if (route.name === routeName) {
@@ -51,7 +50,7 @@ const close = () => {
 };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .footer {
   position: fixed;
   bottom: 0;
@@ -66,11 +65,13 @@ const close = () => {
   @include media_mobile {
     display: flex;
   }
+
   &__block {
     display: flex;
     align-items: center;
     flex-direction: column;
     text-decoration: none;
+
     &:hover {
       color: var(--background);
 
@@ -82,6 +83,7 @@ const close = () => {
         color: var(--background);
       }
     }
+
     &.active {
       color: var(--background);
 
@@ -93,14 +95,17 @@ const close = () => {
         color: var(--background);
       }
     }
+
     i {
       width: 26px;
       height: 26px;
       margin-bottom: 4px;
+
       &::before {
         background-color: var(--primary);
       }
     }
+
     p {
       margin: 30px 0 0 0;
       @include font(12px, 500, 14px, var(--primary));

@@ -1,151 +1,208 @@
 .icon {
-    width: 20px;
-    height: 20px;
+  width: 20px;
+  height: 20px;
+  display: block;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  position: absolute;
+  cursor: pointer;
+
+  &:before {
+    content: "";
     display: block;
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    position: absolute;
-    cursor: pointer;
-    &:before {
-        content: "";
-        display: block;
-        background: var(--text);
-        width: 100%;
-        height: 100%;
+    background: var(--text);
+    width: 100%;
+    height: 100%;
+  }
+
+  &.password-hide {
+    mask-image: url("../assets/icons/visible-not.svg");
+  }
+
+  &.password-show {
+    mask-image: url("../assets/icons/visible.svg");
+  }
+
+  &.close {
+    mask-image: url("../assets/icons/close.svg");
+  }
+
+  &.search {
+    mask-image: url("@/assets/icons/search.svg");
+  }
+
+  &.home {
+    mask-image: url("@/assets/icons/home.svg");
+  }
+
+  &.projects {
+    mask-image: url("@/assets/icons/projects.svg");
+  }
+
+  &.tasks {
+    mask-image: url("@/assets/icons/tasks.svg");
+  }
+
+  &.user {
+    mask-image: url("@/assets/icons/user.svg");
+  }
+
+  &.info {
+    mask-image: url("@/assets/icons/info_2.svg");
+  }
+
+  &.setting {
+    mask-image: url("@/assets/icons/setting.svg");
+  }
+
+  &.logout {
+    mask-image: url("@/assets/icons/logout.svg");
+  }
+
+  &.arrow {
+    mask-image: url("@/assets/icons/arrow.svg");
+  }
+
+  &.logo_header {
+    background: url("@/assets/icons/logo_header.svg");
+    width: 55px;
+    height: 72px;
+
+    &::before {
+      background: transparent;
     }
-    &.password-hide {
-        mask-image: url("../assets/icons/visible-not.svg");
+  }
+
+  &.info_second {
+    mask-image: url("@/assets/icons/info_2.svg");
+
+    &::before {
+      background-color: var(--text);
     }
-    &.password-show {
-        mask-image: url("../assets/icons/visible.svg");
+  }
+
+  &.icon-close {
+    mask-image: url("@/assets/icons/close.svg");
+  }
+
+  &.check {
+    mask-image: url("@/assets/icons/check.svg");
+  }
+
+  &.unchecked {
+    mask-image: url("@/assets/icons/unchecked_star.svg");
+  }
+
+  &.star {
+    mask-image: url("@/assets/icons/star.svg");
+  }
+
+  &.sort {
+    mask-image: url("@/assets/icons/sort.svg");
+  }
+
+  &.sort_down {
+    mask-image: url("@/assets/icons/sort_down.svg");
+  }
+
+  &.default_user {
+    mask-image: url("@/assets/icons/default_user.svg");
+  }
+
+  &.plus {
+    mask-image: url("@/assets/icons/plus.svg");
+  }
+
+  &.member {
+    mask-image: url("@/assets/icons/member.svg");
+  }
+
+  &.reset {
+    mask-image: url("@/assets/icons/reset.svg");
+
+    &::before {
+      background: var(--white);
     }
-    &.close {
-        mask-image: url("../assets/icons/close.svg");
+  }
+
+  &.department {
+    mask-image: url("@/assets/icons/department.svg");
+  }
+
+  &.foto {
+    mask-image: url("@/assets/icons/foto.svg");
+  }
+
+  &.company {
+    mask-image: url("@/assets/icons/company.svg");
+  }
+
+  &.compass {
+    mask-image: url("@/assets/icons/compass.svg");
+  }
+
+  &.case {
+    mask-image: url("@/assets/icons/case.svg");
+  }
+
+  &.dot {
+    mask-image: url("@/assets/icons/dot.svg");
+  }
+
+  &.improvement {
+    mask-image: url("@/assets/icons/improvement.svg");
+
+    &::before {
+      background: var(--notify_warning);
     }
-    &.search {
-        mask-image: url("@/assets/icons/search.svg");
+  }
+
+  &.bug {
+    mask-image: url("@/assets/icons/bug.svg");
+
+    &::before {
+      background: var(--error);
     }
-    &.home {
-        mask-image: url("@/assets/icons/home.svg");
+  }
+
+  &.feature {
+    mask-image: url("@/assets/icons/feature.svg");
+
+    &::before {
+      background: var(--accent);
     }
-    &.projects {
-        mask-image: url("@/assets/icons/projects.svg");
-    }
-    &.tasks {
-        mask-image: url("@/assets/icons/tasks.svg");
-    }
-    &.user {
-        mask-image: url("@/assets/icons/user.svg");
-    }
-    &.info {
-        mask-image: url("@/assets/icons/info_2.svg");
-    }
-    &.setting {
-        mask-image: url("@/assets/icons/setting.svg");
-    }
-    &.logout {
-        mask-image: url("@/assets/icons/logout.svg");
-    }
-    &.arrow {
-        mask-image: url("@/assets/icons/arrow.svg");
-    }
-    &.logo_header {
-        background: url("@/assets/icons/logo_header.svg");
-        width: 55px;
-        height: 72px;
-        &::before {
-            background: transparent;
-        }
-    }
-    &.info_second {
-        mask-image: url("@/assets/icons/info_2.svg");
-        &::before {
-            background-color: var(--text);
-        }
-    }
-    &.icon-close {
-        mask-image: url("@/assets/icons/close.svg");
-    }
-    &.check {
-        mask-image: url("@/assets/icons/check.svg");
-    }
-    &.unchecked {
-        mask-image: url("@/assets/icons/unchecked_star.svg");
-    }
-    &.star {
-        mask-image: url("@/assets/icons/star.svg");
-    }
-    &.sort {
-        mask-image: url("@/assets/icons/sort.svg");
-    }
-    &.sort_down {
-        mask-image: url("@/assets/icons/sort_down.svg");
-    }
-    &.default_user {
-        mask-image: url("@/assets/icons/default_user.svg");
-    }
-    &.plus {
-        mask-image: url("@/assets/icons/plus.svg");
-    }
-    &.member {
-        mask-image: url("@/assets/icons/member.svg");
-    }
-    &.reset {
-        mask-image: url("@/assets/icons/reset.svg");
-    }
-    &.department {
-        mask-image: url("@/assets/icons/department.svg");
-    }
-    &.foto {
-        mask-image: url("@/assets/icons/foto.svg");
-    }
-    &.company {
-        mask-image: url("@/assets/icons/company.svg");
-    }
-    &.compass {
-        mask-image: url("@/assets/icons/compass.svg");
-    }
-    &.case {
-        mask-image: url("@/assets/icons/case.svg");
-    }
-    &.dot {
-        mask-image: url("@/assets/icons/dot.svg");
-    }
-    &.improvement {
-        mask-image: url("@/assets/icons/improvement.svg");
-        &::before {
-            background: var(--notify_warning);
-        }
-    }
-    &.bug {
-        mask-image: url("@/assets/icons/bug.svg");
-        &::before {
-            background: var(--error);
-        }
-    }
-    &.feature {
-        mask-image: url("@/assets/icons/feature.svg");
-        &::before {
-            background: var(--accent);
-        }
-    }
-    &.tasks_board {
-        mask-image: url("@/assets/icons/tasks_board.svg");
-    }
-    &.kanban {
-        mask-image: url("@/assets/icons/kanban.svg");
-    }
-    &.archive {
-        mask-image: url("@/assets/icons/archive.svg");
-    }
-    &.details {
-        mask-image: url("@/assets/icons/details.svg");
-    }
-    &.arrow-long {
-        mask-image: url("@/assets/icons/arrow-long.svg");
-    }
-    @include media_mobile {
-        width: 16px;
-        height: 16px;
-    }
+  }
+
+  &.tasks_board {
+    mask-image: url("@/assets/icons/tasks_board.svg");
+  }
+
+  &.kanban {
+    mask-image: url("@/assets/icons/kanban.svg");
+  }
+
+  &.archive {
+    mask-image: url("@/assets/icons/archive.svg");
+  }
+
+  &.details {
+    mask-image: url("@/assets/icons/details.svg");
+  }
+
+  &.arrow-long {
+    mask-image: url("@/assets/icons/arrow-long.svg");
+  }
+
+  &.clock {
+    mask-image: url("@/assets/icons/clock.svg");
+  }
+
+  &.menu {
+    mask-image: url("@/assets/icons/menu.svg");
+  }
+
+  @include media_mobile {
+    width: 16px;
+    height: 16px;
+  }
 }
