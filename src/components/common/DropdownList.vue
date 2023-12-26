@@ -9,12 +9,12 @@
     button(@click.prevent="clearAll") Clear
 ul(
   v-if="filteredData.length",
-  :class="({ checkbox: type === 'checkbox' }, type)"
+  :class="({ checkbox: type === 'checkbox' }, type, className)"
 )
   li(
     v-for="(item, index) in filteredData",
     :key="index",
-    @click="selectItem(item)"
+    @click.stop="selectItem(item)"
   )
     .image-item(v-if="type === 'lead'")
       img.logo(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
@@ -50,6 +50,7 @@ import { defineProps, ref } from "vue";
 const props = defineProps({
   type: { type: String },
   title: { type: String },
+  className: { type: String },
   checkedItem: { type: Array },
   filteredData: { type: Array },
 });
@@ -136,6 +137,17 @@ ul {
   max-height: 147px;
   overflow-x: scroll;
   width: calc(100% - 2px);
+  z-index: 1001;
+  pointer-events: auto;
+
+  &.name {
+    width: 160px;
+    border-radius: 4px;
+    box-shadow: 0px 4px 16px 0px rgba(61, 55, 52, 0.08),
+      0px 2px 4px 0px rgba(61, 55, 52, 0.04),
+      0px 0px 2px 0px rgba(61, 55, 52, 0.16);
+    right: 6px;
+  }
 
   @include media_mobile {
     top: 32px;
@@ -209,6 +221,11 @@ ul {
       width: 20px;
       height: 20px;
       margin-right: 12px;
+      @include media_mobile {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+      }
     }
 
     .checkbox {
@@ -293,6 +310,11 @@ ul {
       position: relative;
       top: 0;
       left: 0;
+      @include media_mobile {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+      }
     }
 
     p {

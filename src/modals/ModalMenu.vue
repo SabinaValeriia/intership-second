@@ -5,28 +5,22 @@ app-modal.menu
       .project-name(v-for="item in project", :key="item")
         p {{ item.name }}
     .modal-body
-      router-link(
-        :class="{ active: $route.path.includes('issues') }",
-        :to="{ name: 'projectsTasks' }"
-      )
+      router-link(:to="{ name: 'projectsTasks' }")
         i.icon.tasks_board
         p Issues
-        .block-black 
+        .block-black
           i.icon.arrow-long
         .hover-block
-      a
+      router-link(:to="{ name: 'boardItem' }")
         i.icon.kanban
         p Kanban board
-        .block-black 
+        .block-black
           i.icon.arrow-long
         .hover-block
-      router-link(
-        :class="{ active: $route.path.includes('archive') }",
-        :to="{ name: 'archiveTasks' }"
-      )
+      router-link(:to="{ name: 'archiveTasks' }")
         i.icon.archive
         p Archive
-        .block-black 
+        .block-black
           i.icon.arrow-long
         .hover-block
       a
@@ -40,12 +34,13 @@ app-modal.menu
     .modal-footer
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
 import AppModal from "./AppModal.vue";
 import { showProjects } from "@/services/api/projectApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
 import { useRoute } from "vue-router";
+
 const emit = defineEmits(["close"]);
 const route = useRoute();
 const foundProject = ref();
@@ -91,12 +86,14 @@ onMounted(() => {
     display: flex;
     justify-content: center;
     align-items: center;
+
     p {
       margin: 12px 0 14px;
       @include font(16px, 500, 26px, var(--text));
     }
   }
 }
+
 .modal-body {
   a {
     padding: 12px 16px;
@@ -104,42 +101,53 @@ onMounted(() => {
     align-items: center;
     position: relative;
     text-decoration: none;
+
     i.arrow-long {
       display: none;
     }
+
     &.position {
       margin: 19px 0 0 0;
     }
+
     i.icon {
       position: relative;
       width: 20px;
       height: 20px;
     }
-    &.active {
+
+    &.router-link-active {
       background: var(--primary);
       border-radius: 6px;
+
       &:hover {
         height: 48px;
         box-sizing: border-box;
+
         .hover-block {
           display: none;
         }
       }
+
       p {
         color: var(--white);
       }
+
       i.icon {
         &::before {
           background: var(--white);
         }
       }
+
       .hover-block {
         display: block;
       }
     }
+
     &:hover {
       background: var(--secondary);
       border-radius: 6px;
+
       .block-black {
         background: var(--text);
         width: 20px;
@@ -147,6 +155,7 @@ onMounted(() => {
         border-radius: 10px;
         position: absolute;
         right: 16px;
+
         i.arrow-long {
           width: 10px;
           height: 10px;
@@ -154,12 +163,14 @@ onMounted(() => {
           top: 4px;
           left: 5px;
           display: block;
+
           &::before {
             background: var(--white);
           }
         }
       }
     }
+
     .hover-block {
       width: 5px;
       height: 22px;
@@ -171,6 +182,7 @@ onMounted(() => {
       display: none;
     }
   }
+
   p {
     margin: 0 0 0 12px;
     @include font(16px, 500, 24px, var(--text));

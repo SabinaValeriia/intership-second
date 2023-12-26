@@ -8,3 +8,11 @@ export const showTasks = (
   const url = `task?populate=*&${queryParam}`;
   return axiosInstance.get(url);
 };
+
+export const updateTask = (
+  taskId: string,
+  data: any
+): Promise<AxiosResponse<any>> => {
+  const url = `/task/${taskId}?populate=*&`;
+  return axiosInstance.put(url, data);
+};
