@@ -98,7 +98,10 @@
               i.icon(
                 :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
               )
-              button.menu(@click.prevent="toggleClose(task.id)")
+              button.menu(
+                :class="{ active: openDropdownIndex === task.id }",
+                @click.prevent="toggleClose(task.id)"
+              )
                 i.icon.menu
               p {{ task.attributes.title }}
               .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
@@ -173,7 +176,10 @@
               i.icon(
                 :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
               )
-              button.menu(@click.prevent="toggleClose(task.id)")
+              button.menu(
+                :class="{ active: openDropdownIndex === task.id }",
+                @click.prevent="toggleClose(task.id)"
+              )
                 i.icon.menu
               p {{ task.attributes.title }}
               .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
@@ -239,7 +245,10 @@
               i.icon(
                 :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
               )
-              button.menu(@click.prevent="toggleClose(task.id)")
+              button.menu(
+                :class="{ active: openDropdownIndex === task.id }",
+                @click.prevent="toggleClose(task.id)"
+              )
                 i.icon.menu
               p {{ task.attributes.title }}
               .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
@@ -309,7 +318,10 @@
               i.icon(
                 :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
               )
-              button.menu(@click.prevent="toggleClose(task.id)")
+              button.menu(
+                :class="{ active: openDropdownIndex === task.id }",
+                @click.prevent="toggleClose(task.id)"
+              )
                 i.icon.menu
               p {{ task.attributes.title }}
               .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
@@ -375,7 +387,10 @@
               i.icon(
                 :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
               )
-              button.menu(@click.prevent="toggleClose(task.id)")
+              button.menu(
+                :class="{ active: openDropdownIndex === task.id }",
+                @click.prevent="toggleClose(task.id)"
+              )
                 i.icon.menu
               p {{ task.attributes.title }}
               .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
@@ -933,14 +948,30 @@ watch(
           border-radius: 18px;
         }
 
-        &.active {
-          width: 50px;
-          height: 50px;
-          border-radius: 27px;
+        &:hover {
+          width: 54px;
+          height: 54px;
+          border-radius: 29px;
           border-color: var(--accent_hover);
           z-index: 10;
           position: relative;
-          margin: -3px 0 0 0;
+          margin: -5px 0 0 0;
+          @include media_mobile {
+            width: 42px;
+            height: 42px;
+            position: absolute;
+            margin: -5px 0 0 -5px;
+          }
+        }
+
+        &.active {
+          width: 54px;
+          height: 54px;
+          border-radius: 29px;
+          border-color: var(--accent_hover);
+          z-index: 10;
+          position: relative;
+          margin: -5px 0 0 0;
           @include media_mobile {
             width: 34px;
             height: 34px;
@@ -1098,6 +1129,14 @@ watch(
         right: 6px;
         border: none;
         pointer-events: auto;
+
+        &:hover {
+          background: var(--primary_hover);
+        }
+
+        &.active {
+          background: var(--primary_hover);
+        }
 
         i.icon.menu {
           right: 4px;
