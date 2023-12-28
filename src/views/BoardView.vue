@@ -221,13 +221,13 @@ const menuDone = ref(generateMenu(true, true));
 
 const columns = ref([
   {
-    column: "To do",
+    column: "To Do",
     status: "toDo",
     data: menuToDo,
     className: "board-block--first",
   },
   {
-    column: "In progress",
+    column: "In Progress",
     status: "inProgress",
     data: menu,
     className: "board-block--second",
@@ -239,7 +239,7 @@ const columns = ref([
     className: "board-block--third",
   },
   {
-    column: "Testing failed",
+    column: "Testing Failed",
     data: menu,
     status: "failed",
     className: "board-block--fourth",
@@ -327,7 +327,7 @@ const log = (event: Event) => {
   )
     .trim()
     .replace(/(\S+)\s+(\S+)/, (match, firstWord, secondWord) => {
-      return `${firstWord} ${secondWord.toLowerCase()}`;
+      return `${firstWord} ${secondWord}`;
     });
   searchIdStatus(taskId, modifiedToColumn);
 };

@@ -36,10 +36,10 @@ export interface ShowTasks {
 }
 
 export enum Statuses {
-  toDo = "To do",
-  inProgress = "In progress",
+  toDo = "To Do",
+  inProgress = "In Progress",
   review = "Review",
-  failed = "Testing failed",
+  failed = "Testing Failed",
   done = "Done",
   archive = "Archive",
 }
