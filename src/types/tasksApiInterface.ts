@@ -13,7 +13,6 @@ export interface ResTasks {
 }
 
 export interface ShowTasks {
-  [x: string]: any;
   createdAt: string;
   description: string;
   dueDate: string;
@@ -32,4 +31,15 @@ export interface ShowTasks {
       };
     }
   ];
+
+  [x: string]: any;
+}
+
+export enum Statuses {
+  toDo = "To do",
+  inProgress = "In progress",
+  review = "Review",
+  failed = "Testing failed",
+  done = "Done",
+  archive = "Archive",
 }

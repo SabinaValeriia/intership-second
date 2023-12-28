@@ -60,382 +60,105 @@
       )
         i.icon.reset
   .board-block
-    .board-box.board-block--first
-      h4 To do {{ countToDoTasks("To do") }}
-      draggable.tablet(v-model="tasks", tag="ul", group="tasks", @end="log")
-        template(#item="{ element: task }")
-          li(v-if="task.attributes.status.data.attributes.name === 'To do'")
-            router-link(:to="{ name: 'issuesItem', params: { id: task.id } }")
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
-              )
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-      ul.mobile(:class="{ disabled: dropdownStates.menu.isOpen }")
-        div(v-for="task in tasks", :key="task")
-          li(v-if="task.attributes.status.data.attributes.name === 'To do'")
-            router-link(
-              :to="{ name: 'issuesItem', params: { id: task.id } }",
-              @click.stop
+    div(v-for="column in columns", :key="column")
+      .board-box(:class="column.className")
+        h4 {{ column.column }} {{ countToDoTasks(column.column) }}
+        draggable.tablet(
+          v-model="filterTask[column.status]",
+          tag="ul",
+          group="tasks",
+          @end="log"
+        )
+          template(#item="{ element }")
+            li(
+              v-if="element.attributes.status.data.attributes.name === column.column",
+              :data-task-id="element.id",
+              :class="{ disabled: column.disabled }"
             )
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
+              router-link(
+                :to="{ name: 'issuesItem', params: { id: element.id } }"
               )
-              button.menu(
-                :class="{ active: openDropdownIndex === task.id }",
-                @click.prevent="toggleClose(task.id)"
-              )
-                i.icon.menu
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-            dropdown-list.menu(
-              v-if="openDropdownIndex === task.id",
-              :filtered-data="menuToDo",
-              :type="'menu'",
-              :class-name="'name'",
-              @selectedItem="selectedItem(task, $event)"
+                i.icon(
+                  :class="getTaskTypeName(element.attributes.type.data.attributes.name)"
+                )
+                p {{ element.attributes.title }}
+                .tags-block(
+                  v-for="tag in element.attributes.tags.data",
+                  :key="tag"
+                )
+                  .tag {{ tag.attributes.name }}
+                .block-desc
+                  p.key {{ element.attributes.key }}
+                  div
+                    p.date(
+                      v-if="element.attributes.dueDate",
+                      :class="isTaskOverdue(element.attributes.dueDate, element.attributes.createdAt, element.attributes.status.data.attributes.name)"
+                    ) {{ formatDate(element.attributes.dueDate) }}
+                      i.icon.clock
+                    img.logo(
+                      v-if="element.attributes.asignee.data.attributes.image",
+                      :src="JSON.parse(element.attributes.asignee.data.attributes.image.name)",
+                      alt="name"
+                    )
+                    img(
+                      v-else,
+                      :src="require(`@/assets/icons/default_user.svg`)"
+                    )
+        ul.mobile(:class="{ disabled: dropdownStates.menu.isOpen }")
+          div(v-for="task in tasks", :key="task")
+            li(
+              v-if="task.attributes.status.data.attributes.name === column.column"
             )
-    .board-box.board-block--second
-      h4 In progress {{ countToDoTasks("In progress") }}
-      draggable.tablet(
-        v-model="tasks",
-        tag="ul",
-        group="tasks",
-        @end="log($event)"
-      )
-        template(#item="{ element: task }")
-          li(
-            v-if="task.attributes.status.data.attributes.name === 'In progress'"
-          )
-            router-link(:to="{ name: 'issuesItem', params: { id: task.id } }")
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
+              router-link(
+                :to="{ name: 'issuesItem', params: { id: task.id } }",
+                @click.stop
               )
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-      ul.mobile(:class="{ disabled: dropdownStates.menu.isOpen }")
-        div(v-for="task in tasks", :key="task")
-          li(
-            v-if="task.attributes.status.data.attributes.name === 'In progress'"
-          )
-            router-link(
-              :to="{ name: 'issuesItem', params: { id: task.id } }",
-              @click.stop
-            )
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
+                i.icon(
+                  :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
+                )
+                button.menu(
+                  :class="{ active: openDropdownIndex === task.id }",
+                  @click.prevent="toggleClose(task.id)"
+                )
+                  i.icon.menu
+                p {{ task.attributes.title }}
+                .tags-block(
+                  v-for="tag in task.attributes.tags.data",
+                  :key="tag"
+                )
+                  .tag {{ tag.attributes.name }}
+                .block-desc
+                  p.key {{ task.attributes.key }}
+                  div
+                    p.date(
+                      v-if="task.attributes.dueDate",
+                      :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
+                    ) {{ formatDate(task.attributes.dueDate) }}
+                      i.icon.clock
+                    img.logo(
+                      v-if="task.attributes.asignee.data.attributes.image",
+                      :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
+                      alt="name"
+                    )
+                    img(
+                      v-else,
+                      :src="require(`@/assets/icons/default_user.svg`)"
+                    )
+              dropdown-list.menu(
+                v-if="openDropdownIndex === task.id",
+                :filtered-data="column.data",
+                :type="'menu'",
+                :class-name="'name'",
+                @selectedItem="selectedItem(task, $event)"
               )
-              button.menu(
-                :class="{ active: openDropdownIndex === task.id }",
-                @click.prevent="toggleClose(task.id)"
-              )
-                i.icon.menu
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-            dropdown-list.menu(
-              v-if="openDropdownIndex === task.id",
-              :filtered-data="menu",
-              :type="'menu'",
-              :class-name="'name'",
-              @selectedItem="selectedItem(task, $event)"
-            )
-    .board-box.board-block--third
-      h4 Review {{ countToDoTasks("Review") }}
-      draggable.tablet(v-model="tasks", tag="ul", group="tasks", @end="log")
-        template(#item="{ element: task }")
-          li(v-if="task.attributes.status.data.attributes.name === 'Review'")
-            router-link(:to="{ name: 'issuesItem', params: { id: task.id } }")
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
-              )
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-      ul.mobile(:class="{ disabled: dropdownStates.menu.isOpen }")
-        div(v-for="task in tasks", :key="task")
-          li(v-if="task.attributes.status.data.attributes.name === 'Review'")
-            router-link(
-              :to="{ name: 'issuesItem', params: { id: task.id } }",
-              @click.stop
-            )
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
-              )
-              button.menu(
-                :class="{ active: openDropdownIndex === task.id }",
-                @click.prevent="toggleClose(task.id)"
-              )
-                i.icon.menu
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-            dropdown-list.menu(
-              v-if="openDropdownIndex === task.id",
-              :filtered-data="menu",
-              :type="'menu'",
-              :class-name="'name'",
-              @selectedItem="selectedItem(task, $event)"
-            )
-    .board-box.board-block--fourth
-      h4 Testing failed {{ countToDoTasks("Testing failed") }}
-      draggable.tablet(v-model="tasks", tag="ul", group="tasks", @end="log")
-        template(#item="{ element: task }")
-          li(
-            v-if="task.attributes.status.data.attributes.name === 'Testing failed'"
-          )
-            router-link(:to="{ name: 'issuesItem', params: { id: task.id } }")
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
-              )
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-      ul.mobile(:class="{ disabled: dropdownStates.menu.isOpen }")
-        div(v-for="task in tasks", :key="task")
-          li(
-            v-if="task.attributes.status.data.attributes.name === 'Testing failed'"
-          )
-            router-link(
-              :to="{ name: 'issuesItem', params: { id: task.id } }",
-              @click.stop
-            )
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
-              )
-              button.menu(
-                :class="{ active: openDropdownIndex === task.id }",
-                @click.prevent="toggleClose(task.id)"
-              )
-                i.icon.menu
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-            dropdown-list.menu(
-              v-if="openDropdownIndex === task.id",
-              :filtered-data="menu",
-              :type="'menu'",
-              :class-name="'name'",
-              @selectedItem="selectedItem(task, $event)"
-            )
-    .board-box.board-block--fifth
-      h4 Done {{ countToDoTasks("Done") }}
-      draggable.tablet(v-model="tasks", tag="ul", group="tasks", @end="log")
-        template(#item="{ element: task }")
-          li(v-if="task.attributes.status.data.attributes.name === 'Done'")
-            router-link(:to="{ name: 'issuesItem', params: { id: task.id } }")
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
-              )
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-      ul.mobile(:class="{ disabled: dropdownStates.menu.isOpen }")
-        div(v-for="task in tasks", :key="task")
-          li(v-if="task.attributes.status.data.attributes.name === 'Done'")
-            router-link(
-              :to="{ name: 'issuesItem', params: { id: task.id } }",
-              @click.stop
-            )
-              i.icon(
-                :class="getTaskTypeName(task.attributes.type.data.attributes.name)"
-              )
-              button.menu(
-                :class="{ active: openDropdownIndex === task.id }",
-                @click.prevent="toggleClose(task.id)"
-              )
-                i.icon.menu
-              p {{ task.attributes.title }}
-              .tags-block(v-for="tag in task.attributes.tags.data", :key="tag")
-                .tag {{ tag.attributes.name }}
-              .block-desc
-                p.key {{ task.attributes.key }}
-                div
-                  p.date(
-                    v-if="task.attributes.dueDate",
-                    :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
-                  ) {{ formatDate(task.attributes.dueDate) }}
-                    i.icon.clock
-                  img.logo(
-                    v-if="task.attributes.asignee.data.attributes.image",
-                    :src="JSON.parse(task.attributes.asignee.data.attributes.image.name)",
-                    alt="name"
-                  )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
-            dropdown-list.menu(
-              v-if="openDropdownIndex === task.id",
-              :filtered-data="menuDone",
-              :type="'menu'",
-              :class-name="'name'",
-              @selectedItem="selectedItem(task, $event)"
-            )
   common-loader(v-if="isLoader")
 </template>
 
 <script lang="ts" setup>
 import { leadNames, showDataUser } from "@/composables/userActions";
-import CommonLoader from "@/components/common/CommonLoader.vue";
 import CommonButton from "@/components/common/CommonButton.vue";
 import DropdownSearch from "@/components/common/DropdownSearch.vue";
+import DropdownList from "@/components/common/DropdownList.vue";
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { showProjects } from "@/services/api/projectApi";
@@ -446,16 +169,9 @@ import Draggable from "vuedraggable";
 import { getTaskTypeName } from "@/composables/projectsAction";
 import { page } from "@/composables/pagination";
 import { showStatus } from "@/services/api/statusApi";
-import DropdownList from "@/components/common/DropdownList.vue";
+import { ResTasks, Statuses } from "@/types/tasksApiInterface";
 
 const components: { draggable: any } = { Draggable };
-
-enum TaskStatus {
-  ToDo = "To do",
-  InProgress = "In progress",
-  Review = "Review",
-  TestingFailed = "Testing failed",
-}
 
 const route = useRoute();
 const foundProject = ref();
@@ -470,9 +186,9 @@ const filter = ref("");
 const searchText = ref("");
 const totalTasks = ref(null);
 const searchStatus = ref();
-const searchId = ref();
 const openDropdownIndex = ref(-1);
 const filterUse = ref(false);
+const filterTask = ref({});
 const dropdownStates = ref({
   typeTasks: { isOpen: false },
   assignee: { isOpen: false },
@@ -484,7 +200,7 @@ const generateMenu = (moveBackStatus: boolean, moveNextStatus: boolean) => {
     {
       name: "Move back",
       icon: "arrow-long",
-      class: moveBackStatus ? "left" : "",
+      class: "left",
       status: moveBackStatus ? "disabled" : "",
     },
     {
@@ -503,6 +219,70 @@ const menu = ref(generateMenu(false, false));
 const menuToDo = ref(generateMenu(true, false));
 const menuDone = ref(generateMenu(true, true));
 
+const columns = ref([
+  {
+    column: "To do",
+    status: "toDo",
+    data: menuToDo,
+    className: "board-block--first",
+  },
+  {
+    column: "In progress",
+    status: "inProgress",
+    data: menu,
+    className: "board-block--second",
+  },
+  {
+    column: "Review",
+    status: "review",
+    data: menu,
+    className: "board-block--third",
+  },
+  {
+    column: "Testing failed",
+    data: menu,
+    status: "failed",
+    className: "board-block--fourth",
+  },
+  {
+    column: "Done",
+    status: "done",
+    data: menuDone,
+    disabled: true,
+    className: "board-block--fifth",
+  },
+]);
+
+const filteredTasks = () => {
+  const filteredToDo = tasks.value.filter(
+    (task) => task.attributes.status.data.attributes.name === Statuses.toDo
+  );
+
+  const filteredInProgress = tasks.value.filter(
+    (task) =>
+      task.attributes.status.data.attributes.name === Statuses.inProgress
+  );
+
+  const filteredReview = tasks.value.filter(
+    (task) => task.attributes.status.data.attributes.name === Statuses.review
+  );
+
+  const filteredDone = tasks.value.filter(
+    (task) => task.attributes.status.data.attributes.name === Statuses.done
+  );
+  const filteredFailed = tasks.value.filter(
+    (task) => task.attributes.status.data.attributes.name === Statuses.failed
+  );
+
+  filterTask.value = {
+    toDo: filteredToDo,
+    inProgress: filteredInProgress,
+    review: filteredReview,
+    done: filteredDone,
+    failed: filteredFailed,
+  };
+};
+
 const toggleClose = (index: number) => {
   openDropdownIndex.value = openDropdownIndex.value === index ? -1 : index;
 };
@@ -517,10 +297,11 @@ const isTaskOverdue = (
   const taskCreatedAt = new Date(createdAt);
 
   const overdueStatuses = [
-    TaskStatus.ToDo,
-    TaskStatus.InProgress,
-    TaskStatus.Review,
-    TaskStatus.TestingFailed,
+    Statuses.toDo,
+    Statuses.done,
+    Statuses.review,
+    Statuses.inProgress,
+    Statuses.failed,
   ];
 
   if (overdueStatuses.includes(status) && taskDueDate < currentDate) {
@@ -538,57 +319,32 @@ const isTaskOverdue = (
   return "";
 };
 const log = (event: Event) => {
-  const fromColumn = event.from.parentElement
-    .querySelector("h4")
-    .innerText.replace(/\d+/g, "");
-  const toColumnElement = event.to.parentElement.querySelector("h4");
-  const toColumn = toColumnElement
-    ? toColumnElement.innerText.replace(/\d+/g, "").trim()
-    : "";
-
-  console.log(toColumn);
-
-  const modifiedToColumn = toColumn.replace(
-    /(\S+)\s+(\S+)/,
-    (match, firstWord, secondWord) => {
+  const taskId = event.item.getAttribute("data-task-id");
+  const modifiedToColumn = (
+    event.to.parentElement
+      ?.querySelector("h4")
+      ?.innerText.replace(/\d+/g, "") || ""
+  )
+    .trim()
+    .replace(/(\S+)\s+(\S+)/, (match, firstWord, secondWord) => {
       return `${firstWord} ${secondWord.toLowerCase()}`;
-    }
-  );
-  console.log(modifiedToColumn);
-
-  const taskTitle = event.item.querySelector("p").innerText;
-  showTasks("").then(({ data }) => {
-    searchId.value = data.data.find((task) => {
-      return task.attributes.title === taskTitle;
     });
-    console.log(searchId.value);
+  searchIdStatus(taskId, modifiedToColumn);
+};
 
-    showStatus().then(({ data }) => {
-      searchStatus.value = data.data.find(
-        (task) => task.attributes.name === modifiedToColumn
-      );
-      console.log(searchStatus.value);
-      if (fromColumn.trim().toLowerCase() === "done") {
-        const updateDataDone = {
-          data: {
-            status: 5,
-          },
-        };
-        updateTask(searchId.value.id, updateDataDone).then((response) => {
-          fetchTasks("");
-        });
-      } else {
-        const updateData = {
-          data: {
-            status: searchStatus.value.id,
-          },
-        };
-        console.log(updateData);
-        updateTask(searchId.value.id, updateData).then((response) => {
-          filterUse.value = true;
-          fetchTasks("");
-        });
-      }
+const searchIdStatus = (taskId: number, status: string) => {
+  showStatus().then(({ data }) => {
+    searchStatus.value = data.data.find(
+      (task) => task.attributes.name === status
+    );
+    const updateData = {
+      data: {
+        status: searchStatus.value.id,
+      },
+    };
+    updateTask(taskId, updateData).then((response) => {
+      filterUse.value = true;
+      fetchTasks("");
     });
   });
 };
@@ -597,7 +353,30 @@ const selectUser = (lead: { name: string; logo: { name: string } }) => {
   userItem.value = lead;
   active.value = !active.value;
 };
-const selectedItem = (tag: { id: any; name: string }, status) => {
+
+const statusTransitions = {
+  moveNext: {
+    [Statuses.toDo]: Statuses.inProgress,
+    [Statuses.inProgress]: Statuses.review,
+    [Statuses.review]: Statuses.failed,
+    [Statuses.failed]: Statuses.done,
+    [Statuses.done]: Statuses.failed,
+  },
+  moveBack: {
+    [Statuses.inProgress]: Statuses.toDo,
+    [Statuses.review]: Statuses.inProgress,
+    [Statuses.failed]: Statuses.review,
+    [Statuses.done]: Statuses.failed,
+  },
+};
+
+const getNextStatus = (currentStatus, moveNext) => {
+  const transitions = moveNext
+    ? statusTransitions.moveNext
+    : statusTransitions.moveBack;
+  return transitions[currentStatus] || currentStatus;
+};
+const selectedItem = (tag: { id: number; name: string }, status) => {
   if (dropdownStates.value.typeTasks.isOpen) {
     if (!typeItem.value.includes(tag)) {
       typeItem.value.push(tag);
@@ -615,118 +394,18 @@ const selectedItem = (tag: { id: any; name: string }, status) => {
         !dropdownStates.value.typeTasks.isOpen;
     }
   } else {
-    if (status.name === "Archive") {
-      const updateDataDone = {
-        data: {
-          status: 6,
-        },
-      };
+    if (status.name === "Move next" || status.name === "Move back") {
+      const currentStatus = tag.attributes.status.data.attributes.name;
+      const nextStatus = getNextStatus(
+        currentStatus,
+        status.name === "Move next"
+      );
+
+      searchIdStatus(tag.id, nextStatus);
       openDropdownIndex.value = -1;
-      updateTask(tag.id, updateDataDone).then((response) => {
-        fetchTasks("");
-      });
-    } else {
-      if (status.name === "Move next") {
-        if (tag.attributes.status.data.attributes.name === "To do") {
-          const updateDataDone = {
-            data: {
-              status: 2,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        } else if (
-          tag.attributes.status.data.attributes.name === "In progress"
-        ) {
-          const updateDataDone = {
-            data: {
-              status: 3,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        } else if (tag.attributes.status.data.attributes.name === "Review") {
-          const updateDataDone = {
-            data: {
-              status: 4,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        } else if (
-          tag.attributes.status.data.attributes.name === "Testing failed"
-        ) {
-          const updateDataDone = {
-            data: {
-              status: 5,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        } else if (tag.attributes.status.data.attributes.name === "Done") {
-          const updateDataDone = {
-            data: {
-              status: 5,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        }
-      } else if (status.name === "Move back") {
-        if (tag.attributes.status.data.attributes.name === "In progress") {
-          const updateDataDone = {
-            data: {
-              status: 1,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        } else if (tag.attributes.status.data.attributes.name === "Review") {
-          const updateDataDone = {
-            data: {
-              status: 2,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        } else if (
-          tag.attributes.status.data.attributes.name === "Testing failed"
-        ) {
-          const updateDataDone = {
-            data: {
-              status: 3,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        } else if (tag.attributes.status.data.attributes.name === "Done") {
-          const updateDataDone = {
-            data: {
-              status: 5,
-            },
-          };
-          openDropdownIndex.value = -1;
-          updateTask(tag.id, updateDataDone).then((response) => {
-            fetchTasks("");
-          });
-        }
-      }
+    } else if (status.name === Statuses.archive) {
+      searchIdStatus(tag.id, Statuses.archive);
+      openDropdownIndex.value = -1;
     }
   }
 };
@@ -744,9 +423,10 @@ const fetchTasks = (filters: string) => {
   return showTasks(`&filters[$and][0][status][name][$ne]=Archive${filters}`)
     .then((response) => {
       tasks.value = response.data.data.filter(
-        (task: any) =>
+        (task: ResTasks) =>
           task.attributes.project.data.attributes.key === route.params.key
       );
+      filteredTasks();
       totalTasks.value = response.data.meta.pagination.total;
     })
     .finally(() => {
@@ -757,7 +437,7 @@ const fetchTasks = (filters: string) => {
 
 const countToDoTasks = (type: string) => {
   return tasks.value.filter(
-    (task: any) => task.attributes.status.data.attributes.name === type
+    (task: ResTasks) => task.attributes.status.data.attributes.name === type
   ).length;
 };
 
@@ -774,6 +454,7 @@ const formatDate = (data: string) => {
 
 const clear = () => {
   typeItem.value = [];
+  filterUse.value = true;
   fetchTasks("");
 };
 
@@ -799,12 +480,10 @@ onMounted(() => {
   showDataUser();
   fetchTasks("");
   showTypes().then(({ data }) => {
-    types.value = data.data.map(
-      (item: { [x: string]: any; name: string; id: number }) => ({
-        name: item.attributes.name,
-        id: item.id,
-      })
-    );
+    types.value = data.data.map((item: ResTasks) => ({
+      name: item.attributes.name,
+      id: item.id,
+    }));
   });
   showProjects("").then(({ data }) => {
     foundProject.value = data.data.find(
@@ -941,6 +620,8 @@ watch(
         display: none;
         @include media_mobile {
           display: block;
+          pointer-events: none;
+          position: relative;
         }
       }
 
@@ -1167,8 +848,11 @@ watch(
     display: flex;
     gap: 12px;
     margin-top: 36px;
-    width: 100%;
+    width: 103%;
     overflow: auto;
+    @include media_tablet {
+      width: 104%;
+    }
     @include media_mobile {
       width: 106%;
       .board-block--fifth {
@@ -1219,6 +903,8 @@ watch(
       }
       .mobile {
         display: block;
+        pointer-events: none;
+        position: relative;
       }
     }
 
@@ -1267,6 +953,11 @@ watch(
           margin-bottom: 6px;
           position: relative;
           cursor: pointer;
+
+          &.disabled {
+            pointer-events: none;
+            cursor: not-allowed;
+          }
 
           .menu {
             @include media_mobile {
@@ -1417,6 +1108,7 @@ watch(
           rgba(255, 255, 255, 0.5) 100%
         ),
         var(--notify_success);
+      margin-right: 24px;
     }
   }
 }
