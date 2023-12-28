@@ -1,32 +1,23 @@
 <template lang="pug">
 .project-layout(:class="{ toggle: isTablet() }")
   .project-layout__sidebar(:class="{ toggle }")
-    .project-name(v-for="item in project", :key="item")
+    .project-name(v-for="item in project", :key="item.id")
       img(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
       p(v-if="!toggle", :class="{ toggle: isTablet() }") {{ item.name }}
     h2(v-if="!toggle") PLANNING
-    router-link(
-      :class="{ active: $route.path.includes('issues') }",
-      :to="{ name: 'projectsTasks' }"
-    )
+    router-link(:to="{ name: 'projectsTasks' }")
       i.icon.tasks_board
       p(v-if="!toggle") Issues
       .block-black
         i.icon.arrow-long
       .hover-block
-    router-link(
-      :class="{ active: $route.path.includes('board') }",
-      :to="{ name: 'boardItem' }"
-    )
+    router-link(:to="{ name: 'boardItem' }")
       i.icon.kanban
       p(v-if="!toggle") Kanban board
       .block-black
         i.icon.arrow-long
       .hover-block
-    router-link(
-      :class="{ active: $route.path.includes('archive') }",
-      :to="{ name: 'archiveTasks' }"
-    )
+    router-link(:to="{ name: 'archiveTasks' }")
       i.icon.archive
       p(v-if="!toggle") Archive
       .block-black
@@ -83,11 +74,17 @@ const fetchProjects = () => {
   });
 };
 
+const handleResize = () => {
+  toggle.value = isTablet();
+};
+
 onMounted(() => {
   fetchProjects();
+  window.addEventListener("resize", handleResize);
 });
 watchEffect(() => {
   fetchProjects();
+  handleResize();
 });
 </script>
 
@@ -290,7 +287,7 @@ watchEffect(() => {
         position: relative;
       }
 
-      &.active {
+      &.router-link-active {
         background: var(--primary);
         border-radius: 6px;
 
@@ -334,7 +331,7 @@ watchEffect(() => {
             width: 10px;
             height: 10px;
             position: absolute;
-            top: 4px;
+            top: 5px;
             left: 5px;
             display: block;
 

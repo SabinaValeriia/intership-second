@@ -58,7 +58,7 @@
     h3(v-if="$route.path.includes('teams')") People
     h3(v-if="$route.path.includes('issues')") Issues
     h3(v-if="$route.path.includes('archive')") Archive
-    h3(v-else) Board
+    h3(v-if="$route.path.includes('boardItem')") Board
     i.icon.plus(
       v-if="$route.path.includes('projects') && !$route.path.includes('archive')",
       @click="openModal(EnumModalKeys.ModalCreate)"

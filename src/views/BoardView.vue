@@ -1,7 +1,7 @@
 <template lang="pug">
 .board
+  h3 {{ route.params.key }} board
   .project-name(v-for="item in project", :key="item")
-    h3 {{ item.name }} - {{ route.params.key }} board
   .board-panel
     form
       .form-group
@@ -76,6 +76,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -110,6 +111,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -124,8 +126,8 @@
                   )
             dropdown-list.menu(
               v-if="openDropdownIndex === task.id",
-              :filtered-data="menu",
-              :type="'lead'",
+              :filtered-data="menuToDo",
+              :type="'menu'",
               :class-name="'name'",
               @selectedItem="selectedItem(task, $event)"
             )
@@ -152,6 +154,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -188,6 +191,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -203,7 +207,7 @@
             dropdown-list.menu(
               v-if="openDropdownIndex === task.id",
               :filtered-data="menu",
-              :type="'lead'",
+              :type="'menu'",
               :class-name="'name'",
               @selectedItem="selectedItem(task, $event)"
             )
@@ -223,6 +227,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -257,6 +262,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -272,7 +278,7 @@
             dropdown-list.menu(
               v-if="openDropdownIndex === task.id",
               :filtered-data="menu",
-              :type="'lead'",
+              :type="'menu'",
               :class-name="'name'",
               @selectedItem="selectedItem(task, $event)"
             )
@@ -294,6 +300,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -330,6 +337,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -345,7 +353,7 @@
             dropdown-list.menu(
               v-if="openDropdownIndex === task.id",
               :filtered-data="menu",
-              :type="'lead'",
+              :type="'menu'",
               :class-name="'name'",
               @selectedItem="selectedItem(task, $event)"
             )
@@ -365,6 +373,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -399,6 +408,7 @@
                 p.key {{ task.attributes.key }}
                 div
                   p.date(
+                    v-if="task.attributes.dueDate",
                     :class="isTaskOverdue(task.attributes.dueDate, task.attributes.createdAt, task.attributes.status.data.attributes.name)"
                   ) {{ formatDate(task.attributes.dueDate) }}
                     i.icon.clock
@@ -413,8 +423,8 @@
                   )
             dropdown-list.menu(
               v-if="openDropdownIndex === task.id",
-              :filtered-data="menu",
-              :type="'lead'",
+              :filtered-data="menuDone",
+              :type="'menu'",
               :class-name="'name'",
               @selectedItem="selectedItem(task, $event)"
             )
@@ -439,6 +449,14 @@ import { showStatus } from "@/services/api/statusApi";
 import DropdownList from "@/components/common/DropdownList.vue";
 
 const components: { draggable: any } = { Draggable };
+
+enum TaskStatus {
+  ToDo = "To do",
+  InProgress = "In progress",
+  Review = "Review",
+  TestingFailed = "Testing failed",
+}
+
 const route = useRoute();
 const foundProject = ref();
 const project = ref([]);
@@ -461,39 +479,54 @@ const dropdownStates = ref({
   reporter: { isOpen: false },
   menu: { isOpen: false },
 });
-const menu = ref([
-  {
-    name: "Move back",
-    logo: {
-      name: '"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yLjQ0OTE2IDcuMTkyMTdMNy4xMzQ5OCAyLjUxMjQ0QzcuNDUwODggMi4xOTY5NiA3LjQ1MDg4IDEuNjg1NDYgNy4xMzQ5OCAxLjM2OTk4QzYuODE5MDkgMS4wNTQ0OSA2LjMwNjkzIDEuMDU0NDkgNS45OTEwMyAxLjM2OTk4TDAuNDU4MTY3IDYuODk1NjVDLTAuMTUyNTYgNy41MDU1OSAtMC4xNTI1NiA4LjQ5NDQ4IDAuNDU4MTY3IDkuMTA0NDFMNS45OTEwMyAxNC42MzAxQzYuMzA2OTMgMTQuOTQ1NiA2LjgxOTA5IDE0Ljk0NTYgNy4xMzQ5OSAxNC42MzAxQzcuNDUwODggMTQuMzE0NiA3LjQ1MDg4IDEzLjgwMzEgNy4xMzQ5OSAxMy40ODc2TDIuNDQ5MTIgOC44MDc4NkwxNS4xOTEyIDguODA3ODZDMTUuNjM4IDguODA3ODYgMTYuMDAwMSA4LjQ0NjE3IDE2LjAwMDEgOC4wMDAwMUMxNi4wMDAxIDcuNTUzODUgMTUuNjM4IDcuMTkyMTcgMTUuMTkxMiA3LjE5MjE3TDIuNDQ5MTYgNy4xOTIxN1oiIGZpbGw9IiMwQzAzMUIiLz4KPC9zdmc+Cg=="',
+const generateMenu = (moveBackStatus: boolean, moveNextStatus: boolean) => {
+  return [
+    {
+      name: "Move back",
+      icon: "arrow-long",
+      class: moveBackStatus ? "left" : "",
+      status: moveBackStatus ? "disabled" : "",
     },
-  },
-  {
-    name: "Move next",
-    logo: {
-      name: '"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy41NTExIDguODA3ODNMOC44NjUyNiAxMy40ODc2QzguNTQ5MzYgMTMuODAzIDguNTQ5MzYgMTQuMzE0NSA4Ljg2NTI2IDE0LjYzQzkuMTgxMTUgMTQuOTQ1NSA5LjY5MzMxIDE0Ljk0NTUgMTAuMDA5MiAxNC42M0wxNS41NDIxIDkuMTA0MzVDMTYuMTUyOCA4LjQ5NDQxIDE2LjE1MjggNy41MDU1MiAxNS41NDIxIDYuODk1NTlMMTAuMDA5MiAxLjM2OTkxQzkuNjkzMzEgMS4wNTQ0MyA5LjE4MTE1IDEuMDU0NDMgOC44NjUyNiAxLjM2OTkxQzguNTQ5MzYgMS42ODUzOSA4LjU0OTM2IDIuMTk2ODkgOC44NjUyNiAyLjUxMjM3TDEzLjU1MTEgNy4xOTIxNEwwLjgwOTAxNSA3LjE5MjE0QzAuMzYyMjc1IDcuMTkyMTQgMC4wMDAxMTk4ODIgNy41NTM4MyAwLjAwMDExOTg2MyA3Ljk5OTk5QzAuMDAwMTE5ODQzIDguNDQ2MTUgMC4zNjIyNzYgOC44MDc4MyAwLjgwOTAxNiA4LjgwNzgzTDEzLjU1MTEgOC44MDc4M1oiIGZpbGw9IiMwQzAzMUIiLz4KPC9zdmc+Cg=="',
+    {
+      name: "Move next",
+      icon: "arrow-long",
+      status: moveNextStatus ? "disabled" : "",
     },
-  },
-  {
-    name: "Archive",
-    logo: {
-      name: '"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE4LjMyMDMgOC4zMzMxN0MxOC4yODk0IDcuMjQwNjEgMTguMTg1NSA2LjU0NDA1IDE3LjgzNTUgNS45NDk2MkMxNy4zMzc2IDUuMTA0MiAxNi40NDExIDQuNjMzNzIgMTQuNjQ4IDMuNjkyNzdMMTIuOTgxNCAyLjgxODE1QzExLjUxODQgMi4wNTAzOSAxMC43ODY5IDEuNjY2NSA5Ljk5OTk2IDEuNjY2NUM5LjIxMzA0IDEuNjY2NSA4LjQ4MTU0IDIuMDUwMzkgNy4wMTg1MyAyLjgxODE1TDUuMzUxODcgMy42OTI3N0MzLjU1ODgyIDQuNjMzNzIgMi42NjIyOCA1LjEwNDIgMi4xNjQ0NiA1Ljk0OTYyQzEuNjY2NjMgNi43OTUwNSAxLjY2NjYzIDcuODQ3MDYgMS42NjY2MyA5Ljk1MTA5VjEwLjA0ODZDMS42NjY2MyAxMi4xNTI2IDEuNjY2NjMgMTMuMjA0NyAyLjE2NDQ2IDE0LjA1MDFDMi42NjIyOCAxNC44OTU1IDMuNTU4ODIgMTUuMzY1OSA1LjM1MTg3IDE2LjMwNjlMNy4wMTg1MyAxNy4xODE1QzguNDgxNTQgMTcuOTQ5MyA5LjIxMzA0IDE4LjMzMzIgOS45OTk5NiAxOC4zMzMyQzEwLjc4NjkgMTguMzMzMiAxMS41MTg0IDE3Ljk0OTMgMTIuOTgxNCAxNy4xODE1TDE0LjY0OCAxNi4zMDY5QzE2LjQ0MTEgMTUuMzY1OSAxNy4zMzc2IDE0Ljg5NTUgMTcuODM1NSAxNC4wNTAxQzE4LjE4NTUgMTMuNDU1NiAxOC4yODk0IDEyLjc1OTEgMTguMzIwMyAxMS42NjY1IiBzdHJva2U9IiMwQzAzMUIiIHN0cm9rZS13aWR0aD0iMS4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPHBhdGggZD0iTTE3LjUgNi4yNUwxNC4xNjY3IDcuOTE2NjdNMTQuMTY2NyA3LjkxNjY3QzE0LjE2NjcgNy45MTY2NyAxMy45MTI3IDguMDQzNjQgMTMuNzUgOC4xMjVDMTIuMjg1NSA4Ljg1NzI1IDEwIDEwIDEwIDEwTTE0LjE2NjcgNy45MTY2N1YxMC44MzMzTTE0LjE2NjcgNy45MTY2N0w2LjI1IDMuNzVNMTAgMTBMMi41IDYuMjVNMTAgMTBWMTcuOTE2NyIgc3Ryb2tlPSIjMEMwMzFCIiBzdHJva2Utd2lkdGg9IjEuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo="',
+    {
+      name: "Archive",
+      icon: "archive",
     },
-  },
-]);
+  ];
+};
+
+const menu = ref(generateMenu(false, false));
+const menuToDo = ref(generateMenu(true, false));
+const menuDone = ref(generateMenu(true, true));
 
 const toggleClose = (index: number) => {
   openDropdownIndex.value = openDropdownIndex.value === index ? -1 : index;
 };
 
-function isTaskOverdue(dueDate, createdAt, status) {
+const isTaskOverdue = (
+  dueDate: string | number | Date,
+  createdAt: string | number | Date,
+  status: string
+) => {
   const currentDate = new Date();
   const taskDueDate = new Date(dueDate);
   const taskCreatedAt = new Date(createdAt);
-  const overdueStatuses = ["to do", "In progress", "Review", "Testing failed"];
+
+  const overdueStatuses = [
+    TaskStatus.ToDo,
+    TaskStatus.InProgress,
+    TaskStatus.Review,
+    TaskStatus.TestingFailed,
+  ];
+
   if (overdueStatuses.includes(status) && taskDueDate < currentDate) {
     return "overdue";
   }
+
   if (status === "Done" && taskCreatedAt > taskDueDate) {
     return "overdue";
   }
@@ -501,9 +534,9 @@ function isTaskOverdue(dueDate, createdAt, status) {
   if (status === "Done" && taskCreatedAt < taskDueDate) {
     return "onTime";
   }
-  return "";
-}
 
+  return "";
+};
 const log = (event: Event) => {
   const fromColumn = event.from.parentElement
     .querySelector("h4")
@@ -513,16 +546,28 @@ const log = (event: Event) => {
     ? toColumnElement.innerText.replace(/\d+/g, "").trim()
     : "";
 
+  console.log(toColumn);
+
+  const modifiedToColumn = toColumn.replace(
+    /(\S+)\s+(\S+)/,
+    (match, firstWord, secondWord) => {
+      return `${firstWord} ${secondWord.toLowerCase()}`;
+    }
+  );
+  console.log(modifiedToColumn);
+
   const taskTitle = event.item.querySelector("p").innerText;
   showTasks("").then(({ data }) => {
     searchId.value = data.data.find((task) => {
       return task.attributes.title === taskTitle;
     });
+    console.log(searchId.value);
 
     showStatus().then(({ data }) => {
       searchStatus.value = data.data.find(
-        (task) => task.attributes.name === toColumn
+        (task) => task.attributes.name === modifiedToColumn
       );
+      console.log(searchStatus.value);
       if (fromColumn.trim().toLowerCase() === "done") {
         const updateDataDone = {
           data: {
@@ -538,7 +583,9 @@ const log = (event: Event) => {
             status: searchStatus.value.id,
           },
         };
+        console.log(updateData);
         updateTask(searchId.value.id, updateData).then((response) => {
+          filterUse.value = true;
           fetchTasks("");
         });
       }
@@ -822,6 +869,14 @@ watch(
     top: 62%;
     left: 57%;
     margin: 0;
+    @include media_tablet {
+      top: 64%;
+      left: 51%;
+    }
+    @include media_mobile {
+      top: 51%;
+      left: 43%;
+    }
   }
 
   &-panel {
@@ -1043,6 +1098,8 @@ watch(
       @include media_mobile {
         padding: 9px 26px 9px 10px;
         height: 34px;
+        font-size: 12px;
+        line-height: 16px;
       }
 
       &.btn_arrow {
@@ -1057,7 +1114,8 @@ watch(
       }
 
       i.arrow {
-        height: 15px;
+        height: 10px;
+        width: 16px;
         right: 16px;
         @include media_mobile {
           width: 10px;
@@ -1111,9 +1169,16 @@ watch(
     margin-top: 36px;
     width: 100%;
     overflow: auto;
+    @include media_mobile {
+      width: 106%;
+      .board-block--fifth {
+        margin-right: 16px;
+      }
+    }
 
     .tablet {
       display: block;
+      height: 100vh;
     }
 
     .mobile {
@@ -1167,6 +1232,7 @@ watch(
       h4 {
         padding: 6px 10px 12px;
         margin: 0;
+        text-transform: capitalize;
         @include font(16px, 500, 24px, var(--text));
       }
 
@@ -1214,6 +1280,7 @@ watch(
             box-shadow: 0px 4px 16px 0px rgba(61, 55, 52, 0.08),
               0px 2px 4px 0px rgba(61, 55, 52, 0.04),
               0px 0px 2px 0px rgba(61, 55, 52, 0.16);
+            border: none;
           }
 
           p {

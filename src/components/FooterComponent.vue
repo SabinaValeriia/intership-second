@@ -4,7 +4,7 @@
     i.icon.home
     p Home
   a.footer__block(
-    v-if="$route.path.includes('issues') || $route.path.includes('archive') || $route.path.includes('board')",
+    v-if="$route.path.includes('issues') || $route.path.includes('archive') || $route.path.includes('boardItem')",
     :class="{ active: $route.path.includes('projects') }",
     @click="openModal(EnumModalKeys.ModalMenu)"
   )
