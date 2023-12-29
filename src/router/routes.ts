@@ -66,10 +66,15 @@ const routes: Array<RouteRecordRaw> = [
             children: [
               {
                 path: ":id",
-                name: "issuesItem",
+                name: "issues",
                 component: () => import("../views/ProjectsIssues.vue"),
               },
             ],
+          },
+          {
+            path: "boardItem",
+            name: "boardItem",
+            component: () => import("../views/BoardView.vue"),
           },
         ],
       },

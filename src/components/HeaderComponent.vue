@@ -1,10 +1,10 @@
 <template lang="pug">
-.header 
-  .header-block__left 
+.header
+  .header-block__left
     a
       i.icon.logo_header
     ul
-      li 
+      li
         a(@click="toggleDropdown('work')") Your work
       li.projects
         a(
@@ -58,6 +58,7 @@
     h3(v-if="$route.path.includes('teams')") People
     h3(v-if="$route.path.includes('issues')") Issues
     h3(v-if="$route.path.includes('archive')") Archive
+    h3(v-if="$route.path.includes('boardItem')") Board
     i.icon.plus(
       v-if="$route.path.includes('projects') && !$route.path.includes('archive')",
       @click="openModal(EnumModalKeys.ModalCreate)"
@@ -82,10 +83,12 @@ import { isOpen, modalKeys, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
 import ModalCreate from "@/modals/ModalCreate.vue";
-import { computed, ref, onMounted, watch } from "vue";
-const route = useRoute();
+import { computed, onMounted, ref, watch } from "vue";
 import { useUserStore } from "../store/user";
 import { useRoute } from "vue-router";
+
+const route = useRoute();
+
 const userStore = useUserStore();
 const fullName = computed(() => {
   const username = userStore.user.username || "";
@@ -140,7 +143,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .header {
   background: var(--primary);
   box-shadow: var(--box-shadow-main);
@@ -158,6 +161,7 @@ onMounted(() => {
 
     height: 56px;
   }
+
   &__avatar {
     height: 44px;
     width: 44px;
@@ -169,11 +173,13 @@ onMounted(() => {
     justify-content: center;
     @include font(16px, 600, 20px, var(--text));
     box-sizing: border-box;
+
     &:hover {
       outline: 8px solid var(--secondary);
       border: none;
     }
   }
+
   @include media_tablet {
     padding: 4px 20px;
   }
@@ -181,6 +187,7 @@ onMounted(() => {
     padding: 6px 16px;
     background: var(--accent);
   }
+
   &__mobile {
     display: none;
     @include media_mobile {
@@ -194,6 +201,7 @@ onMounted(() => {
         border-radius: 25px;
         outline: 2px solid var(--secondary);
         cursor: pointer;
+
         &:hover {
           outline: 8px solid var(--secondary);
         }
@@ -201,9 +209,11 @@ onMounted(() => {
       i.plus {
         z-index: 3;
         position: relative;
+
         &::before {
           background: var(--white);
         }
+
         &.people {
           &::before {
             background: var(--accent);
@@ -216,6 +226,7 @@ onMounted(() => {
       }
     }
   }
+
   &-block {
     &__left {
       display: flex;
@@ -224,9 +235,11 @@ onMounted(() => {
       @include media_mobile {
         display: none;
       }
+
       button {
         z-index: 10;
       }
+
       a {
         margin-right: 46px;
         width: 55px;
@@ -236,11 +249,13 @@ onMounted(() => {
           margin-right: 26px;
         }
       }
+
       ul {
         display: flex;
         justify-content: space-between;
         list-style: none;
         padding: 0;
+
         li {
           text-wrap: nowrap;
           display: flex;
@@ -253,6 +268,7 @@ onMounted(() => {
 
           &.projects {
             position: relative;
+
             .menu {
               left: -2px;
             }
@@ -266,6 +282,7 @@ onMounted(() => {
             text-decoration: none;
             display: flex;
             align-items: center;
+
             &::after {
               content: "";
               display: inline-block;
@@ -275,6 +292,7 @@ onMounted(() => {
               background-size: contain;
               margin-left: 6px;
             }
+
             &.active {
               padding: 25px 0;
               border-bottom: 2px solid black;
@@ -284,12 +302,14 @@ onMounted(() => {
           @include media_tablet {
             margin-right: 10px;
           }
+
           &:hover {
             border-radius: 4px;
             background: var(--primary-light);
           }
         }
       }
+
       button {
         padding: 12px 16px;
         font-size: 14px;
@@ -301,6 +321,7 @@ onMounted(() => {
         }
       }
     }
+
     &__right {
       display: flex;
       align-items: center;
@@ -308,6 +329,7 @@ onMounted(() => {
       @include media_mobile {
         display: none;
       }
+
       input.header--input {
         padding: 14px 16px 14px 48px;
         background: transparent;
@@ -316,19 +338,23 @@ onMounted(() => {
         min-width: 280px;
         box-sizing: border-box;
         border-radius: 4px;
+
         &::placeholder {
           color: var(--text);
         }
       }
+
       .form-group {
         margin-bottom: 0;
         @include media_tablet {
           display: none;
         }
       }
+
       i {
         left: 16px;
       }
+
       .tablet {
         display: none;
         @include media_tablet {
@@ -340,6 +366,7 @@ onMounted(() => {
           position: relative;
         }
       }
+
       .header_icon {
         width: 32px;
         height: 32px;
@@ -351,6 +378,7 @@ onMounted(() => {
           margin-right: 12px;
         }
       }
+
       .avatar {
         width: 44px;
         height: 44px;
@@ -359,6 +387,7 @@ onMounted(() => {
         margin-left: 14px;
         cursor: pointer;
         box-sizing: border-box;
+
         &:hover {
           outline: 8px solid var(--secondary);
           border: none;

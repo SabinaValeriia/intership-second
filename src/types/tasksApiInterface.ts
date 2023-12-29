@@ -13,7 +13,6 @@ export interface ResTasks {
 }
 
 export interface ShowTasks {
-  [x: string]: any;
   createdAt: string;
   description: string;
   dueDate: string;
@@ -32,4 +31,6 @@ export interface ShowTasks {
       };
     }
   ];
+
+  [x: string]: any;
 }

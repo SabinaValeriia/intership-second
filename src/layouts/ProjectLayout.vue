@@ -1,29 +1,23 @@
 <template lang="pug">
-.project-layout
+.project-layout(:class="{ toggle: isTablet() }")
   .project-layout__sidebar(:class="{ toggle }")
-    .project-name(v-for="item in project", :key="item")
+    .project-name(v-for="item in project", :key="item.id")
       img(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
-      p(v-if="!toggle") {{ item.name }}
+      p(v-if="!toggle", :class="{ toggle: isTablet() }") {{ item.name }}
     h2(v-if="!toggle") PLANNING
-    router-link(
-      :class="{ active: $route.path.includes('issues') }",
-      :to="{ name: 'projectsTasks' }"
-    )
+    router-link(:to="{ name: 'projectsTasks' }")
       i.icon.tasks_board
       p(v-if="!toggle") Issues
       .block-black
         i.icon.arrow-long
       .hover-block
-    a
+    router-link(:to="{ name: 'boardItem' }")
       i.icon.kanban
       p(v-if="!toggle") Kanban board
       .block-black
         i.icon.arrow-long
       .hover-block
-    router-link(
-      :class="{ active: $route.path.includes('archive') }",
-      :to="{ name: 'archiveTasks' }"
-    )
+    router-link(:to="{ name: 'archiveTasks' }")
       i.icon.archive
       p(v-if="!toggle") Archive
       .block-black
@@ -57,6 +51,18 @@ const toggleBlock = () => {
   toggle.value = !toggle.value;
 };
 
+const isTablet = () => {
+  const minWidth = 600;
+  const maxWidth = 1024;
+
+  const screenWidth =
+    window.innerWidth ||
+    document.documentElement.clientWidth ||
+    document.body.clientWidth;
+
+  return screenWidth >= minWidth && screenWidth <= maxWidth;
+};
+
 const fetchProjects = () => {
   showProjectById(route.params.projectId).then(({ data }) => {
     project.value = [
@@ -68,11 +74,17 @@ const fetchProjects = () => {
   });
 };
 
+const handleResize = () => {
+  toggle.value = isTablet();
+};
+
 onMounted(() => {
   fetchProjects();
+  window.addEventListener("resize", handleResize);
 });
 watchEffect(() => {
   fetchProjects();
+  handleResize();
 });
 </script>
 
@@ -81,6 +93,24 @@ watchEffect(() => {
   display: flex;
   background: var(--background);
   height: 100vh;
+
+  &.toggle {
+    @include media_tablet {
+      .project-layout__sidebar {
+        min-width: 64px;
+        max-width: 64px;
+        padding: 28px 6px;
+
+        h2 {
+          display: none;
+        }
+
+        p {
+          display: none;
+        }
+      }
+    }
+  }
 
   .mobile {
     display: none;
@@ -177,6 +207,11 @@ watchEffect(() => {
 
       .project-name {
         justify-content: center;
+        @include media_tablet {
+          p {
+            display: none;
+          }
+        }
       }
 
       a {
@@ -206,6 +241,9 @@ watchEffect(() => {
       display: flex;
       align-items: center;
       padding: 0 16px;
+      @include media_tablet {
+        justify-content: center;
+      }
 
       img {
         width: 32px;
@@ -231,6 +269,12 @@ watchEffect(() => {
         margin: 10px 0 0 0;
       }
 
+      @include media_tablet {
+        &:first-of-type {
+          margin: 60px 0 0 0;
+        }
+      }
+
       i.arrow-long {
         display: none;
       }
@@ -243,7 +287,7 @@ watchEffect(() => {
         position: relative;
       }
 
-      &.active {
+      &.router-link-active {
         background: var(--primary);
         border-radius: 6px;
 
@@ -287,7 +331,7 @@ watchEffect(() => {
             width: 10px;
             height: 10px;
             position: absolute;
-            top: 4px;
+            top: 5px;
             left: 5px;
             display: block;
 
