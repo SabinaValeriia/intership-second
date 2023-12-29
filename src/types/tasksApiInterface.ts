@@ -34,12 +34,3 @@ export interface ShowTasks {
 
   [x: string]: any;
 }
-
-export enum Statuses {
-  toDo = "To do",
-  inProgress = "In progress",
-  review = "Review",
-  failed = "Testing failed",
-  done = "Done",
-  archive = "Archive",
-}

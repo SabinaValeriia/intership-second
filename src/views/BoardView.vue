@@ -1,7 +1,7 @@
 <template lang="pug">
 .board
   h3 {{ route.params.key }} board
-  .project-name(v-for="item in project", :key="item")
+  .project-name(v-for="item in project", :key="item.id")
   .board-panel
     form
       .form-group
@@ -15,7 +15,7 @@
             .loader-logo
             .loader-logo
             .loader-logo
-          .assignee-img(v-for="lead in leadNames", v-else, :key="lead")
+          .assignee-img(v-for="lead in leadNames", v-else, :key="lead.id")
             img.logo(
               v-if="lead.logo",
               :src="JSON.parse(lead.logo.name)",
@@ -59,22 +59,22 @@
         @click.prevent="reset"
       )
         i.icon.reset
-  .board-block
-    div(v-for="column in columns", :key="column")
+  .board-block(v-for="task in tasks", :key="task.id")
+    div(v-for="column in columns", :key="column.column")
       .board-box(:class="column.className")
         h4 {{ column.column }} {{ countToDoTasks(column.column) }}
         draggable.tablet(
           v-model="filterTask[column.status]",
           tag="ul",
           group="tasks",
-          @end="log"
+          @change="moveCard($event, column.column)"
         )
           template(#item="{ element }")
             li(
               v-if="element.attributes.status.data.attributes.name === column.column",
               :data-task-id="element.id",
               :class="{ disabled: column.disabled }"
-            )
+            ) {{ element.id }}
               router-link(
                 :to="{ name: 'issuesItem', params: { id: element.id } }"
               )
@@ -84,7 +84,7 @@
                 p {{ element.attributes.title }}
                 .tags-block(
                   v-for="tag in element.attributes.tags.data",
-                  :key="tag"
+                  :key="tag.id"
                 )
                   .tag {{ tag.attributes.name }}
                 .block-desc
@@ -105,7 +105,7 @@
                       :src="require(`@/assets/icons/default_user.svg`)"
                     )
         ul.mobile(:class="{ disabled: dropdownStates.menu.isOpen }")
-          div(v-for="task in tasks", :key="task")
+          div(v-for="task in tasks", :key="task.id")
             li(
               v-if="task.attributes.status.data.attributes.name === column.column"
             )
@@ -124,7 +124,7 @@
                 p {{ task.attributes.title }}
                 .tags-block(
                   v-for="tag in task.attributes.tags.data",
-                  :key="tag"
+                  :key="tag.id"
                 )
                   .tag {{ tag.attributes.name }}
                 .block-desc
@@ -169,10 +169,20 @@ import Draggable from "vuedraggable";
 import { getTaskTypeName } from "@/composables/projectsAction";
 import { page } from "@/composables/pagination";
 import { showStatus } from "@/services/api/statusApi";
-import { ResTasks, Statuses } from "@/types/tasksApiInterface";
+import { ResTasks } from "@/types/tasksApiInterface";
 
 const components: { draggable: any } = { Draggable };
 
+enum Statuses {
+  toDo = "To Do",
+  inProgress = "In Progress",
+  review = "Review",
+  failed = "Testing Failed",
+  done = "Done",
+  archive = "Archive",
+}
+
+const modifiedToColumn = ref("");
 const route = useRoute();
 const foundProject = ref();
 const project = ref([]);
@@ -182,6 +192,7 @@ const isLoader = ref(false);
 const typeItem = ref([]);
 const tasks = ref([]);
 const types = ref([]);
+const statuses = ref([]);
 const filter = ref("");
 const searchText = ref("");
 const totalTasks = ref(null);
@@ -221,13 +232,13 @@ const menuDone = ref(generateMenu(true, true));
 
 const columns = ref([
   {
-    column: "To do",
+    column: "To Do",
     status: "toDo",
     data: menuToDo,
     className: "board-block--first",
   },
   {
-    column: "In progress",
+    column: "In Progress",
     status: "inProgress",
     data: menu,
     className: "board-block--second",
@@ -239,7 +250,7 @@ const columns = ref([
     className: "board-block--third",
   },
   {
-    column: "Testing failed",
+    column: "Testing Failed",
     data: menu,
     status: "failed",
     className: "board-block--fourth",
@@ -318,34 +329,19 @@ const isTaskOverdue = (
 
   return "";
 };
-const log = (event: Event) => {
-  const taskId = event.item.getAttribute("data-task-id");
-  const modifiedToColumn = (
-    event.to.parentElement
-      ?.querySelector("h4")
-      ?.innerText.replace(/\d+/g, "") || ""
-  )
-    .trim()
-    .replace(/(\S+)\s+(\S+)/, (match, firstWord, secondWord) => {
-      return `${firstWord} ${secondWord.toLowerCase()}`;
-    });
-  searchIdStatus(taskId, modifiedToColumn);
+const moveCard = (item: Event, column: string) => {
+  searchIdStatus(item.added.element.id, column);
 };
-
 const searchIdStatus = (taskId: number, status: string) => {
-  showStatus().then(({ data }) => {
-    searchStatus.value = data.data.find(
-      (task) => task.attributes.name === status
-    );
-    const updateData = {
-      data: {
-        status: searchStatus.value.id,
-      },
-    };
-    updateTask(taskId, updateData).then((response) => {
-      filterUse.value = true;
-      fetchTasks("");
-    });
+  searchStatus.value = statuses.value.find((item) => item.name === status);
+  const updateData = {
+    data: {
+      status: searchStatus.value.id,
+    },
+  };
+  updateTask(taskId, updateData).then((response) => {
+    filterUse.value = true;
+    fetchTasks("");
   });
 };
 
@@ -400,7 +396,6 @@ const selectedItem = (tag: { id: number; name: string }, status) => {
         currentStatus,
         status.name === "Move next"
       );
-
       searchIdStatus(tag.id, nextStatus);
       openDropdownIndex.value = -1;
     } else if (status.name === Statuses.archive) {
@@ -475,10 +470,15 @@ const reset = () => {
   userItem.value = "";
   fetchTasks("");
 };
-
 onMounted(() => {
   showDataUser();
   fetchTasks("");
+  showStatus().then(({ data }) => {
+    statuses.value = data.data.map((item) => ({
+      name: item.attributes.name,
+      id: item.id,
+    }));
+  });
   showTypes().then(({ data }) => {
     types.value = data.data.map((item: ResTasks) => ({
       name: item.attributes.name,
@@ -537,11 +537,7 @@ watch(
 
 <style lang="scss" scoped>
 .board {
-  padding: 28px 24px;
   overflow: hidden;
-  @include media_mobile {
-    padding: 0 16px;
-  }
 
   .loader-block {
     position: absolute;
@@ -559,11 +555,11 @@ watch(
   }
 
   &-panel {
-    margin-top: 28px;
+    margin: 28px 24px;
     display: flex;
     @include media_mobile {
-      margin-top: 0;
       flex-direction: column;
+      margin: 0 16px;
     }
 
     .flex-block {
@@ -773,11 +769,9 @@ watch(
       background: var(--white);
       border: 1px solid var(--primary);
       color: var(--text);
-      padding: 14px 44px 14px 16px;
       height: 48px;
       position: relative;
       @include media_mobile {
-        padding: 9px 26px 9px 10px;
         height: 34px;
         font-size: 12px;
         line-height: 16px;
@@ -797,11 +791,12 @@ watch(
       i.arrow {
         height: 10px;
         width: 16px;
-        right: 16px;
+        position: relative;
+        margin-left: 12px;
         @include media_mobile {
           width: 10px;
           height: 7px;
-          right: 10px;
+          margin-left: 6px;
         }
       }
     }
@@ -838,7 +833,7 @@ watch(
 
   h3 {
     @include font(24px, 500, 28px, var(--text));
-    margin: 0;
+    margin: 28px 0 0 24px;
     @include media_mobile {
       display: none;
     }
@@ -847,14 +842,10 @@ watch(
   &-block {
     display: flex;
     gap: 12px;
-    margin-top: 36px;
-    width: 103%;
+    margin: 36px 0 0 24px;
+    width: 100%;
     overflow: auto;
-    @include media_tablet {
-      width: 104%;
-    }
     @include media_mobile {
-      width: 106%;
       .board-block--fifth {
         margin-right: 16px;
       }
@@ -897,7 +888,7 @@ watch(
     }
 
     @include media_mobile {
-      margin-top: 16px;
+      margin: 16px 0 0 16px;
       .tablet {
         display: none;
       }

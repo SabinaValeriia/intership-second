@@ -3,7 +3,7 @@ button(:class="{ disabled: isDisabled }")
   slot
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { defineProps } from "vue";
 
 const props = defineProps({
@@ -14,7 +14,7 @@ const props = defineProps({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 button {
   cursor: pointer;
   display: flex;
@@ -43,32 +43,47 @@ button {
   &.btn_primary {
     background: var(--primary);
     border: none;
+
     &:hover {
       background: var(--primary_hover);
     }
+
     &.disabled {
       background: var(--primary_disable);
     }
   }
+
   &.btn-secondary {
     background: var(--accent);
     border: none;
+
     &:hover {
       background: var(--accent_hover);
     }
+
     &.disabled {
       background: var(--accent_disable);
     }
   }
+
   &.btn-secondary-line {
     border: 1px solid var(--accent);
     background: transparent;
     color: var(--accent);
+
     &:hover {
       border-color: var(--accent_hover);
     }
+
     &.disabled {
       border-color: var(--accent_disable);
+    }
+  }
+
+  &.btn_arrow {
+    padding: 14px 16px;
+    @include media_mobile {
+      padding: 9px 10px;
     }
   }
 
@@ -78,9 +93,11 @@ button {
       font-size: 12px;
       line-height: 16px;
     }
+
     &.disabled {
       background: var(--primary_disable);
     }
+
     &::before {
       content: "";
       display: block;
