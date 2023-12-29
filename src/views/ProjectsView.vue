@@ -5,32 +5,32 @@
   h1 Projects
   form.position
     .form-group.search
-      .form-icon 
+      .form-icon
         input(v-model="searchText", placeholder="Search")
         i.icon.search
     .mobile
       .dropdown__block
         common-button.btn-secondary-line.tags-block(
-          @click.prevent="toggleDropdown('tags')",
-          :class="{ select: tagItem.length }"
+          :class="{ select: tagItem.length }",
+          @click.prevent="toggleDropdown('tags')"
         ) {{ tagItem.length > 0 ? `Tags: ${tagItem[0].name}` : "Tags" }}
           span.selected(v-if="tagItem.length > 1") + {{ tagItem.length - 1 }}
           i.icon.arrow(:class="{ active: dropdownStates.tags.isOpen }")
         dropdown-component.tags__block(
           v-if="dropdownStates.tags.isOpen",
-          :isOpen="dropdownStates.tags.isOpen",
+          :is-open="dropdownStates.tags.isOpen",
           :data="tagNames",
-          :checkedItem="tagItem",
-          @selectedItem="selectedItem",
+          :checked-item="tagItem",
           :type="'checkbox'",
           :title="'Project tags'",
+          @selectedItem="selectedItem",
           @clear="clear",
           @allItem="selectAll"
         )
       .dropdown__block.lead
         common-button.btn_icon.lead(
-          @click.prevent="toggleDropdown('lead')",
-          :class="[leadItem ? ['btn-secondary', 'select'] : 'btn_primary']"
+          :class="[leadItem ? ['btn-secondary', 'select'] : 'btn_primary']",
+          @click.prevent="toggleDropdown('lead')"
         ) {{ leadItem ? leadItem.name : "Lead" }}
           i.icon.member.icon-img(v-if="!leadItem")
           div(v-else)
@@ -46,10 +46,10 @@
           i.icon.close(v-if="leadItem", @click.stop="deleteLead")
         dropdown-component.tags__block(
           v-if="dropdownStates.lead.isOpen",
-          :isOpen="dropdownStates.lead.isOpen",
+          :is-open="dropdownStates.lead.isOpen",
           :data="leadNames",
-          @selectedItem="selectedItem",
-          :type="'lead'"
+          :type="'lead'",
+          @selectedItem="selectedItem"
         )
       common-button.reset.btn-secondary.laptop(
         v-if="leadItem || searchText || tagItem.length",
@@ -58,34 +58,34 @@
       common-button.reset.btn-secondary.mobile(
         v-if="leadItem || searchText || tagItem.length",
         @click.prevent="reset"
-      ) 
+      )
         i.icon.reset
   .ptojects-table
     .ptojects-table__block.distance
-      .star-block 
+      .star-block
         i.icon.star
       .sort.name Name
         button.sort(
-          @click="sort('title', sortDirection === 'asc' ? 'desc' : 'asc')",
-          :class="{ active: sortAction.name === 'title' }"
+          :class="{ active: sortAction.name === 'title' }",
+          @click="sort('title', sortDirection === 'asc' ? 'desc' : 'asc')"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'title', sort_down: sortDirection === 'desc' && 'title' }"
           )
       .sort.key Key
         button.sort(
-          @click="sort('key', sortDirection === 'asc' ? 'desc' : 'asc')",
-          :class="{ active: sortAction.name === 'key' }"
+          :class="{ active: sortAction.name === 'key' }",
+          @click="sort('key', sortDirection === 'asc' ? 'desc' : 'asc')"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'key', sort_down: sortDirection === 'desc' && 'key' }"
           )
-        .key 
+        .key
       .tags Tags
       .sort.lead Lead
         button.sort(
-          @click="sort('lead', sortDirection === 'asc' ? 'desc' : 'asc')",
-          :class="{ active: sortAction.name === 'lead' }"
+          :class="{ active: sortAction.name === 'lead' }",
+          @click="sort('lead', sortDirection === 'asc' ? 'desc' : 'asc')"
         )
           i.icon(
             :class="{ sort: sortDirection === 'asc' && 'lead', sort_down: sortDirection === 'desc' && 'lead' }"
@@ -105,7 +105,9 @@
             v-if="item.attributes.logo",
             :src="JSON.parse(item.attributes.logo.name)"
           )
-          router-link(:to="{ name: 'projectsItem', params: { id: item.id } }") {{ item.attributes.title }}
+          router-link(
+            :to="{ name: 'projectsIssues', params: { key: item.attributes.key, projectId: item.id } }"
+          ) {{ item.attributes.title }}
         .key {{ item.attributes.key }}
         .tags.tags-block
           .tags-block(
@@ -125,7 +127,7 @@
           .img(
             v-for="(i, index) in item.attributes.members.data.slice(0, 3)",
             :key="index"
-          ) 
+          )
             router-link(:to="{ name: 'teamsUser', params: { id: i.id } }")
               img(
                 v-if="i.attributes.image",
@@ -137,39 +139,37 @@
           i.icon.star
     no-results(
       v-if="noDataShow || (noResultsShow && filterUse)",
-      :noData="noDataShow",
+      :no-data="noDataShow",
       @reset="reset"
     )
     pagination-component(
       v-show="totalProjects > itemsPerPage && !noResultsShow && !isLoader",
-      :totalItems="totalProjects",
-      :itemsPerPage="itemsPerPage",
+      :total-items="totalProjects",
+      :items-per-page="itemsPerPage",
       @onPageChange="handlePageChange"
     )
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import NoResults from "@/components/NoResults.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
 import PaginationComponent from "@/components/common/PaginationComponent.vue";
-import BaseInput from "@/components/common/BaseInput.vue";
-import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { showTag, tagNames } from "@/composables/tagActions";
 import { filterFunction } from "@/composables/projectsAction";
-import { showUsers } from "@/services/api/userApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
 import { useUserStore } from "../store/user";
 import {
-  page,
-  startIndex,
   endIndex,
   itemsPerPage,
+  page,
+  startIndex,
 } from "@/composables/pagination";
-import { showDataUser, leadNames } from "@/composables/userActions";
+import { leadNames, showDataUser } from "@/composables/userActions";
+
 const props = defineProps({
   newProjectShow: {
     type: Boolean,
@@ -390,6 +390,7 @@ onMounted(() => {
     height: 500px;
   }
 }
+
 .project {
   background: var(--background);
   height: -webkit-fill-available;
@@ -400,16 +401,20 @@ onMounted(() => {
     position: absolute;
     height: 100vh;
   }
+
   .projects {
     @include media_mobile {
       min-height: 380px;
     }
   }
+
   .position {
     display: flex;
+
     label {
       display: none;
     }
+
     @include media_tablet {
       .form-group {
         margin-bottom: 26px;
@@ -419,6 +424,7 @@ onMounted(() => {
       flex-direction: column;
       .form-group {
         margin-bottom: 0;
+
         &.tags {
           .form-icon {
             input {
@@ -429,6 +435,7 @@ onMounted(() => {
         }
       }
     }
+
     .search {
       input {
         width: 220px;
@@ -439,16 +446,20 @@ onMounted(() => {
         }
       }
     }
+
     i.icon {
       right: 16px;
+
       &.arrow {
         height: 12px;
         width: 16px;
         top: 19px;
+
         &.active {
           transform: rotate(180deg);
           top: 17px;
         }
+
         @include media_mobile {
           right: 10px;
           width: 10px;
@@ -458,10 +469,12 @@ onMounted(() => {
             top: 14px;
           }
         }
+
         &.mobile {
           display: none;
         }
       }
+
       &.search {
         @include media_mobile {
           left: 8px;
@@ -470,6 +483,7 @@ onMounted(() => {
         }
       }
     }
+
     .mobile {
       display: flex;
       position: relative;
@@ -478,6 +492,7 @@ onMounted(() => {
         margin-left: 0px;
         margin-top: 6px;
       }
+
       .tags__block {
         z-index: 3;
         top: 63px;
@@ -487,7 +502,10 @@ onMounted(() => {
           left: 14px;
         }
       }
+
       .selected {
+        display: flex;
+        align-items: center;
         background: var(--accent);
         @include font(12px, 500, 16px, var(--white));
         padding: 4px 8px;
@@ -498,10 +516,13 @@ onMounted(() => {
         @include media_mobile {
           font-size: 8px;
           line-height: 12px;
-          right: 23px;
-          top: 8px;
+          margin-left: 4px;
+          border-radius: 14px;
+          height: 14px;
+          box-sizing: border-box;
         }
       }
+
       button {
         &.reset {
           padding: 14px 26px;
@@ -515,6 +536,7 @@ onMounted(() => {
               display: none;
             }
           }
+
           &.mobile {
             display: none;
             @include media_mobile {
@@ -524,6 +546,7 @@ onMounted(() => {
               .reset {
                 position: relative;
                 right: auto;
+
                 &::before {
                   background: var(--white);
                 }
@@ -531,12 +554,15 @@ onMounted(() => {
             }
           }
         }
+
         &.lead {
           height: 48px;
+
           div {
             display: flex;
             align-items: center;
           }
+
           img {
             height: 20px;
             width: 20px;
@@ -549,11 +575,14 @@ onMounted(() => {
               height: 13px;
             }
           }
+
           .member {
             left: 16px;
+
             &::before {
               background: var(--white);
             }
+
             @include media_mobile {
               left: 10px;
               width: 13px;
@@ -562,14 +591,17 @@ onMounted(() => {
           }
         }
       }
+
       .dropdown__block {
         position: relative;
+
         &:first-of-type {
           margin-right: 10px;
           @include media_mobile {
             margin-right: 6px;
           }
         }
+
         .lead {
           height: 48px;
           width: 102px;
@@ -577,14 +609,17 @@ onMounted(() => {
             width: 67px;
             height: 34px;
           }
+
           i.close {
             width: 12px;
             height: 12px;
             right: 16px;
             top: 19px;
+
             &::before {
               background: var(--white);
             }
+
             @include media_mobile {
               top: 13px;
               width: 8px;
@@ -593,15 +628,18 @@ onMounted(() => {
             }
           }
         }
+
         .btn-secondary {
           padding: 12px 36px 12px 16px;
           @include media_mobile {
             padding: 9px 24px 9px 10px;
           }
+
           &.select {
             width: 100%;
           }
         }
+
         .tags-block {
           padding: 12px 44px 12px 16px;
           background: var(--white);
@@ -609,20 +647,29 @@ onMounted(() => {
           color: var(--text);
           height: 48px;
           width: auto;
+
+          &:hover {
+            border-color: var(--accent);
+            background: var(--white_shadow, #f4f4f4);
+          }
+
           &.select {
             color: var(--accent);
+
             i.arrow {
               &::before {
                 background: var(--accent);
               }
             }
           }
+
           @include media_mobile {
             padding: 9px 26px 9px 10px;
             font-size: 12px;
             line-height: 16px;
             height: 34px;
           }
+
           .form-icon {
             input {
               padding: 9px 10px;
@@ -632,6 +679,7 @@ onMounted(() => {
       }
     }
   }
+
   @include media_tablet {
     width: calc(100% - 40px);
     padding: 28px 20px 89px;
@@ -640,6 +688,7 @@ onMounted(() => {
     padding: 12px 16px 0;
     width: calc(100% - 32px);
   }
+
   .btn_icon {
     padding: 12px 16px;
     box-sizing: border-box;
@@ -647,6 +696,7 @@ onMounted(() => {
       padding: 9px 10px;
     }
   }
+
   h1 {
     padding: 0;
     margin: 0 0 28px;
@@ -655,6 +705,7 @@ onMounted(() => {
       display: none;
     }
   }
+
   .ptojects-table {
     width: 100%;
     margin-top: 16px;
@@ -664,6 +715,7 @@ onMounted(() => {
     @include media_mobile {
       margin-top: 16px;
     }
+
     &__block {
       display: flex;
       align-items: center;
@@ -673,6 +725,7 @@ onMounted(() => {
         font-size: 14px;
         line-height: 20px;
       }
+
       &.position {
         margin: 0 0 4px;
         height: 44px;
@@ -684,6 +737,7 @@ onMounted(() => {
           justify-content: flex-start;
         }
       }
+
       &.distance {
         margin-bottom: 20px;
         padding: 0;
@@ -696,6 +750,7 @@ onMounted(() => {
           display: none;
         }
       }
+
       img {
         width: 32px;
         height: 32px;
@@ -707,6 +762,7 @@ onMounted(() => {
           margin-right: 10px;
         }
       }
+
       .star-block {
         width: 5.67%;
         @include media_small_laptop {
@@ -718,25 +774,30 @@ onMounted(() => {
         @include media_mobile {
           margin-left: 0;
         }
+
         &:hover {
           .unchecked {
             display: none;
           }
+
           .checked {
             display: block;
           }
         }
+
         &.laptop {
           @include media_mobile {
             display: none;
           }
         }
+
         &.mobile {
           display: none;
           @include media_mobile {
             display: block;
           }
         }
+
         .star {
           left: 10px;
           height: 16px;
@@ -746,13 +807,16 @@ onMounted(() => {
             display: none;
           }
         }
+
         .unchecked {
           position: relative;
           right: 0;
           left: 7px;
+
           &::before {
             background: var(--text);
           }
+
           @include media_tablet {
             width: 16px;
             height: 16px;
@@ -762,6 +826,7 @@ onMounted(() => {
             margin: -11px -10px;
           }
         }
+
         .checked {
           right: 0;
           left: 7px;
@@ -776,22 +841,26 @@ onMounted(() => {
           @include media_mobile {
             margin: -11px -10px;
           }
+
           &::before {
             background: var(--notify_warning);
           }
         }
       }
+
       .name {
         width: 24.83%;
         margin-left: -2px;
         display: flex;
         align-items: center;
         cursor: pointer;
+
         &:hover {
           button.sort {
             display: block;
           }
         }
+
         @include media_tablet {
           margin-left: 1px;
         }
@@ -799,43 +868,53 @@ onMounted(() => {
           margin-left: 0;
           width: 45%;
         }
+
         img {
           border-radius: 6px;
         }
+
         a {
           color: var(--accent);
           margin: 0;
           text-decoration: none;
+
           &:hover {
             text-decoration: underline;
           }
+
           @include media_tablet {
             font-size: 12px;
             line-height: 16px;
             text-wrap: wrap;
           }
         }
+
         button.sort {
           display: none;
+
           &.active {
             display: block;
+
             &:hover {
               i.sort {
                 &::before {
                   background: var(--primary);
                 }
               }
+
               i.sort_down {
                 &::before {
                   background: var(--primary);
                 }
               }
             }
+
             i.sort {
               &::before {
                 background: var(--text);
               }
             }
+
             i.sort_down {
               &::before {
                 background: var(--text);
@@ -844,6 +923,7 @@ onMounted(() => {
           }
         }
       }
+
       .key {
         width: 9.83%;
         margin-left: 8px;
@@ -853,32 +933,39 @@ onMounted(() => {
         @include media_mobile {
           display: none;
         }
+
         &:hover {
           .sort {
             display: block;
           }
         }
+
         button.sort {
           display: none;
+
           &.active {
             display: block;
+
             &:hover {
               i.sort {
                 &::before {
                   background: var(--primary);
                 }
               }
+
               i.sort_down {
                 &::before {
                   background: var(--primary);
                 }
               }
             }
+
             i.sort {
               &::before {
                 background: var(--text);
               }
             }
+
             i.sort_down {
               &::before {
                 background: var(--text);
@@ -887,16 +974,20 @@ onMounted(() => {
           }
         }
       }
+
       .sort {
         display: flex;
         align-items: center;
         justify-content: space-between;
+
         i.icon.sort {
           width: 16px;
           height: 16px;
         }
+
         &.name {
           position: relative;
+
           button.sort {
             i.icon.sort {
               @include media_tablet {
@@ -904,6 +995,7 @@ onMounted(() => {
                 right: 24px;
                 top: 2px;
               }
+
               &.active {
                 &::before {
                   background: var(--text);
@@ -912,36 +1004,46 @@ onMounted(() => {
             }
           }
         }
+
         button {
           background: transparent;
           border: none;
+
           .sort {
             position: relative;
+
             &.active {
               display: block;
             }
+
             &::before {
               background: var(--primary);
             }
+
             &:hover {
               display: block;
+
               &::before {
                 background: var(--primary);
               }
             }
           }
+
           .sort_down {
             position: relative;
             width: 16px;
             height: 16px;
+
             &::before {
               background: var(--primary);
             }
+
             &.active {
               &::before {
                 background: var(--text);
               }
             }
+
             &:hover {
               &::before {
                 background: var(--primary);
@@ -950,6 +1052,7 @@ onMounted(() => {
           }
         }
       }
+
       .tags {
         width: 29.33%;
         margin-left: 8px;
@@ -961,6 +1064,7 @@ onMounted(() => {
         @include media_mobile {
           display: none;
         }
+
         .tags-block {
           background: var(--accent);
           padding: 6px 8px;
@@ -977,54 +1081,66 @@ onMounted(() => {
           }
         }
       }
+
       .lead {
         width: 15.67%;
         margin-left: 7px;
         display: flex;
         align-items: center;
+
         a {
           color: var(--accent);
           margin: 0;
           text-decoration: none;
+
           &:hover {
             text-decoration: underline;
           }
         }
+
         &:hover {
           .sort {
             display: block;
           }
         }
+
         .sort {
           display: none;
         }
+
         @include media_tablet {
           margin-left: -12px;
         }
         @include media_mobile {
           display: none;
         }
+
         button.sort {
           display: none;
+
           &.active {
             display: block;
+
             &:hover {
               i.sort {
                 &::before {
                   background: var(--primary);
                 }
               }
+
               i.sort_down {
                 &::before {
                   background: var(--primary);
                 }
               }
             }
+
             i.sort {
               &::before {
                 background: var(--text);
               }
             }
+
             i.sort_down {
               &::before {
                 background: var(--text);
@@ -1033,6 +1149,7 @@ onMounted(() => {
           }
         }
       }
+
       .members {
         width: 13%;
         margin-left: 9px;
@@ -1045,6 +1162,7 @@ onMounted(() => {
           width: 45%;
           margin-left: 76px;
         }
+
         .img {
           outline: 2px solid var(--background);
           border-radius: 16px;
@@ -1056,6 +1174,7 @@ onMounted(() => {
             height: 28px;
             width: 28px;
           }
+
           &:hover {
             z-index: 3;
             border: 2px solid var(--secondary);
@@ -1067,8 +1186,10 @@ onMounted(() => {
               height: 28px;
             }
           }
+
           img {
             margin-right: 0;
+
             &:hover {
               width: 34px;
               height: 34px;
@@ -1078,22 +1199,26 @@ onMounted(() => {
               }
             }
           }
+
           &:first-child {
             margin-left: 3px;
           }
         }
       }
     }
+
     &__content {
       display: flex;
       align-items: center;
       font-size: 14px;
       line-height: 20px;
+
       &.position {
         @include media_mobile {
           flex-direction: row;
         }
       }
+
       @include media_tablet {
         font-size: 12px;
         line-height: 16px;
@@ -1101,6 +1226,7 @@ onMounted(() => {
     }
   }
 }
+
 .backdrop {
   width: 100%;
   height: 100%;

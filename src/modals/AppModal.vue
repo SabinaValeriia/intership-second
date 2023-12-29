@@ -1,9 +1,12 @@
 <template lang="pug">
 teleport(to="body")
-  .modal(:class="{ create }")
-    .modal--backdrop(@click="close", :class="{ backdrop: hide }")
+  .modal(:class="{ create, menu }")
+    .modal--backdrop(:class="{ backdrop: hide }", @click="close")
     transition(name="block", appear)
-      .modal--container.create(v-if="isOpen(currentKey)", :class="{ hide }")
+      .modal--container(
+        v-if="isOpen(currentKey)",
+        :class="{ hide, create, menu }"
+      )
         .modal--wrapper
           .modal--close(v-if="!create", @click="close") Close
           .modal--close(v-else, @click="close") 
@@ -18,6 +21,10 @@ import useDisableScroll from "@/features/useDisableScroll";
 import { isOpen, currentKey, openModal } from "@/composables/modalActions";
 const props = defineProps({
   create: {
+    type: Boolean,
+    required: false,
+  },
+  menu: {
     type: Boolean,
     required: false,
   },
@@ -143,6 +150,15 @@ onBeforeUnmount(() => {
 
     border-radius: 25px 25px 0 0;
     background-color: var(--accent_hover);
+
+    &.menu {
+      background: var(--white);
+      height: 378px;
+      .modal--close {
+        color: var(--notify_info);
+        top: 15px;
+      }
+    }
   }
 
   &--wrapper {

@@ -38,8 +38,8 @@ export const getTaskTypeName = (taskItem: string) => {
   const lowercaseTaskItem = taskItem.toLowerCase();
   if (lowercaseTaskItem === "bug") {
     return "bug";
-  } else if (lowercaseTaskItem === "implementation") {
-    return "implementation";
+  } else if (lowercaseTaskItem === "improvement") {
+    return "improvement";
   } else if (lowercaseTaskItem === "feature") {
     return "feature";
   }

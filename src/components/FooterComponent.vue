@@ -3,13 +3,21 @@
   .footer__block 
     i.icon.home 
     p Home
-  router-link.footer__block(
-    to="/dashboard/projects",
-    :class="{ active: isRouteActive('projects') }"
+  a.footer__block(
+    v-if="$route.path.includes('issues') || $route.path.includes('archive')",
+    :class="{ active: $route.path.includes('projects') }",
+    @click="openModal(EnumModalKeys.ModalMenu)"
   )
     i.icon.projects 
     p Projects
-  a.footer__block 
+  router-link.footer__block(
+    v-else,
+    :class="{ active: $route.path.includes('projects') }",
+    to="/dashboard/projects"
+  )
+    i.icon.projects 
+    p Projects
+  a.footer__block
     i.icon.tasks 
     p Issues
   router-link.footer__block(
@@ -18,16 +26,28 @@
   ) 
     i.icon.user 
     p Members
+modal-menu(
+  v-if="isOpen(EnumModalKeys.ModalMenu)",
+  :menu="true",
+  @close="close"
+)
 </template>
 
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-
+import { EnumModalKeys } from "@/constants/EnumModalKeys";
+import { openModal, isOpen } from "@/composables/modalActions";
+import ModalHeader from "@/modals/ModalHeader.vue";
+import ModalCreate from "@/modals/ModalCreate.vue";
+import ModalMenu from "@/modals/ModalMenu.vue";
 const route = useRoute();
 const isRouteActive = (routeName: string) => {
   if (route.name === routeName) {
     return true;
   }
+};
+const close = () => {
+  openModal(EnumModalKeys.ModalMenu);
 };
 </script>
 
@@ -39,9 +59,13 @@ const isRouteActive = (routeName: string) => {
   background: var(--accent);
   box-shadow: var(--box-shadow-main);
   padding: 6px 32px;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
+  z-index: 1100;
+  @include media_mobile {
+    display: flex;
+  }
   &__block {
     display: flex;
     align-items: center;

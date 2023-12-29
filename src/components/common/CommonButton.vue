@@ -24,7 +24,6 @@ button {
   text-transform: none;
   text-decoration: none;
   white-space: nowrap;
-
   -webkit-user-select: none !important; /* Safari */
   -ms-user-select: none !important; /* IE 10 and IE 11 */
   user-select: none !important; /* Standard syntax */

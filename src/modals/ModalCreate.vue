@@ -1,6 +1,6 @@
 <template lang="pug">
 app-modal
-  template(v-slot:content)
+  template(#content)
     .backdrop(@click="closeDropdown")
     .modal-header
       h1 Create project
@@ -11,10 +11,10 @@ app-modal
             :class="getValidationClass($v, 'title')",
             :type="`title`",
             :value-input="form.title",
-            :isError="getValidationClass($v, 'title')",
+            :is-error="getValidationClass($v, 'title')",
             @set-data="form.title = $event"
           )
-            template(v-slot:errors, v-if="$v.title.required.$invalid")
+            template(v-if="$v.title.required.$invalid", #errors)
               span This field is required.
           base-input(
             :class="getValidationClass($v, 'key')",
@@ -23,23 +23,23 @@ app-modal
             :is-error="$v.key.required.$invalid",
             @set-data="form.key = $event"
           )
-            template(v-slot:errors, v-if="$v.key.required.$invalid")
+            template(v-if="$v.key.required.$invalid", #errors)
               span This field is required.
-        image-input(@file="addFile", :class="getValidationClass($v, 'image')")
-          template(v-slot:errors, v-if="$v.image.required.$invalid")
+        image-input(:class="getValidationClass($v, 'image')", @file="addFile")
+          template(v-if="$v.image.required.$invalid", #errors)
             span This field is required.
         .form-group.desc(:class="getValidationClass($v, 'description')")
           .label-group
             label(for="description") Description
             i.icon.arrow.mobile.desc(
-              @click="toggleBlock('description')",
-              :class="{ active: showInput === 'description' }"
+              :class="{ active: showInput === 'description' }",
+              @click="toggleBlock('description')"
             )
           textarea(
+            v-model="form.description",
             rows="4",
             cols="50",
             placeholder="Enter description",
-            v-model="form.description",
             :class="(getValidationClass($v, 'description'), { show: showInput === 'description' })"
           )
           span.error-message(v-if="$v.description.required.$invalid") This field is required.
@@ -53,11 +53,11 @@ app-modal
               @click.prevent="toggleDropdown('tags')"
             ) Add
           dropdown-component.tag(
-            :isOpen="dropdownStates.tags.isOpen",
+            :is-open="dropdownStates.tags.isOpen",
             :data="tagData",
-            @selectedItem="selectedItem",
             :type="'tags'",
-            :classType="'small'"
+            :class-type="'small'",
+            @selectedItem="selectedItem"
           )
         .position.mobile
           .position-dropdown
@@ -65,25 +65,25 @@ app-modal
               :class="getValidationClass($v, 'lead')",
               :type="'lead'",
               :value-input="form.lead.name",
-              @click="toggleDropdown('lead')",
-              :withIcon="true"
+              :with-icon="true",
+              @click="toggleDropdown('lead')"
             )
-              template(v-slot:prefix)
+              template(#prefix)
                 img.logo(
                   v-if="form.lead.logo",
                   :src="JSON.parse(form.lead.logo.name)",
                   alt="name"
                 )
                 img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
-              template(v-slot:errors, v-if="$v.lead.required.$invalid")
+              template(v-if="$v.lead.required.$invalid", #errors)
                 span This field is required.
-              template(v-slot:suffix)
+              template(#suffix)
                 i.icon.arrow(:class="{ active: dropdownStates.lead.isOpen }")
             dropdown-component.lead(
-              :isOpen="dropdownStates.lead.isOpen",
+              :is-open="dropdownStates.lead.isOpen",
               :data="leadNames",
-              @selectedItem="selectedItem",
-              :type="'lead'"
+              :type="'lead'",
+              @selectedItem="selectedItem"
             )
           .position-dropdown
             base-input(
@@ -92,21 +92,21 @@ app-modal
               :value-input="form.members.length > 2 ? `${form.members[0]}, ${form.members[1]}, ${form.members.length - 2} more` : form.members",
               @click="toggleDropdown('members')"
             )
-              template(v-slot:suffix)
+              template(#suffix)
                 i.icon.arrow(
                   :class="{ active: dropdownStates.members.isOpen }"
                 )
-              template(v-slot:errors, v-if="$v.members.required.$invalid")
+              template(v-if="$v.members.required.$invalid", #errors)
                 span This field is required.
             dropdown-component.lead(
-              :isOpen="dropdownStates.members.isOpen",
+              :is-open="dropdownStates.members.isOpen",
               :data="membersNames",
-              @selectedItem="selectedItem",
-              :iconHere="true",
+              :icon-here="true",
               :title="'Members'",
-              @clear="clear",
               :type="'checkbox'",
-              :checkedItem="memberItem",
+              :checked-item="memberItem",
+              @selectedItem="selectedItem",
+              @clear="clear",
               @allItem="allItem"
             )
     .modal-footer.create

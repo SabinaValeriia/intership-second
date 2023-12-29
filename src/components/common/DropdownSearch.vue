@@ -1,21 +1,21 @@
 <template lang="pug">
-.drop-down(v-if="isOpen", :class="classType", ref="dropdownRef")
+.drop-down(v-if="isOpen", ref="dropdownRef", :class="classType")
   .drop-down--section
     form
       .form-group
         input(v-model="searchText", placeholder="Placeholder")
         i.icon.search
     dropdown-list(
-      @selectedItem="onSelectedItem",
       :tags="tags",
       :type="type",
       :data="data",
       :class="{ tags, checkbox: type === 'checkbox' }",
       :title="title",
+      :checked-item="checkedItem",
+      :filtered-data="filteredData",
+      @selectedItem="onSelectedItem",
       @clear="clear",
-      @allItem="allItem",
-      :checkedItem="checkedItem",
-      :filteredData="filteredData"
+      @allItem="allItem"
     )
 </template>
 
@@ -91,7 +91,7 @@ onUnmounted(() => {
   border-radius: 8px;
   color: var(--black);
   border: 1px solid var(--grey-line);
-  z-index: 3;
+  z-index: 100;
   position: absolute;
   top: 47px;
   &.big {

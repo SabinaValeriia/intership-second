@@ -1,7 +1,8 @@
 <template lang="pug">
 .no-results
   img(
-    :src="require(`@/assets/icons/${noData || noUser || noPlace ? 'no-search' : 'no-data'}.svg`)"
+    :src="require(`@/assets/icons/${noData || noUser || noPlace ? 'no-search' : 'no-data'}.svg`)",
+    :class="{ 'no-search': noData || noUser || noPlace, 'no-data': !(noData || noUser || noPlace) }"
   )
   h2(v-if="noData") Wait!
   p(v-if="noData") You have no projects created, please create new one.
@@ -20,11 +21,12 @@
   ) {{ noData ? "Create" : "Reset" }}
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { openModal } from "@/composables/modalActions";
 import CommonButton from "./common/CommonButton.vue";
 import { defineEmits, defineProps } from "vue";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
+
 const props = defineProps({
   noResults: {
     type: Boolean,
@@ -62,9 +64,11 @@ const create = () => {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+
   button {
     z-index: 5;
   }
+
   &.user-results {
     flex-direction: row;
     padding: 16px 8px;
@@ -75,10 +79,12 @@ const create = () => {
       padding: 16px 26px;
       flex-direction: column;
     }
+
     img {
       height: 120px;
       width: 140px;
       margin: 0 36px 0 0;
+
       @include media_tablet {
         height: 106px;
         width: 122px;
@@ -89,6 +95,7 @@ const create = () => {
         margin: 0;
       }
     }
+
     h3 {
       @include font(16px, 500, 20px, var(--text));
       margin: 0 0 6px 0;
@@ -99,6 +106,7 @@ const create = () => {
         text-align: center;
       }
     }
+
     p {
       @include font(12px, 400, 16px, var(--text));
       max-width: 229px;
@@ -114,24 +122,29 @@ const create = () => {
       }
     }
   }
+
   &.menu-no {
     border-bottom: 1px solid var(--primary);
     margin-bottom: 16px;
+
     img {
       width: 140px;
       height: 120px;
       margin-top: 27px;
       margin-bottom: 12px;
     }
+
     h2 {
       font-size: 20px;
       line-height: 28px;
     }
+
     p {
       font-size: 14px;
       line-height: 20px;
       width: 200px;
     }
+
     button {
       font-size: 14px;
       line-height: 20px;
@@ -142,10 +155,25 @@ const create = () => {
       margin: 12px 0 35px 0;
     }
   }
+
   img {
     margin-top: 74px;
     margin-bottom: 24px;
+
+    &.no-data {
+      @include media_mobile {
+        width: 150px;
+        height: 149px;
+        margin-top: 77px;
+      }
+    }
+
+    @include media_mobile {
+      width: 140px;
+      height: 120px;
+    }
   }
+
   h2 {
     @include font(24px, 500, 28px, var(--text));
     margin: 0;
@@ -154,6 +182,7 @@ const create = () => {
       line-height: 20px;
     }
   }
+
   p {
     @include font(18px, 500, 26px, var(--text));
     margin: 0;
@@ -162,8 +191,10 @@ const create = () => {
     @include media_mobile {
       font-size: 14px;
       line-height: 20px;
+      width: 200px;
     }
   }
+
   button {
     margin-top: 16px;
     width: 100px;

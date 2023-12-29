@@ -12,7 +12,7 @@
           @click="toggleDropdown('project')"
         ) Projects
         dropdown-menu(
-          :isOpen="dropdownStates.project.isOpen",
+          :is-open="dropdownStates.project.isOpen",
           title="Starred",
           :project="true",
           :type="'projects'"
@@ -23,7 +23,7 @@
           @click="toggleDropdown('teams')"
         ) Teams
         dropdown-menu(
-          :isOpen="dropdownStates.teams.isOpen",
+          :is-open="dropdownStates.teams.isOpen",
           title="Starred",
           :type="'teams'"
         )
@@ -56,17 +56,21 @@
     .header__avatar(v-else, @click="openModal(EnumModalKeys.ModalHeader)") {{ logoName }}
     h3(v-if="isRouteActive('projects')") Projects
     h3(v-if="$route.path.includes('teams')") People
+    h3(v-if="$route.path.includes('issues')") Issues
+    h3(v-if="$route.path.includes('archive')") Archive
     i.icon.plus(
-      v-if="$route.path.includes('projects')",
+      v-if="$route.path.includes('projects') && !$route.path.includes('archive')",
       @click="openModal(EnumModalKeys.ModalCreate)"
     )
-    i.icon.plus.people(v-if="$route.path.includes('teams')")
+    i.icon.plus.people(
+      v-if="$route.path.includes('teams') || $route.path.includes('archive')"
+    )
 modal-header(v-if="isOpen(EnumModalKeys.ModalHeader)")
 modal-create(
   v-if="isOpen(EnumModalKeys.ModalCreate)",
+  :create="true",
   @close="close",
   @newProject="newProject",
-  :create="true",
   @closeModal="close"
 )
 </template>

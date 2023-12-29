@@ -73,7 +73,7 @@
                     ) {{ member.attributes.username }}
                     span {{ p.members.data.length > 2 ? `, and ${p.members.data.length} others all worked on this` : "" }}
           .block.no-result(v-else)
-            no-results.user-results(:noUser="'true'", :userName="item.name")
+            no-results.user-results(:no-user="'true'", :user-name="item.name")
           h3 Places they work in
           .block(v-if="item.projects.length")
             router-link.block-user(
@@ -88,7 +88,7 @@
               )
               p.project-item {{ project.title }} ({{ project.key }})
           .block.no-result(v-else)
-            no-results.user-results(:noPlace="'true'", :userName="item.name")
+            no-results.user-results(:no-place="'true'", :user-name="item.name")
 .loader(v-else)
   .loader--bg
     .loader-user
@@ -284,7 +284,8 @@ watch(() => route.params.id, fetchData);
         top: 75px;
         transform: translateX(-50%);
         z-index: 4;
-        border: 2px solid var(--white);
+        outline: 2px solid var(--white);
+        margin: 0;
       }
     }
   }
