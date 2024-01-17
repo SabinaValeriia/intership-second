@@ -13,25 +13,28 @@
       :title="title",
       :checked-item="checkedItem",
       :filtered-data="filteredData",
+      :members-data="membersData",
       @selectedItem="onSelectedItem",
       @clear="clear",
       @allItem="allItem"
     )
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { defineProps, onMounted, onUnmounted, ref, watch } from "vue";
 import DropdownList from "@/components/common/DropdownList.vue";
 import { selectedItemInterface } from "@/types/selectedItemInterface";
+
 const props = defineProps({
   data: { type: Array },
-  tags: { type: Boolean, default: false },
+  tags: { type: Boolean },
   type: { type: String },
   isOpen: { type: Boolean },
   title: { type: String },
   classType: { type: String, default: "big" },
   checkedItem: { type: Array },
   filteredData: { type: Array },
+  membersData: { type: String, default: "false" },
 });
 const emit = defineEmits(["selectedItem", "close", "clear", "allItem"]);
 const searchText = ref("");
@@ -94,6 +97,7 @@ onUnmounted(() => {
   z-index: 100;
   position: absolute;
   top: 47px;
+
   &.big {
     width: 240px;
     @include media_mobile {
@@ -104,12 +108,14 @@ onUnmounted(() => {
       }
     }
   }
+
   &.small {
     width: 220px;
     @include media_mobile {
       width: 100%;
     }
   }
+
   &.tags-block {
     @include media_mobile {
       top: 155px;
@@ -117,6 +123,7 @@ onUnmounted(() => {
       position: fixed;
     }
   }
+
   @include media_mobile {
     top: 38px;
   }
@@ -127,13 +134,23 @@ onUnmounted(() => {
       top: 70px;
     }
   }
+
+  &.members-dd {
+    top: 61px;
+    @include media_mobile {
+      top: 70px;
+    }
+  }
+
   &.error {
     border: 1px solid var(--red);
   }
+
   &--section {
     position: relative;
     width: 100%;
     height: 100%;
+
     i.search {
       top: 7px;
       left: 16px;
@@ -142,6 +159,7 @@ onUnmounted(() => {
         left: 14px;
       }
     }
+
     input {
       padding: 14px 16px 14px 48px;
       height: 52px;

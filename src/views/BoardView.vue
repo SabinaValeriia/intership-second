@@ -11,24 +11,26 @@
     .flex-block
       .mobile-block
         .assignee
-          .loader-block--img(v-if="isLoader && !filterUse")
+          .loader-block--img(v-if="filterUse")
             .loader-logo
             .loader-logo
             .loader-logo
-          .assignee-img(v-for="lead in leadNames", v-else, :key="lead.id")
-            img.logo(
-              v-if="lead.logo",
-              :src="JSON.parse(lead.logo.name)",
-              alt="name",
-              :class="{ active: lead === userItem }",
-              @click="selectUser(lead)"
-            )
-            img.logo(
-              v-else,
-              :src="require(`@/assets/icons/default_user.svg`)",
-              :class="{ active: lead === userItem }",
-              @click="selectUser(lead)"
-            )
+          div(v-for="lead in project", v-else, :key="lead.id")
+            .assignee-flex
+              .assignee-img(v-for="item in lead.members", :key="item")
+                img.logo(
+                  v-if="item.attributes.image",
+                  :src="JSON.parse(item.attributes.image.name)",
+                  alt="name",
+                  :class="{ active: item === userItem }",
+                  @click="selectUser(item)"
+                )
+                img.logo(
+                  v-else,
+                  :src="require(`@/assets/icons/default_user.svg`)",
+                  :class="{ active: item === userItem }",
+                  @click="selectUser(item)"
+                )
         .flex
           .dropdown-block
             common-button.btn-secondary-line.btn_arrow(
@@ -59,7 +61,7 @@
         @click.prevent="reset"
       )
         i.icon.reset
-  .board-block(v-for="task in tasks", :key="task.id")
+  .board-block
     div(v-for="column in columns", :key="column.column")
       .board-box(:class="column.className")
         h4 {{ column.column }} {{ countToDoTasks(column.column) }}
@@ -73,7 +75,7 @@
             li(
               v-if="element.attributes.status.data.attributes.name === column.column",
               :data-task-id="element.id",
-              :class="{ disabled: column.disabled }"
+              :class="{ disabled: element.attributes.status.data.attributes.name === 'Done' }"
             ) {{ element.id }}
               router-link(
                 :to="{ name: 'issuesItem', params: { id: element.id } }"
@@ -155,8 +157,8 @@
 </template>
 
 <script lang="ts" setup>
-import { leadNames, showDataUser } from "@/composables/userActions";
 import CommonButton from "@/components/common/CommonButton.vue";
+import CommonLoader from "@/components/common/CommonLoader.vue";
 import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownList from "@/components/common/DropdownList.vue";
 import { onMounted, ref, watch } from "vue";
@@ -182,7 +184,7 @@ enum Statuses {
   archive = "Archive",
 }
 
-const modifiedToColumn = ref("");
+const disabled = ref(false);
 const route = useRoute();
 const foundProject = ref();
 const project = ref([]);
@@ -340,7 +342,6 @@ const searchIdStatus = (taskId: number, status: string) => {
     },
   };
   updateTask(taskId, updateData).then((response) => {
-    filterUse.value = true;
     fetchTasks("");
   });
 };
@@ -426,7 +427,6 @@ const fetchTasks = (filters: string) => {
     })
     .finally(() => {
       isLoader.value = false;
-      filterUse.value = false;
     });
 };
 
@@ -449,7 +449,6 @@ const formatDate = (data: string) => {
 
 const clear = () => {
   typeItem.value = [];
-  filterUse.value = true;
   fetchTasks("");
 };
 
@@ -461,7 +460,6 @@ const selectAllType = (item: [{ name: string; id: number }]) => {
 };
 
 const reset = () => {
-  filterUse.value = true;
   page.value = 1;
   searchText.value = "";
   if (typeItem.value.length) {
@@ -471,7 +469,7 @@ const reset = () => {
   fetchTasks("");
 };
 onMounted(() => {
-  showDataUser();
+  filterUse.value = true;
   fetchTasks("");
   showStatus().then(({ data }) => {
     statuses.value = data.data.map((item) => ({
@@ -496,9 +494,11 @@ onMounted(() => {
         {
           name: foundProject.value.attributes.title,
           logo: foundProject.value.attributes.logo,
+          members: foundProject.value.attributes.members.data,
         },
       ];
     }
+    filterUse.value = false;
   });
 });
 watch(
@@ -507,12 +507,10 @@ watch(
     const filters = [];
 
     if (searchTextValue) {
-      filterUse.value = true;
       filters.push(`filters[title][$contains]=${searchTextValue}`);
     }
 
     if (typeItemValue && typeItemValue.length) {
-      filterUse.value = true;
       const tagFilters = typeItemValue
         .map(
           (tag, index) => `filters[$and][${index}][type][name][$eq]=${tag.name}`
@@ -522,9 +520,8 @@ watch(
     }
 
     if (userItemValue) {
-      filterUse.value = true;
       filters.push(
-        `filters[$and][${userItem.value.id}][asignee][username][$eq]=${userItem.value.name}`
+        `filters[$and][${userItem.value.id}][asignee][username][$eq]=${userItem.value.attributes.username}`
       );
     }
 
@@ -655,6 +652,11 @@ watch(
       align-items: center;
       @include media_mobile {
         height: 34px;
+      }
+
+      &-flex {
+        display: flex;
+        align-items: center;
       }
 
       &-img {
@@ -789,12 +791,11 @@ watch(
       }
 
       i.arrow {
-        height: 10px;
+        height: 9px;
         width: 16px;
         position: relative;
         margin-left: 12px;
         @include media_mobile {
-          width: 10px;
           height: 7px;
           margin-left: 6px;
         }
@@ -947,7 +948,7 @@ watch(
 
           &.disabled {
             pointer-events: none;
-            cursor: not-allowed;
+            //cursor: not-allowed;
           }
 
           .menu {
