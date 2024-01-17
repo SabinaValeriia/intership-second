@@ -1,5 +1,7 @@
 <template lang="pug">
-.checkbox-block(v-if="type === 'checkbox'")
+.checkbox-block(
+  v-if="(type === 'checkbox' && membersData) || (type === 'checkbox' && membersData)"
+)
   p {{ title }}
   div
     button(
@@ -56,6 +58,7 @@ const props = defineProps({
   className: { type: String },
   checkedItem: { type: Array },
   filteredData: { type: Array },
+  membersData: { type: String, default: "false" },
 });
 const emit = defineEmits(["selectedItem", "clear", "allItem"]);
 const selectedItems = ref(props.checkedItem);
@@ -142,6 +145,16 @@ ul {
   width: calc(100% - 2px);
   z-index: 1001;
   pointer-events: auto;
+
+  &.list {
+    width: 160px;
+    border-radius: 4px;
+    box-shadow: 0px 4px 16px 0px rgba(61, 55, 52, 0.08),
+      0px 2px 4px 0px rgba(61, 55, 52, 0.04),
+      0px 0px 2px 0px rgba(61, 55, 52, 0.16);
+    right: 5px;
+    border: 1px solid var(--primary);
+  }
 
   &.name {
     width: 160px;

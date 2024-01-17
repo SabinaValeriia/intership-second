@@ -28,7 +28,7 @@
           :type="'teams'"
         )
     common-button.btn-secondary(
-      v-if="$route.path.includes('projects')",
+      v-if="$route.path.includes('projects') && !$route.path.includes('projectDetails')",
       @click="openModal(EnumModalKeys.ModalCreate)"
     ) Create
   .header-block__right
