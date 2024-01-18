@@ -84,10 +84,12 @@ const weeks = computed(() => {
 
 const isSelectedDay = (day) => day === selectedDay.value;
 const selectDay = (day) => {
+  console.log(day, "njdn");
   selectedDay.value = day;
 };
 
 const selectDate = (date: object) => {
+  console.log("Lera");
   const formattedDate = date.format("DD.MM.YYYY");
   startDate.value = date;
   selectedStartDate.value = formattedDate;
@@ -224,6 +226,10 @@ const nextMonth = () => {
     display: flex;
     align-items: center;
     margin: 0;
+    @include media_mobile {
+      font-size: 18px;
+      line-height: 26px;
+    }
 
     i.icon {
       width: 10px;
@@ -298,6 +304,10 @@ const nextMonth = () => {
           display: flex;
           align-items: center;
           justify-content: center;
+          width: 34px;
+          @include media_mobile {
+            width: 51;
+          }
 
           &.today {
             width: 34px;
@@ -305,7 +315,7 @@ const nextMonth = () => {
             align-items: center;
             justify-content: center;
             @include media_mobile {
-              width: 46px;
+              width: 51px;
             }
 
             .week-day {
@@ -321,23 +331,6 @@ const nextMonth = () => {
                 height: 40px;
                 border-radius: 21px;
               }
-            }
-          }
-
-          &:hover {
-            background: var(--accent);
-            border-radius: 16px;
-            width: 32px;
-            height: 32px;
-            @include media_mobile {
-              width: 40px;
-              height: 40px;
-              margin: 0 4px;
-              border-radius: 21px;
-            }
-
-            .week-day {
-              color: var(--white);
             }
           }
         }
@@ -370,7 +363,23 @@ const nextMonth = () => {
             @include media_mobile {
               width: 40px;
               height: 40px;
-              margin: 0 4px;
+              border-radius: 21px;
+            }
+          }
+
+          &:hover {
+            background: var(--accent);
+            border-radius: 16px;
+            width: 32px;
+            height: 32px;
+            @include media_mobile {
+              width: 40px;
+              height: 40px;
+              border-radius: 21px;
+            }
+
+            .week-day {
+              color: var(--white);
             }
           }
 
@@ -391,6 +400,7 @@ const nextMonth = () => {
         cursor: pointer;
         width: 35px;
         padding: 10px 8px;
+        text-align: center;
 
         &.today {
           color: var(--white);
