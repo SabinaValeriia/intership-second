@@ -281,6 +281,8 @@ const selectAll = (item: [{ name: string; id: number }]) => {
     });
     updateProject(foundProject.value.id, updateData).then(() => {
       fetchProjects();
+      dropdownStates.value.members.isOpen =
+        !dropdownStates.value.members.isOpen;
     });
   }
 };
@@ -392,6 +394,8 @@ const selectedItem = (tag: string) => {
       });
       updateProject(foundProject.value.id, updateData).then(() => {
         fetchProjects();
+        dropdownStates.value.members.isOpen =
+          !dropdownStates.value.members.isOpen;
       });
     }
   } else if (listOpen.value) {
@@ -643,6 +647,12 @@ onMounted(() => {
         margin-right: 6px;
         position: absolute;
         right: 16px;
+        @include media_tablet {
+          margin-right: 10px;
+        }
+        @include media_mobile {
+          margin-right: 3px;
+        }
 
         i {
           position: relative;
@@ -754,6 +764,10 @@ onMounted(() => {
           &.members {
             height: 54px;
             box-sizing: border-box;
+            @include media_mobile {
+              margin-top: 2px;
+              height: 38px;
+            }
 
             div {
               display: flex;
@@ -767,11 +781,6 @@ onMounted(() => {
               img.hovered {
                 width: 38px;
                 height: 38px;
-              }
-
-              img:not(.hovered) {
-                width: 30px;
-                height: 30px;
               }
 
               @include media_mobile {
@@ -812,7 +821,7 @@ onMounted(() => {
             }
           }
           @include media_mobile {
-            padding: 7px 10px;
+            padding: 10px;
           }
 
           .lead {
@@ -877,6 +886,7 @@ onMounted(() => {
           padding: 8px 16px;
           @include media_mobile {
             padding: 6px 10px;
+            margin-bottom: 2px;
           }
 
           img {
@@ -891,6 +901,9 @@ onMounted(() => {
           display: flex;
           align-items: center;
           margin-bottom: 4px;
+          @include media_mobile {
+            margin: 0;
+          }
 
           p {
             margin-right: 6px;
