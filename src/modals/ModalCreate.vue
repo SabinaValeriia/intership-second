@@ -6,7 +6,7 @@ app-modal
       h1 Create project
     .modal-body
       form.create
-        .modal-body__block 
+        .modal-body__block
           base-input(
             :class="getValidationClass($v, 'title')",
             :type="`title`",
@@ -113,32 +113,32 @@ app-modal
       common-button.cancel.btn-secondary-line(@click="close") Cancel
       common-button.save.btn-secondary(@click="save") Create
 </template>
-<script setup lang="ts">
+<script lang="ts" setup>
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import AppModal from "./AppModal.vue";
 import { useVuelidate } from "@vuelidate/core";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { computed, onMounted, ref, watch } from "vue";
-import { showMe, showUsers } from "@/services/api/userApi";
+import { showMe } from "@/services/api/userApi";
 import { required } from "@vuelidate/validators";
-import { getValidationClass, checkValidation } from "@/types/authValidation";
+import { checkValidation, getValidationClass } from "@/types/authValidation";
 import { projectPost } from "@/services/api/projectApi";
 import BaseInput from "@/components/common/BaseInput.vue";
 import ImageInput from "@/components/common/ImageInput.vue";
 import {
-  NotificationType,
   notifications,
+  NotificationType,
   pushNotification,
 } from "@/composables/notification";
 import { ProjectInterface } from "@/types/projectApiInterface";
 import { showTag, tagData } from "@/composables/tagActions";
 import { ImageInterface } from "../types/ImageInterface";
-import { filterFunction, projects } from "@/composables/projectsAction";
+import { filterFunction } from "@/composables/projectsAction";
 import { useUserStore } from "../store/user";
 import {
-  showDataUser,
   leadNames,
   membersNames,
+  showDataUser,
 } from "@/composables/userActions";
 
 const userStore = useUserStore();
@@ -377,11 +377,13 @@ onMounted(() => {
     }
   }
 }
+
 .modal-body {
   &__block {
     display: flex;
     flex-wrap: wrap;
   }
+
   i.arrow {
     right: 16px;
     height: 11px;
@@ -390,15 +392,19 @@ onMounted(() => {
       width: 12px;
       height: 8px;
     }
+
     &.active {
       transform: rotate(180deg);
     }
+
     &.mobile {
       display: none;
     }
   }
+
   form {
     width: 100%;
+
     &.create {
       display: flex;
       flex-wrap: wrap;
@@ -406,27 +412,32 @@ onMounted(() => {
       @include media_mobile {
         display: block;
       }
+
       .position {
         display: flex;
         align-items: center;
         width: fit-content;
+
         &.mobile {
           @include media_mobile {
             flex-direction: column;
             width: 100%;
           }
         }
+
         &-dropdown {
           width: 100%;
           position: relative;
         }
       }
+
       .form-group {
         width: 100%;
         margin-bottom: 16px;
         @include media_mobile {
           margin-bottom: 10px;
         }
+
         &.title {
           width: 396px;
           margin-right: 16px;
@@ -435,6 +446,7 @@ onMounted(() => {
             margin-right: 0;
           }
         }
+
         &.key {
           width: 200px;
           @include media_mobile {
@@ -442,6 +454,7 @@ onMounted(() => {
             margin-bottom: 10px;
           }
         }
+
         img {
           position: absolute;
           width: 20px;
@@ -457,6 +470,7 @@ onMounted(() => {
             height: 16px;
           }
         }
+
         label {
           font-size: 14px;
           line-height: 20px;
@@ -467,11 +481,13 @@ onMounted(() => {
             line-height: 16px;
           }
         }
+
         label.tag {
           &::before {
             display: none;
           }
         }
+
         @include media_mobile {
           input {
             &.show {
@@ -479,6 +495,7 @@ onMounted(() => {
             }
           }
         }
+
         &.lead {
           margin: 0 16px 0 0;
           width: 224px;
@@ -490,12 +507,14 @@ onMounted(() => {
             }
           }
         }
+
         &.members {
           margin: 0;
           width: 372px;
           @include media_mobile {
             width: 100%;
           }
+
           input {
             width: 372px;
             @include media_mobile {
@@ -503,11 +522,13 @@ onMounted(() => {
             }
           }
         }
+
         &.tag {
           input {
             width: 224px;
           }
         }
+
         label.tag {
           margin-bottom: 0;
         }
@@ -526,6 +547,7 @@ onMounted(() => {
           line-height: 20px;
           margin-left: 8px;
           border-radius: 8px;
+
           &:before {
             mask-image: url("@/assets/icons/plus.svg");
             background: var(--white);
@@ -533,6 +555,7 @@ onMounted(() => {
             height: 12px;
             margin-right: 4px;
           }
+
           @include media_mobile {
             padding: 4px 8px;
             width: 54px;
@@ -541,6 +564,7 @@ onMounted(() => {
             line-height: 16px;
           }
         }
+
         .tags {
           position: relative;
           display: flex;
@@ -552,18 +576,22 @@ onMounted(() => {
           @include font(14px, 400, 20px, var(--white));
           margin-left: 8px;
           cursor: pointer;
+
           &:hover {
             background: var(--accent_hover);
           }
+
           i.close {
             top: 11px;
             left: 8px;
             width: 10px;
             height: 10px;
+
             &::before {
               background: var(--white);
             }
           }
+
           @include media_mobile {
             padding: 4px 6px 4px 18px;
             font-size: 12px;
@@ -576,9 +604,11 @@ onMounted(() => {
             }
           }
         }
+
         &.desc {
           input {
             height: 78px;
+
             &::placeholder {
               position: absolute;
               top: 12px;

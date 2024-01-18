@@ -24,7 +24,7 @@
         i.icon.arrow-long
       .hover-block
     h2(v-if="!toggle") OPERATIONS
-    a.position
+    router-link.position(:to="{ name: 'projectDetails' }")
       i.icon.details
       p(v-if="!toggle") Project details
       .block-black
