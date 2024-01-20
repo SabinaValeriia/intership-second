@@ -76,6 +76,11 @@ const routes: Array<RouteRecordRaw> = [
             name: "boardItem",
             component: () => import("../views/BoardView.vue"),
           },
+          {
+            path: "projectDetails",
+            name: "projectDetails",
+            component: () => import("../views/ProjectDetails.vue"),
+          },
         ],
       },
       {

@@ -7,6 +7,7 @@
   h2(v-if="noData") Wait!
   p(v-if="noData") You have no projects created, please create new one.
   p(v-if="noResults") No results found, try to reset filters
+  p.tasks(v-if="noDataTask") You have no tasks created, please create new one.
   div(v-if="noUser")
     h3 There is no work to see here
     p Things {{ userName + " " }}
@@ -16,9 +17,9 @@
     p {{ userName + " " }}
       | hasn’t worked in any projects in the last 90 days.
   common-button.btn-secondary(
-    v-if="noData || noResults",
-    @click="noData ? create() : reset()"
-  ) {{ noData ? "Create" : "Reset" }}
+    v-if="noData || noResults || noDataTask",
+    @click="noData || noDataTask ? create() : reset()"
+  ) {{ noData || noDataTask ? "Create" : "Reset" }}
 </template>
 
 <script lang="ts" setup>
@@ -26,6 +27,7 @@ import { openModal } from "@/composables/modalActions";
 import CommonButton from "./common/CommonButton.vue";
 import { defineEmits, defineProps } from "vue";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
+import { useRoute } from "vue-router";
 
 const props = defineProps({
   noResults: {
@@ -33,6 +35,10 @@ const props = defineProps({
     default: false,
   },
   noData: {
+    type: Boolean,
+    default: false,
+  },
+  noDataTask: {
     type: Boolean,
     default: false,
   },
@@ -50,12 +56,17 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["reset"]);
+const route = useRoute();
 
 const reset = () => {
   emit("reset");
 };
 const create = () => {
-  openModal(EnumModalKeys.ModalCreate);
+  if (route.path.includes("issues")) {
+    openModal(EnumModalKeys.ModalCreateIssues);
+  } else {
+    openModal(EnumModalKeys.ModalCreate);
+  }
 };
 </script>
 <style lang="scss" scoped>
@@ -111,6 +122,11 @@ const create = () => {
       @include font(12px, 400, 16px, var(--text));
       max-width: 229px;
       text-align: left;
+
+      &.tasks {
+        max-width: 250px;
+      }
+
       @include media_mobile {
         font-size: 11px;
         line-height: 14px;

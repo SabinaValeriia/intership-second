@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { UserInterface } from "@/types/UserInterface";
+
 export const defaultUser = {
   id: 0,
   username: "",
@@ -12,6 +13,7 @@ export const useUserStore = defineStore(
     const data = ref({});
     const user = ref({ ...defaultUser } as UserInterface);
     const projectData = ref({});
+    const taskData = ref({});
     const accessToken = ref("");
 
     const isAuthorized = computed(() => !!user.value.id && !!accessToken.value);
@@ -22,6 +24,10 @@ export const useUserStore = defineStore(
 
     const showProjectsData = (data: any) => {
       projectData.value = data;
+    };
+
+    const showTasksData = (data: any) => {
+      taskData.value = data;
     };
 
     const setTokens = (payload: { accessToken: string }) => {
@@ -44,6 +50,7 @@ export const useUserStore = defineStore(
       login,
       clear,
       projectData,
+      showTasksData,
       showProjectsData,
     };
   },

@@ -24,7 +24,7 @@
         i.icon.arrow-long
       .hover-block
     h2(v-if="!toggle") OPERATIONS
-    a.position
+    router-link.position(:to="{ name: 'projectDetails' }")
       i.icon.details
       p(v-if="!toggle") Project details
       .block-black
@@ -43,6 +43,12 @@
 import { showProjectById } from "@/services/api/projectApi";
 import { onMounted, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
+
+const props = defineProps({
+  newTaskShow: {
+    type: Boolean,
+  },
+});
 
 const route = useRoute();
 const project = ref([]);
