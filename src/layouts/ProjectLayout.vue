@@ -44,6 +44,12 @@ import { showProjectById } from "@/services/api/projectApi";
 import { onMounted, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
+const props = defineProps({
+  newTaskShow: {
+    type: Boolean,
+  },
+});
+
 const route = useRoute();
 const project = ref([]);
 const toggle = ref(false);

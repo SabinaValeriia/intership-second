@@ -552,7 +552,6 @@ const fetchProjects = () => {
             id: item.id,
           })
         );
-        console.log(projectTags.value.length, "tagNotInProject");
       });
       inputValue.value = getInputValue.value;
       desc.value = getDesc.value;

@@ -66,7 +66,7 @@
       .board-box(:class="column.className")
         h4 {{ column.column }} {{ countToDoTasks(column.column) }}
         draggable.tablet(
-          v-model="filterTask[column.status]",
+          v-model="processProjectData",
           tag="ul",
           group="tasks",
           @change="moveCard($event, column.column)"
@@ -89,23 +89,23 @@
                   :key="tag.id"
                 )
                   .tag {{ tag.attributes.name }}
-                .block-desc
-                  p.key {{ element.attributes.key }}
-                  div
-                    p.date(
-                      v-if="element.attributes.dueDate",
-                      :class="isTaskOverdue(element.attributes.dueDate, element.attributes.createdAt, element.attributes.status.data.attributes.name)"
-                    ) {{ formatDate(element.attributes.dueDate) }}
-                      i.icon.clock
-                    img.logo(
-                      v-if="element.attributes.asignee.data.attributes.image",
-                      :src="JSON.parse(element.attributes.asignee.data.attributes.image.name)",
-                      alt="name"
-                    )
-                    img(
-                      v-else,
-                      :src="require(`@/assets/icons/default_user.svg`)"
-                    )
+              .block-desc
+                p.key {{ element.attributes.key }}
+                div
+                  p.date(
+                    v-if="element.attributes.dueDate",
+                    :class="isTaskOverdue(element.attributes.dueDate, element.attributes.createdAt, element.attributes.status.data.attributes.name)"
+                  ) {{ formatDate(element.attributes.dueDate) }}
+                    i.icon.clock
+                  img.logo(
+                    v-if="element.attributes.asignee.data.attributes.image",
+                    :src="JSON.parse(element.attributes.asignee.data.attributes.image.name)",
+                    alt="name"
+                  )
+                  img(
+                    v-else,
+                    :src="require(`@/assets/icons/default_user.svg`)"
+                  )
         ul.mobile(:class="{ disabled: dropdownStates.menu.isOpen }")
           div(v-for="task in tasks", :key="task.id")
             li(
@@ -161,7 +161,7 @@ import CommonButton from "@/components/common/CommonButton.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
 import DropdownSearch from "@/components/common/DropdownSearch.vue";
 import DropdownList from "@/components/common/DropdownList.vue";
-import { onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { showProjects } from "@/services/api/projectApi";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
@@ -172,6 +172,12 @@ import { getTaskTypeName } from "@/composables/projectsAction";
 import { page } from "@/composables/pagination";
 import { showStatus } from "@/services/api/statusApi";
 import { ResTasks } from "@/types/tasksApiInterface";
+
+const props = defineProps({
+  newTaskShow: {
+    type: Boolean,
+  },
+});
 
 const components: { draggable: any } = { Draggable };
 
@@ -184,6 +190,7 @@ enum Statuses {
   archive = "Archive",
 }
 
+const newTaskShow = inject("newTaskShow");
 const disabled = ref(false);
 const route = useRoute();
 const foundProject = ref();
@@ -208,6 +215,18 @@ const dropdownStates = ref({
   reporter: { isOpen: false },
   menu: { isOpen: false },
 });
+
+const processProjectData = computed(() => {
+  updateData();
+  return tasks.value;
+});
+
+const updateData = () => {
+  let show = props.newTaskShow;
+  if (show) {
+    fetchTasks("");
+  }
+};
 const generateMenu = (moveBackStatus: boolean, moveNextStatus: boolean) => {
   return [
     {
@@ -435,7 +454,6 @@ const countToDoTasks = (type: string) => {
     (task: ResTasks) => task.attributes.status.data.attributes.name === type
   ).length;
 };
-
 const formatDate = (data: string) => {
   if (data) {
     const dateObject = new Date(data);
@@ -488,7 +506,6 @@ onMounted(() => {
       (project: ProjectInterfaceItem) =>
         project.attributes.key === route.params.key
     );
-
     if (foundProject.value) {
       project.value = [
         {
@@ -502,9 +519,17 @@ onMounted(() => {
   });
 });
 watch(
-  [() => searchText.value, () => typeItem.value, () => userItem.value],
-  ([searchTextValue, typeItemValue, userItemValue]) => {
+  [
+    () => searchText.value,
+    () => typeItem.value,
+    () => userItem.value,
+    () => newTaskShow,
+  ],
+  ([searchTextValue, typeItemValue, userItemValue, newTask]) => {
     const filters = [];
+    if (newTask) {
+      fetchTasks("");
+    }
 
     if (searchTextValue) {
       filters.push(`filters[title][$contains]=${searchTextValue}`);

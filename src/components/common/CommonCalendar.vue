@@ -5,9 +5,9 @@ div
       h2 {{ formattedCurrentMonth }} {{ selectedYear }}
         i.icon.arrow.header-arrow(@click="showYear = !showYear")
       .block
-        button.prev(@click="prevMonth")
+        button.prev(@click.prevent="prevMonth")
           i.icon.arrow
-        button.next(@click="nextMonth")
+        button.next(@click.prevent="nextMonth")
           i.icon.arrow
     .year-dropdown(v-if="showYear")
       div(@change="changeYear")
@@ -40,6 +40,7 @@ div
 import { computed, ref } from "vue";
 import dayjs from "dayjs";
 
+const emit = defineEmits(["date"]);
 const currentMonth = ref(dayjs());
 const selectedDate = ref("Placeholder");
 const selectedStartDate = ref(null);
@@ -84,13 +85,12 @@ const weeks = computed(() => {
 
 const isSelectedDay = (day) => day === selectedDay.value;
 const selectDay = (day) => {
-  console.log(day, "njdn");
   selectedDay.value = day;
 };
 
 const selectDate = (date: object) => {
-  console.log("Lera");
   const formattedDate = date.format("DD.MM.YYYY");
+  emit("date", formattedDate);
   startDate.value = date;
   selectedStartDate.value = formattedDate;
 
@@ -174,6 +174,11 @@ const nextMonth = () => {
   }
 }
 
+.issues {
+  position: absolute;
+  top: 85px;
+}
+
 .calendar {
   width: 260px;
   min-height: fit-content;
@@ -182,6 +187,8 @@ const nextMonth = () => {
   border-radius: 8px;
   box-shadow: 0px 0px 2px 0px rgba(5, 9, 26, 0.12),
     0px 4px 8px 0px rgba(5, 9, 26, 0.08), 0px 4px 16px 0px rgba(5, 9, 26, 0.05);
+  position: absolute;
+  z-index: 3;
   @include media_mobile {
     width: 343px;
   }

@@ -34,3 +34,19 @@ export interface ShowTasks {
 
   [x: string]: any;
 }
+
+export interface TaskInterface {
+  data: {
+    title: "";
+    description: "";
+    asignee: "";
+    members: [];
+    tags: [];
+    reporter: "";
+    dueDate: "";
+    type: [];
+    project: "";
+    status: "";
+    key: "";
+  };
+}
