@@ -99,6 +99,11 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/TeamsView.vue"),
       },
       {
+        path: "work",
+        name: "work",
+        component: () => import("../views/WorkView.vue"),
+      },
+      {
         path: "teams/:id",
         name: "teamsUser",
         component: () => import("../views/UserView.vue"),

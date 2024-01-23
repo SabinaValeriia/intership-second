@@ -213,6 +213,10 @@
     mask-image: url("@/assets/icons/calendar.svg");
   }
 
+  &.dot {
+    mask-image: url("@/assets/icons/dot.svg");
+  }
+
   @include media_mobile {
     width: 16px;
     height: 16px;

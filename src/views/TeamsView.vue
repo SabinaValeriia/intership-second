@@ -1,10 +1,10 @@
 <template lang="pug">
-.teams 
+.teams
   .teams-block
     h1 People
     form.position
       .form-group.search
-        .form-icon 
+        .form-icon
           input(v-model="searchText", placeholder="Search teams")
           i.icon.search
     .teams-block__button(:class="{ selected: projectValue.length }")
@@ -135,17 +135,19 @@
     common-loader(v-if="isLoader")
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import CommonLoader from "@/components/common/CommonLoader.vue";
 import NoResults from "@/components/NoResults.vue";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { showUsers } from "@/services/api/userApi";
 import { UserInterface } from "@/types/UserInterface";
-import { computed, ref, watchEffect, onMounted, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showDepartments } from "@/services/api/departmentApi";
 import { showProjects } from "@/services/api/projectApi";
 import { leadNames, showDataUser } from "@/composables/userActions";
+import { useRoute } from "vue-router";
+
 const teams = ref([]);
 const searchText = ref("");
 const noResultsShow = ref(false);
@@ -158,6 +160,7 @@ const departmentValue = ref([]);
 const filterUse = ref(false);
 const isLoader = ref(false);
 const filter = ref("");
+const route = useRoute();
 const dropdownStates = ref({
   project: { isOpen: false },
   manager: { isOpen: false },
@@ -336,10 +339,12 @@ onMounted(() => {
     position: absolute;
     height: calc(100vh - -139px);
   }
+
   &-block {
     max-width: 993px;
     margin: 0 auto;
   }
+
   .drop-down {
     &.teams-dropdown {
       top: 64px;
@@ -348,18 +353,21 @@ onMounted(() => {
         left: 16px;
         position: fixed;
       }
+
       input {
         width: 240px;
         @include media_mobile {
           width: 343px;
         }
       }
+
       ul {
         width: 238px;
         @include media_mobile {
           width: 341px;
         }
       }
+
       i {
         &::before {
           background: var(--text);
@@ -367,6 +375,7 @@ onMounted(() => {
       }
     }
   }
+
   h1 {
     @include font(24px, 500, 28px, var(--text));
     margin: 0 0 28px;
@@ -374,6 +383,7 @@ onMounted(() => {
       display: none;
     }
   }
+
   form.position {
     .form-group {
       margin-bottom: 8px;
@@ -381,6 +391,7 @@ onMounted(() => {
         margin-bottom: 6px;
       }
     }
+
     .form-icon {
       input {
         padding: 14px 16px 14px 44px;
@@ -390,12 +401,15 @@ onMounted(() => {
           line-height: 18px;
         }
       }
+
       i.search {
         top: 14px;
         left: 16px;
+
         &::before {
           background: var(--text);
         }
+
         @include media_mobile {
           width: 13px;
           height: 13px;
@@ -405,11 +419,13 @@ onMounted(() => {
       }
     }
   }
+
   i.icon {
     &::before {
       background: var(--white);
     }
   }
+
   button.btn_icon {
     &::before {
       margin-right: 12px;
@@ -418,14 +434,17 @@ onMounted(() => {
       }
     }
   }
+
   &-block {
     &__button {
       display: flex;
+
       &.selected {
         @include media_mobile {
           overflow: auto;
         }
       }
+
       button {
         &.reset {
           padding: 12px 26px;
@@ -433,11 +452,13 @@ onMounted(() => {
           width: 91px;
           z-index: 3;
         }
+
         &.desktop {
           @include media_mobile {
             display: none;
           }
         }
+
         &.mobile {
           display: none;
           position: relative;
@@ -447,19 +468,23 @@ onMounted(() => {
             width: 36px;
             margin-left: 6px;
           }
+
           i.icon.reset {
             top: 9px;
             left: 11px;
           }
         }
       }
+
       &-dropdown {
         position: relative;
+
         button {
           width: fit-content;
           position: relative;
           padding: 12px 16px;
           font-weight: 400;
+
           i.icon {
             top: 14px;
             left: 16px;
@@ -469,6 +494,7 @@ onMounted(() => {
               top: 10px;
               left: 10px;
             }
+
             &.department {
               top: 15px;
               @include media_mobile {
@@ -476,9 +502,11 @@ onMounted(() => {
               }
             }
           }
+
           &.selected {
             background: var(--accent);
             padding: 12px 34px 12px 16px;
+
             img {
               position: absolute;
               width: 20px;
@@ -487,6 +515,7 @@ onMounted(() => {
               top: 14px;
               border-radius: 11px;
             }
+
             @include media_mobile {
               padding: 9px 26px 9px 10px;
               img {
@@ -497,6 +526,7 @@ onMounted(() => {
               }
             }
           }
+
           i.close {
             right: 16px;
             left: inherit;
@@ -511,6 +541,7 @@ onMounted(() => {
             }
           }
         }
+
         &:nth-child(2) {
           margin: 0 8px;
           @include media_mobile {
@@ -610,6 +641,7 @@ onMounted(() => {
     @include media_mobile {
       width: 100%;
     }
+
     img {
       width: 90px;
       height: 90px;
@@ -656,6 +688,7 @@ onMounted(() => {
       width: 100%;
       min-height: 142px;
     }
+
     .flip-box-user {
       display: flex;
       justify-content: space-between;
@@ -663,43 +696,53 @@ onMounted(() => {
       @include media_mobile {
         margin-bottom: 19px;
       }
+
       h4 {
         margin: 0;
         @include font(10px, 500, 14px, var(--text));
       }
+
       h6 {
         margin: 2px 0;
         @include font(6px, 400, 8px, var(--text));
       }
+
       p {
         @include font(8px, 400, 10px, var(--text));
       }
+
       img {
         width: 28px;
         height: 28px;
         border-radius: 32px;
       }
     }
+
     .flip-box-desc {
       h5 {
         @include font(8px, 500, 12px, var(--text));
         margin: 0 0 6px 0;
         display: flex;
         align-items: center;
+
         &:last-of-type {
           margin: 0;
         }
+
         &:nth-child(2) {
           height: 15px;
         }
+
         @include media_mobile {
           margin: 0 0 3px 0;
         }
+
         img {
           width: 15px;
           height: 15px;
           margin: 0 0 0 8px;
         }
+
         span {
           font-weight: 400;
           margin-left: 8px;

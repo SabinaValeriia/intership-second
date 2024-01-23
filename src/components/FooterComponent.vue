@@ -1,6 +1,6 @@
 <template lang="pug">
 .footer
-  .footer__block
+  a.footer__block(:class="{ active: $route.path.includes('work') }")
     i.icon.home
     p Home
   a.footer__block(

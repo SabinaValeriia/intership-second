@@ -1,6 +1,12 @@
 <template lang="pug">
 .no-results
+  .no-work-project(v-if="noWorkProject")
+    img(:src="require(`@/assets/icons/no-search.svg`)")
+    div
+      h3 We don’t have places to show here yet
+      p You hasn’t worked in any projects in the last 90 days.
   img(
+    v-else,
     :src="require(`@/assets/icons/${noData || noUser || noPlace ? 'no-search' : 'no-data'}.svg`)",
     :class="{ 'no-search': noData || noUser || noPlace, 'no-data': !(noData || noUser || noPlace) }"
   )
@@ -31,6 +37,10 @@ import { useRoute } from "vue-router";
 
 const props = defineProps({
   noResults: {
+    type: Boolean,
+    default: false,
+  },
+  noWorkProject: {
     type: Boolean,
     default: false,
   },
@@ -75,6 +85,35 @@ const create = () => {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+
+  .no-work-project {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    padding: 35px 111px;
+    margin: 7px 0 60px 0;
+    border-radius: 4px;
+    border: 1px solid var(--secondary);
+
+    h3 {
+      margin: 0;
+      width: 232px;
+      @include font(16px, 500, 20px, var(--text));
+    }
+
+    p {
+      width: 194px;
+      @include font(12px, 400, 16px, var(--text));
+      text-align: left;
+      margin-top: 6px;
+    }
+
+    img {
+      margin: 0;
+      width: 140px;
+      height: 120px;
+    }
+  }
 
   button {
     z-index: 5;

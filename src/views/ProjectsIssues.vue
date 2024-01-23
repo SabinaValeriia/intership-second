@@ -222,8 +222,8 @@ import { leadNames, showDataUser } from "@/composables/userActions";
 import PaginationComponent from "@/components/common/PaginationComponent.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
 import { computed, onMounted, ref, watch } from "vue";
-import CommonButton from "@/components/common/CommonButton.vue";
 import { getTaskTypeName } from "@/composables/projectsAction";
+import CommonButton from "@/components/common/CommonButton.vue";
 import {
   endIndex,
   itemsPerPage,
@@ -504,7 +504,19 @@ watch(
   { deep: true }
 );
 onMounted(() => {
-  fetchTasks("");
+  if (
+    route.fullPath.includes(
+      "issues?filters[$and][0][status][name][$eq]=To%2520Do"
+    )
+  ) {
+    fetchTasks("&filters[$and][0][status][name][$eq]=To%20Do");
+  } else if (
+    route.fullPath.includes("issues?filters[$and][0][status][name][$eq]=Done")
+  ) {
+    fetchTasks("&filters[$and][0][status][name][$eq]=Done");
+  } else {
+    fetchTasks("");
+  }
   showTypes().then(({ data }) => {
     types.value = data.data.map(
       (item: { [x: string]: any; name: string; id: number }) => ({
