@@ -1,12 +1,19 @@
 <template lang="pug">
 .no-results
+  .no-work-project(v-if="noWorkProject")
+    img(:src="require(`@/assets/icons/no-search.svg`)")
+    div
+      h3 We don’t have places to show here yet
+      p You hasn’t worked in any projects in the last 90 days.
   img(
+    v-else,
     :src="require(`@/assets/icons/${noData || noUser || noPlace ? 'no-search' : 'no-data'}.svg`)",
     :class="{ 'no-search': noData || noUser || noPlace, 'no-data': !(noData || noUser || noPlace) }"
   )
   h2(v-if="noData") Wait!
   p(v-if="noData") You have no projects created, please create new one.
   p(v-if="noResults") No results found, try to reset filters
+  p.tasks(v-if="noDataTask") You have no tasks created, please create new one.
   div(v-if="noUser")
     h3 There is no work to see here
     p Things {{ userName + " " }}
@@ -16,9 +23,9 @@
     p {{ userName + " " }}
       | hasn’t worked in any projects in the last 90 days.
   common-button.btn-secondary(
-    v-if="noData || noResults",
-    @click="noData ? create() : reset()"
-  ) {{ noData ? "Create" : "Reset" }}
+    v-if="noData || noResults || noDataTask",
+    @click="noData || noDataTask ? create() : reset()"
+  ) {{ noData || noDataTask ? "Create" : "Reset" }}
 </template>
 
 <script lang="ts" setup>
@@ -26,13 +33,22 @@ import { openModal } from "@/composables/modalActions";
 import CommonButton from "./common/CommonButton.vue";
 import { defineEmits, defineProps } from "vue";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
+import { useRoute } from "vue-router";
 
 const props = defineProps({
   noResults: {
     type: Boolean,
     default: false,
   },
+  noWorkProject: {
+    type: Boolean,
+    default: false,
+  },
   noData: {
+    type: Boolean,
+    default: false,
+  },
+  noDataTask: {
     type: Boolean,
     default: false,
   },
@@ -50,12 +66,17 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["reset"]);
+const route = useRoute();
 
 const reset = () => {
   emit("reset");
 };
 const create = () => {
-  openModal(EnumModalKeys.ModalCreate);
+  if (route.path.includes("issues")) {
+    openModal(EnumModalKeys.ModalCreateIssues);
+  } else {
+    openModal(EnumModalKeys.ModalCreate);
+  }
 };
 </script>
 <style lang="scss" scoped>
@@ -64,6 +85,35 @@ const create = () => {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+
+  .no-work-project {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    padding: 35px 111px;
+    margin: 7px 0 60px 0;
+    border-radius: 4px;
+    border: 1px solid var(--secondary);
+
+    h3 {
+      margin: 0;
+      width: 232px;
+      @include font(16px, 500, 20px, var(--text));
+    }
+
+    p {
+      width: 194px;
+      @include font(12px, 400, 16px, var(--text));
+      text-align: left;
+      margin-top: 6px;
+    }
+
+    img {
+      margin: 0;
+      width: 140px;
+      height: 120px;
+    }
+  }
 
   button {
     z-index: 5;
@@ -111,6 +161,11 @@ const create = () => {
       @include font(12px, 400, 16px, var(--text));
       max-width: 229px;
       text-align: left;
+
+      &.tasks {
+        max-width: 250px;
+      }
+
       @include media_mobile {
         font-size: 11px;
         line-height: 14px;

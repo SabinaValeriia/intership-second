@@ -159,9 +159,7 @@ import { showProjects } from "@/services/api/projectApi";
 import CommonButton from "@/components/common/CommonButton.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { showTag, tagNames } from "@/composables/tagActions";
-import { filterFunction } from "@/composables/projectsAction";
 import { ProjectInterfaceItem } from "@/types/projectApiInterface";
-import { useUserStore } from "../store/user";
 import {
   endIndex,
   itemsPerPage,
@@ -191,8 +189,6 @@ const dropdownStates = ref({
   tags: { isOpen: false },
   lead: { isOpen: false },
 });
-
-const useStore = useUserStore();
 
 const sortAction = ref({
   name: "title",
@@ -233,8 +229,6 @@ const close = (dropdownName: string) => {
   dropdownStates.value.tags.isOpen = false;
   dropdownStates.value.lead.isOpen = false;
 };
-
-const { selected, filtered } = filterFunction([]);
 
 const selectedItem = (tag: { id: any; name: string }) => {
   if (dropdownStates.value.tags.isOpen) {

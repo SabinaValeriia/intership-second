@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios";
 import axiosInstance from ".";
 import { ResTasks } from "@/types/tasksApiInterface";
+import { ProjectInterface } from "@/types/projectApiInterface";
 
 export const showTasks = (
   queryParam: string
@@ -15,4 +16,10 @@ export const updateTask = (
 ): Promise<AxiosResponse<any>> => {
   const url = `/task/${taskId}?populate=*&`;
   return axiosInstance.put(url, data);
+};
+
+export const taskPost = (
+  payload: ProjectInterface
+): Promise<AxiosResponse<ResTasks>> => {
+  return axiosInstance.post("task?populate=*", payload);
 };

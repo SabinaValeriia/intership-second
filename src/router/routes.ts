@@ -76,6 +76,11 @@ const routes: Array<RouteRecordRaw> = [
             name: "boardItem",
             component: () => import("../views/BoardView.vue"),
           },
+          {
+            path: "projectDetails",
+            name: "projectDetails",
+            component: () => import("../views/ProjectDetails.vue"),
+          },
         ],
       },
       {
@@ -92,6 +97,11 @@ const routes: Array<RouteRecordRaw> = [
         path: "teams",
         name: "teams",
         component: () => import("../views/TeamsView.vue"),
+      },
+      {
+        path: "work",
+        name: "work",
+        component: () => import("../views/WorkView.vue"),
       },
       {
         path: "teams/:id",

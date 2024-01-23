@@ -1,11 +1,20 @@
 <template lang="pug">
-.header
+.header(:class="{ work: $route.path.includes('work') }")
   .header-block__left
     a
       i.icon.logo_header
     ul
-      li
-        a(@click="toggleDropdown('work')") Your work
+      li.projects
+        a(
+          :class="{ active: $route.path.includes('work') }",
+          @click="toggleDropdown('work')"
+        ) Your work
+        dropdown-menu(
+          :is-open="dropdownStates.work.isOpen",
+          title="Assigned to me",
+          :work="true",
+          :type="'projects'"
+        )
       li.projects
         a(
           :class="{ active: $route.path.includes('projects') }",
@@ -28,8 +37,12 @@
           :type="'teams'"
         )
     common-button.btn-secondary(
-      v-if="$route.path.includes('projects')",
+      v-if="$route.path.includes('projects') && !$route.path.includes('projectDetails') && !$route.path.includes('issues') && !$route.path.includes('boardItem')",
       @click="openModal(EnumModalKeys.ModalCreate)"
+    ) Create
+    common-button.btn-secondary(
+      v-if="$route.path.includes('issues') || $route.path.includes('boardItem') || $route.path.includes('work')",
+      @click="openModal(EnumModalKeys.ModalCreateIssues)"
     ) Create
   .header-block__right
     form
@@ -59,9 +72,14 @@
     h3(v-if="$route.path.includes('issues')") Issues
     h3(v-if="$route.path.includes('archive')") Archive
     h3(v-if="$route.path.includes('boardItem')") Board
+    h3(v-if="$route.path.includes('work')") Your work
     i.icon.plus(
-      v-if="$route.path.includes('projects') && !$route.path.includes('archive')",
+      v-if="$route.path.includes('projects') && !$route.path.includes('projectDetails') && !$route.path.includes('issues') && !$route.path.includes('boardItem')",
       @click="openModal(EnumModalKeys.ModalCreate)"
+    )
+    i.icon.plus(
+      v-if="$route.path.includes('issues') || $route.path.includes('boardItem') || $route.path.includes('work')",
+      @click="openModal(EnumModalKeys.ModalCreateIssues)"
     )
     i.icon.plus.people(
       v-if="$route.path.includes('teams') || $route.path.includes('archive')"
@@ -74,6 +92,13 @@ modal-create(
   @newProject="newProject",
   @closeModal="close"
 )
+modal-create-issues(
+  v-if="isOpen(EnumModalKeys.ModalCreateIssues)",
+  :create="true",
+  @close="closeModal",
+  @newTask="newTask",
+  @closeModal="close"
+)
 </template>
 
 <script lang="ts" setup>
@@ -82,10 +107,11 @@ import CommonButton from "./common/CommonButton.vue";
 import { isOpen, modalKeys, openModal } from "@/composables/modalActions";
 import { EnumModalKeys } from "@/constants/EnumModalKeys";
 import ModalHeader from "@/modals/ModalHeader.vue";
-import ModalCreate from "@/modals/ModalCreate.vue";
+import ModalCreateIssues from "@/modals/ModalCreateIssues.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useUserStore } from "../store/user";
 import { useRoute } from "vue-router";
+import ModalCreate from "@/modals/ModalCreate.vue";
 
 const route = useRoute();
 
@@ -94,7 +120,7 @@ const fullName = computed(() => {
   const username = userStore.user.username || "";
   return username;
 });
-const emit = defineEmits(["newProject"]);
+const emit = defineEmits(["newProject", "newTask"]);
 const dropdownStates = ref({
   work: { isOpen: false },
   project: { isOpen: false },
@@ -103,6 +129,10 @@ const dropdownStates = ref({
 
 const newProject = () => {
   emit("newProject");
+};
+
+const newTask = () => {
+  emit("newTask");
 };
 
 const closeDropdown = () => {
@@ -122,6 +152,9 @@ const logoName = computed(() => {
 
 const close = () => {
   openModal(EnumModalKeys.ModalCreate);
+};
+const closeModal = () => {
+  openModal(EnumModalKeys.ModalCreateIssues);
 };
 const isRouteActive = (routeName: string) => {
   if (route.name === routeName) {
@@ -153,6 +186,13 @@ onMounted(() => {
   justify-content: space-between;
   height: 80px;
   box-sizing: border-box;
+
+  &.work {
+    position: fixed;
+    width: 100%;
+    z-index: 1;
+  }
+
   @include media_mobile {
     position: fixed;
     width: 100%;

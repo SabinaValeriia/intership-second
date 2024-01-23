@@ -125,7 +125,7 @@
     .column.status Status
     .column.created Created
   .tablet(v-if="!isLoader")
-    .issues-block(v-for="item in tasks", :key="item")
+    .issues-block(v-for="item in processProjectData", :key="item")
       .type(v-for="t in item.attributes.type", :key="t")
         i.icon(:class="getTaskTypeName(t.attributes.name)")
       .key
@@ -170,7 +170,7 @@
     v-if="!isLoader",
     :class="{ pagination: lengthByProject > itemsPerPage && !noDataShow && !noResultsShow }"
   )
-    .issues-block(v-for="item in tasks", :key="item")
+    .issues-block(v-for="item in processProjectData", :key="item")
       .block-left
         .type(v-for="t in item.attributes.type", :key="t")
           i.icon(:class="getTaskTypeName(t.attributes.name)")
@@ -210,7 +210,7 @@
   )
   no-results(
     v-if="noDataShow || (noResultsShow && filterUse)",
-    :no-data="noDataShow",
+    :no-data-task="noDataShow",
     :no-results="noResultsShow",
     @reset="reset"
   )
@@ -221,9 +221,9 @@ import NoResults from "@/components/NoResults.vue";
 import { leadNames, showDataUser } from "@/composables/userActions";
 import PaginationComponent from "@/components/common/PaginationComponent.vue";
 import CommonLoader from "@/components/common/CommonLoader.vue";
-import { onMounted, ref, watch } from "vue";
-import CommonButton from "@/components/common/CommonButton.vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { getTaskTypeName } from "@/composables/projectsAction";
+import CommonButton from "@/components/common/CommonButton.vue";
 import {
   endIndex,
   itemsPerPage,
@@ -235,6 +235,12 @@ import { showTasks } from "@/services/api/tasksApi";
 import { showTypes } from "@/services/api/typeApi";
 import DropdownComponent from "@/components/common/DropdownSearch.vue";
 import { showStatus } from "@/services/api/statusApi";
+
+const props = defineProps({
+  newTaskShow: {
+    type: Boolean,
+  },
+});
 
 const tasks = ref([]);
 const isLoader = ref(false);
@@ -265,6 +271,11 @@ const sortAction = ref({
   status: "ASC",
   class: "active",
 });
+
+const processProjectData = computed(() => {
+  updateData();
+  return tasks.value;
+});
 const clear = () => {
   if (typeItem.value.length) {
     typeItem.value = [];
@@ -274,6 +285,12 @@ const clear = () => {
   fetchTasks("");
 };
 
+const updateData = () => {
+  let show = props.newTaskShow;
+  if (show) {
+    fetchTasks("");
+  }
+};
 const deleteAssignee = () => {
   showDataUser();
   assigneeItem.value = "";
@@ -487,7 +504,19 @@ watch(
   { deep: true }
 );
 onMounted(() => {
-  fetchTasks("");
+  if (
+    route.fullPath.includes(
+      "issues?filters[$and][0][status][name][$eq]=To%2520Do"
+    )
+  ) {
+    fetchTasks("&filters[$and][0][status][name][$eq]=To%20Do");
+  } else if (
+    route.fullPath.includes("issues?filters[$and][0][status][name][$eq]=Done")
+  ) {
+    fetchTasks("&filters[$and][0][status][name][$eq]=Done");
+  } else {
+    fetchTasks("");
+  }
   showTypes().then(({ data }) => {
     types.value = data.data.map(
       (item: { [x: string]: any; name: string; id: number }) => ({

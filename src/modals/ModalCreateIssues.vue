@@ -3,31 +3,54 @@ app-modal
   template(#content)
     .backdrop(@click="closeDropdown")
     .modal-header
-      h1 Create project
+      h1 Create issues
     .modal-body
       form.create
         .modal-body__block
           base-input(
-            :class="getValidationClass($v, 'title')",
-            :type="`title`",
-            :value-input="form.title",
-            :is-error="getValidationClass($v, 'title')",
-            @set-data="form.title = $event"
+            :class="getValidationClass($v, 'summary')",
+            :type="`summary`",
+            :value-input="form.summary",
+            :is-error="getValidationClass($v, 'summary')",
+            @set-data="form.summary = $event"
           )
-            template(v-if="$v.title.required.$invalid", #errors)
+            template(v-if="$v.summary.required.$invalid", #errors)
               span This field is required.
-          base-input(
-            :class="getValidationClass($v, 'key')",
-            :type="`key`",
-            :value-input="form.key",
-            :is-error="$v.key.required.$invalid",
-            @set-data="form.key = $event"
-          )
-            template(v-if="$v.key.required.$invalid", #errors)
-              span This field is required.
-        image-input(:class="getValidationClass($v, 'image')", @file="addFile")
-          template(v-if="$v.image.required.$invalid", #errors)
-            span This field is required.
+        .flex
+          .position-dropdown
+            base-input(
+              :class="getValidationClass($v, 'type')",
+              :type="`Type`",
+              :value-input="form.type ? form.type : 'form.type'",
+              @click="toggleDropdown('typeTasks')"
+            )
+              template(#suffix)
+                i.icon.arrow(
+                  :class="{ active: dropdownStates.typeTasks.isOpen }"
+                )
+              template(v-if="$v.type.required.$invalid", #errors)
+                span This field is required.
+            dropdown-component.lead(
+              :is-open="dropdownStates.typeTasks.isOpen",
+              :data="types",
+              :type="'lead'",
+              @selectedItem="selectedItem"
+            )
+          .position-dropdown
+            base-input(
+              :class="getValidationClass($v, 'date')",
+              :type="`Due date`",
+              :value-input="form.date.length ? form.date : 'Due date'",
+              @click="showCalendar = !showCalendar"
+            )
+              template(#suffix)
+                i.icon.calendar
+              template(v-if="$v.date.required.$invalid", #errors)
+                span This field is required.
+            common-calendar.primary.issues(
+              v-if="showCalendar",
+              @date="selectDate"
+            )
         .form-group.desc(:class="getValidationClass($v, 'description')")
           .label-group
             label(for="description") Description
@@ -60,27 +83,24 @@ app-modal
             @selectedItem="selectedItem"
           )
         .position.mobile
-          .position-dropdown
+          .position-dropdown.assignee
             base-input(
-              :class="getValidationClass($v, 'lead')",
-              :type="'lead'",
-              :value-input="form.lead.name",
+              :class="getValidationClass($v, 'assignee')",
+              :type="'assignee'",
+              :value-input="form.assignee.name",
               :with-icon="true",
-              @click="toggleDropdown('lead')"
+              @click="toggleDropdown('assignee')"
             )
               template(#prefix)
-                img.logo(
-                  v-if="form.lead.logo",
-                  :src="JSON.parse(form.lead.logo.name)",
-                  alt="name"
-                )
-                img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
-              template(v-if="$v.lead.required.$invalid", #errors)
+                img(:src="require(`@/assets/icons/default_user.svg`)")
+              template(v-if="$v.assignee.required.$invalid", #errors)
                 span This field is required.
               template(#suffix)
-                i.icon.arrow(:class="{ active: dropdownStates.lead.isOpen }")
+                i.icon.arrow(
+                  :class="{ active: dropdownStates.assignee.isOpen }"
+                )
             dropdown-component.lead(
-              :is-open="dropdownStates.lead.isOpen",
+              :is-open="dropdownStates.assignee.isOpen",
               :data="leadNames",
               :type="'lead'",
               @selectedItem="selectedItem"
@@ -122,67 +142,77 @@ import { computed, onMounted, ref, watch } from "vue";
 import { showMe } from "@/services/api/userApi";
 import { required } from "@vuelidate/validators";
 import { checkValidation, getValidationClass } from "@/types/authValidation";
-import { projectPost } from "@/services/api/projectApi";
 import BaseInput from "@/components/common/BaseInput.vue";
-import ImageInput from "@/components/common/ImageInput.vue";
 import {
   notifications,
   NotificationType,
   pushNotification,
 } from "@/composables/notification";
-import { ProjectInterface } from "@/types/projectApiInterface";
 import { showTag, tagData } from "@/composables/tagActions";
-import { ImageInterface } from "../types/ImageInterface";
-import { filterFunction } from "@/composables/projectsAction";
 import { useUserStore } from "../store/user";
 import {
   leadNames,
   membersNames,
   showDataUser,
 } from "@/composables/userActions";
+import { showTypes } from "@/services/api/typeApi";
+import CommonCalendar from "@/components/common/CommonCalendar.vue";
+import { taskPost } from "@/services/api/tasksApi";
+import dayjs from "dayjs";
+import { useRoute } from "vue-router";
+import { showStatus } from "@/services/api/statusApi";
+import { TaskInterface } from "@/types/tasksApiInterface";
 
 const userStore = useUserStore();
 
-interface ProjectData {
-  title: string;
+interface IssuesData {
+  summary: string;
   key: string;
   description: string;
-  lead: string;
+  date: string;
+  assignee: string;
   members: string[];
   image: string;
   tags: string[];
 }
 
-const emit = defineEmits(["close", "newProject"]);
+const route = useRoute();
+const emit = defineEmits(["close", "newTask"]);
 const members = ref([]);
 const tags = ref([]);
 const showInput = ref("");
-const leadName = ref("");
+const assignee = ref("");
 const showAdd = ref(true);
 const memberItem = ref([]);
+const types = ref([]);
+const showCalendar = ref(false);
+const typesItem = ref([]);
+const toDoStatus = ref();
 
-const defaultState: ProjectData = {
-  title: "",
+const defaultState: IssuesData = {
+  summary: "",
   key: "",
   description: "",
-  lead: "",
-  image: "",
+  date: "",
+  assignee: "",
+  type: "",
   members: [],
   tags: [],
 };
 
-const form = ref<ProjectData>({
+const form = ref<IssuesData>({
   ...defaultState,
 });
 
 const dropdownStates = ref({
   tags: { isOpen: false },
-  lead: { isOpen: false },
+  assignee: { isOpen: false },
   members: { isOpen: false },
+  typeTasks: { isOpen: false },
 });
 
 watch(
-  () => form.value.title,
+  () => form.value.summary,
   (newTitle, oldTitle) => {
     if (newTitle) {
       const words = newTitle.split(" ");
@@ -198,19 +228,22 @@ watch(
 
 const rules = computed(() => {
   const rules: any = {
-    title: { required },
-    key: { required },
+    summary: { required },
     description: { required },
-    lead: { required },
-    image: {
-      required,
-    },
+    assignee: { required },
     members: { required },
+    type: { required },
+    date: { required },
   };
   return rules;
 });
 
 const $v = useVuelidate(rules, form);
+
+const selectDate = (date: string) => {
+  form.value.date = date;
+  showCalendar.value = !showCalendar.value;
+};
 
 const toggleBlock = (inputType: string) => {
   showInput.value = showInput.value === inputType ? "" : inputType;
@@ -242,16 +275,22 @@ const toggleDropdown = (dropdownName: string) => {
 
 const closeDropdown = () => {
   dropdownStates.value.tags.isOpen = false;
-  dropdownStates.value.lead.isOpen = false;
+  dropdownStates.value.assignee.isOpen = false;
   dropdownStates.value.members.isOpen = false;
 };
-const { selected, filtered } = filterFunction([]);
 
 const selectedItem = (tag: string) => {
-  if (dropdownStates.value.lead.isOpen) {
-    form.value.lead = tag;
+  if (dropdownStates.value.assignee.isOpen) {
+    form.value.assignee = tag;
 
-    dropdownStates.value.lead.isOpen = !dropdownStates.value.lead.isOpen;
+    dropdownStates.value.assignee.isOpen =
+      !dropdownStates.value.assignee.isOpen;
+  }
+  if (dropdownStates.value.typeTasks.isOpen) {
+    form.value.type = tag.name;
+    typesItem.value.push(tag.id.toString());
+    dropdownStates.value.typeTasks.isOpen =
+      !dropdownStates.value.typeTasks.isOpen;
   } else if (dropdownStates.value.tags.isOpen) {
     if (!form.value.tags.includes(tag)) {
       form.value.tags.push(tag);
@@ -269,9 +308,8 @@ const selectedItem = (tag: string) => {
       dropdownStates.value.tags.isOpen = !dropdownStates.value.tags.isOpen;
       showAdd.value = false;
     }
-
     tags.value.push(tag.id.toString());
-  } else {
+  } else if (dropdownStates.value.members.isOpen) {
     if (!memberItem.value.includes(tag)) {
       form.value.members.push(tag.name);
       memberItem.value.push(tag);
@@ -309,46 +347,50 @@ const deleteTag = (tag: { name: string; id: number }) => {
   showAdd.value = true;
 };
 
-const addFile = (userImage: ImageInterface) => {
-  form.value.image = userImage.value[0].base64;
-};
-
 const save = () => {
   if (checkValidation($v.value)) {
     return;
   }
-  const dataProject: ProjectInterface = {
-    data: {
-      title: form.value.title,
-      key: form.value.key,
-      description: form.value.description,
-      logo: {
-        name: form.value.image,
+  const dueDate = dayjs(form.value.date, {
+    parseFormat: "dddd, MMMM, YYYY",
+  });
+
+  if (dueDate.isValid()) {
+    const formattedDate = dueDate.format("YYYY-MM-DD");
+    const dataTask: TaskInterface = {
+      data: {
+        title: form.value.summary,
+        description: form.value.description,
+        asignee: form.value.assignee.id.toString(),
+        members: Array.from(members.value),
+        tags: Array.from(tags.value),
+        reporter: assignee.value.id.toString(),
+        dueDate: formattedDate,
+        type: Array.from(typesItem.value),
+        project: route.params.projectId,
+        status: toDoStatus.value.id.toString(),
+        key: form.value.key,
       },
-      lead: form.value.lead.id.toString(),
-      members: Array.from(members.value),
-      tags: Array.from(tags.value),
-      manager: leadName.value.toString(),
-    },
-  };
-  projectPost(dataProject)
-    .then(({ data }) => {
-      userStore.showProjectsData(data);
-      close();
-      emit("newProject");
-      pushNotification({
-        text: "The project has been added successfully",
-        type: NotificationType.Success,
-        key: `key${notifications.value.length}`,
+    };
+    taskPost(dataTask)
+      .then(({ data }) => {
+        userStore.showTasksData(data);
+        close();
+        emit("newTask");
+        pushNotification({
+          text: "The task has been added successfully",
+          type: NotificationType.Success,
+          key: `key${notifications.value.length}`,
+        });
+      })
+      .catch((error) => {
+        pushNotification({
+          text: "The task has not been added successfully",
+          type: NotificationType.Failed,
+          key: `key${notifications.value.length}`,
+        });
       });
-    })
-    .catch((error) => {
-      pushNotification({
-        text: "The project has not been added successfully",
-        type: NotificationType.Failed,
-        key: `key${notifications.value.length}`,
-      });
-    });
+  }
 };
 
 const close = () => {
@@ -359,7 +401,24 @@ onMounted(() => {
   showTag();
   showDataUser();
   showMe().then(({ data }) => {
-    leadName.value = data.id;
+    assignee.value = data;
+  });
+  showTypes().then(({ data }) => {
+    types.value = data.data.map(
+      (item: { [x: string]: any; name: string; id: number }) => ({
+        name: item.attributes.name,
+        id: item.id,
+      })
+    );
+  });
+  showStatus().then(({ data }) => {
+    let statuses = data.data.map(
+      (item: { [x: string]: any; name: string; id: number }) => ({
+        name: item.attributes.name,
+        id: item.id,
+      })
+    );
+    toDoStatus.value = statuses.find((status) => status.name === "To Do");
   });
 });
 </script>
@@ -382,6 +441,7 @@ onMounted(() => {
   &__block {
     display: flex;
     flex-wrap: wrap;
+    width: 100%;
   }
 
   i.arrow {
@@ -413,6 +473,20 @@ onMounted(() => {
         display: block;
       }
 
+      .flex {
+        display: flex;
+        width: 100%;
+
+        .position-dropdown {
+          width: 50%;
+          position: relative;
+
+          &:first-of-type {
+            margin-right: 16px;
+          }
+        }
+      }
+
       .position {
         display: flex;
         align-items: center;
@@ -428,6 +502,20 @@ onMounted(() => {
         &-dropdown {
           width: 100%;
           position: relative;
+
+          &.assignee {
+            margin-right: 16px;
+            @include media_mobile {
+              margin: 0 0 16px 0;
+            }
+          }
+        }
+      }
+
+      .calendar {
+        right: 16px;
+        @include media_mobile {
+          right: 12px;
         }
       }
 
@@ -505,6 +593,13 @@ onMounted(() => {
             input {
               width: 100%;
             }
+          }
+        }
+
+        &.assignee {
+          margin: 0 16px 0 0;
+          @include media_mobile {
+            margin: 0;
           }
         }
 

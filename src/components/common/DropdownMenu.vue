@@ -18,6 +18,42 @@
           p {{ project.attributes.tags.data[0].attributes.name }}
         i.icon.unchecked
         i.icon.star
+    .work(v-if="work")
+      h3 In Progress
+      .work--to-do(v-for="task in tasksInProgress.slice(0, 2)", :key="task")
+        .type(v-for="t in task.attributes.type", :key="t")
+          i.icon(:class="getTaskTypeName(t.attributes.name)")
+        .text-block
+          p {{ task.attributes.title }}
+          .text
+            p {{ task.attributes.key }}
+            i.icon.dot
+            div(v-for="member in task.attributes.members", :key="member")
+              div(v-for="m in member", :key="m")
+                p(
+                  v-if="m.attributes.username === fullName && member.length === 1"
+                ) You have all worked on this
+                p(
+                  v-else-if="m.attributes.username === fullName && member.length > 1"
+                ) You, {{ member[0].attributes.username }}, and {{ member.length - 2 }} others have all worked on this
+      h3.do To Do
+      .work--to-do(v-for="task in tasksToDo.slice(0, 5)", :key="task")
+        .type(v-for="t in task.attributes.type", :key="t")
+          i.icon(:class="getTaskTypeName(t.attributes.name)")
+        .text-block
+          p {{ task.attributes.title }}
+          .text
+            p {{ task.attributes.key }}
+            i.icon.dot
+            div(v-for="member in task.attributes.members", :key="member")
+              div(v-for="m in member", :key="m")
+                p(
+                  v-if="m.attributes.username === fullName && member.length === 1"
+                ) You have all worked on this
+                p(
+                  v-else-if="m.attributes.username === fullName && member.length > 1"
+                ) You, {{ member[0].attributes.username }}, and {{ member.length - 2 }} others have all worked on this
+
     div(v-else)
       router-link.menu-project(
         v-for="(project, index) in leadNames.slice(0, 5)",
@@ -35,15 +71,20 @@
     h2(v-if="subtitle") {{ subtitle }}
   div(v-if="project && !projects.length")
     no-results.menu-no(:no-data="true")
-  .link
-    router-link(:to="`/dashboard/${type}`") View all {{ type }}
+  .link(:class="{ workLink: work }")
+    router-link(v-if="work", :to="`/dashboard/work`") Go to Your Work page
+    router-link(v-else, :to="`/dashboard/${type}`") View all {{ type }}
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import NoResults from "../NoResults.vue";
 import { leadNames } from "../../composables/userActions";
+import { getTaskTypeName } from "@/composables/projectsAction";
 import { showProjects } from "@/services/api/projectApi";
+import { showTasks } from "@/services/api/tasksApi";
+import { ResTasks } from "@/types/tasksApiInterface";
+import { useUserStore } from "@/store/user";
 
 const props = defineProps({
   type: { type: String },
@@ -52,14 +93,32 @@ const props = defineProps({
   title: String,
   subtitle: String,
   project: Boolean,
+  work: Boolean,
 });
 const projects = ref([]);
+const tasksToDo = ref([]);
+const tasksInProgress = ref([]);
 const totalProjects = ref();
+const userStore = useUserStore();
+const fullName = computed(() => {
+  const username = userStore.user.username;
+  return username;
+});
 onMounted(() => {
   showProjects("").then(({ data }) => {
     projects.value = data.data.map((project: any) => project);
     totalProjects.value = projects.value.length;
   });
+  showTasks(
+    `&filters[$and][0][status][name][$eq]=In%20Progress&sort=updatedAt`
+  ).then((response) => {
+    tasksInProgress.value = response.data.data.map((task: ResTasks) => task);
+  });
+  showTasks(`&filters[$and][0][status][name][$eq]=To%20Do&sort=updatedAt`).then(
+    (response) => {
+      tasksToDo.value = response.data.data.map((task: ResTasks) => task);
+    }
+  );
 });
 </script>
 
@@ -76,8 +135,66 @@ onMounted(() => {
   z-index: 10;
   box-shadow: 0px 4px 8px rgba(61, 55, 52, 0.08);
 
+  .work {
+    padding: 0 16px;
+
+    h3 {
+      @include font(16px, 600, 20px, var(--text));
+      padding: 6px 0;
+      margin: 0;
+
+      &.do {
+        margin: 6px 0;
+        padding: 6px 0 0 0;
+      }
+    }
+
+    &--to-do {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+
+      i.icon {
+        position: relative;
+      }
+
+      .text-block {
+        display: flex;
+        flex-direction: column;
+
+        p {
+          @include font(16px, 500, 24px, var(--text));
+          margin: 0;
+        }
+
+        .text {
+          display: flex;
+
+          p {
+            @include font(8px, 400, 12px, var(--text));
+            margin: 0;
+          }
+
+          i.icon.dot {
+            position: relative;
+            width: 4px;
+            height: 3px;
+            margin: 5px 3px 0;
+          }
+        }
+      }
+    }
+  }
+
   .link {
     margin-top: 16px;
+
+    &.workLink {
+      border-top: 1px solid var(--primary_border);
+      margin: 6px 0 0 0;
+      padding: 16px 0 0 0;
+    }
   }
 
   a {

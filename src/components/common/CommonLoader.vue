@@ -3,7 +3,7 @@
   span.loader
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .loader-block {
   display: flex;
   align-items: center;
@@ -12,6 +12,25 @@
   @include media_mobile {
     margin: 71% 0;
   }
+
+  &.work-block {
+    margin: 130px 50% 130px 46%;
+    @include media_tablet {
+      margin: 130px 50% 90px 42%;
+    }
+    //@include media_mobile {
+    //  margin: 81px 50% 90px 42%;
+    //}
+
+    .loader:before,
+    .loader:after {
+      top: -35px;
+      @include media_mobile {
+        top: 33%;
+      }
+    }
+  }
+
   &.user {
     .loader {
       position: absolute;
@@ -20,6 +39,7 @@
     }
   }
 }
+
 .loader {
   position: relative;
   @include media_mobile {
@@ -28,6 +48,7 @@
     top: 50%;
   }
 }
+
 .loader:before,
 .loader:after {
   content: "";
@@ -41,6 +62,7 @@
   top: 0;
   animation: ballMoveX 1s linear infinite;
 }
+
 .loader:after {
   box-shadow: none;
   transform-origin: 28px 0;
@@ -58,6 +80,7 @@
     transform: rotate(150deg);
   }
 }
+
 @keyframes ballMoveX {
   0%,
   10% {
