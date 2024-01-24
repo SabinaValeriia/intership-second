@@ -11,13 +11,11 @@
               i.icon.check
             .close-block(:class="{ active }", @click="closeName")
               i.icon.close
-          .tablet(v-if="!active")
-            i.icon.unchecked
+          .tablet
+            i.icon.unchecked(v-if="!active")
             i.icon.share
-            i.icon.menu(
-              :class="{ active: listOpen }",
-              @click="listOpen = !listOpen"
-            )
+            div(:class="{ active: listOpen }")
+              i.icon.menu(@click="listOpen = !listOpen")
             dropdown-list.menu(
               v-if="listOpen",
               :filtered-data="list",
@@ -42,7 +40,12 @@
             @selectedItem="selectedItem"
           )
         h4 Description
-        .text-area(:class="{ active: activeText }", @click="editText")
+        p(v-if="!activeText", @click="editText") {{ desc }}
+        .text-area(
+          v-if="activeText",
+          :class="{ active: activeText }",
+          @click="editText"
+        )
           textarea(v-model="desc", @click="editText")
         .block-btn(v-if="activeText")
           common-button.btn-secondary(@click="updateProjectAndFetch") Save
@@ -61,7 +64,7 @@
               :class-name="'list'",
               @selectedItem="selectedItem"
             )
-          .block-details
+          .block-details(:class="{ close: !menuOpen }")
             p.details Details
             i.icon.arrow(
               :class="{ menuOpen }",
@@ -76,10 +79,7 @@
                   :src="JSON.parse(item.logo.name)",
                   alt="name"
                 )
-                img.logo(
-                  v-else,
-                  :src="require(`@/assets/icons/default_user.svg`)"
-                )
+                img.logo(v-else, :src="require(`@/assets/icons/gender.svg`)")
                 p.distance or
                 image-input.details-image(@file="addFile")
             .lead-block.lead(@click.prevent="toggleDropdown('lead')")
@@ -90,8 +90,8 @@
                   :src="JSON.parse(item.lead.data.attributes.image.name)",
                   alt="name"
                 )
-                img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
-                p.lead {{ item.lead.data.attributes.username }}
+                img(v-else, :src="require(`@/assets/icons/gender.svg`)")
+                p.lead(:class="{ active: dropdownStates.lead.isOpen }") {{ item.lead.data.attributes.username }}
                 dropdown-component.lead(
                   v-if="dropdownStates.lead.isOpen",
                   :is-open="dropdownStates.lead.isOpen",
@@ -107,8 +107,8 @@
                   :src="JSON.parse(item.manager.data.attributes.image.name)",
                   alt="name"
                 )
-                img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
-                p.lead {{ item.manager.data.attributes.username }}
+                img(v-else, :src="require(`@/assets/icons/gender.svg`)")
+                p.lead(:class="{ active: dropdownStates.manager.isOpen }") {{ item.manager.data.attributes.username }}
                 dropdown-component.lead(
                   v-if="dropdownStates.manager.isOpen",
                   :is-open="dropdownStates.manager.isOpen",
@@ -127,10 +127,7 @@
                     :class="{ active: member.id === activeIndex }",
                     @click="toggleSize(member.id)"
                   )
-                  img(
-                    v-else,
-                    :src="require(`@/assets/icons/default_user.svg`)"
-                  )
+                  img(v-else, :src="require(`@/assets/icons/gender.svg`)")
                 .add(
                   v-if="membersNotInProject.length !== 0",
                   @click.prevent="toggleDropdown('members')"
@@ -394,18 +391,19 @@ const selectedItem = (tag: string) => {
       });
       updateProject(foundProject.value.id, updateData).then(() => {
         fetchProjects();
+      });
+      if (project.value[0].members.length === user.value.length) {
         dropdownStates.value.members.isOpen =
           !dropdownStates.value.members.isOpen;
-      });
+      }
     }
   } else if (listOpen.value) {
-    if (tag) {
+    if (tag.name === "Remove") {
       deleteProject(foundProject.value.id);
       window.location.replace(`/dashboard/projects`);
     }
   }
 };
-
 const formatDate = (value: string) => {
   const date = new Date(value);
 
@@ -467,9 +465,6 @@ const updateProjectAndFetch = () => {
           type: NotificationType.Success,
           key: `key${notifications.value.length}`,
         });
-        window.location.replace(
-          `/dashboard/projects/${key}/${foundProject.value.id}/projectDetails`
-        );
       }
     });
   }
@@ -479,10 +474,9 @@ const updateProjectAndFetch = () => {
 const fetchProjects = () => {
   isLoader.value = true;
   showProjects("").then(({ data }) => {
-    foundProject.value = data.data.find(
-      (project: ProjectInterfaceItem) =>
-        project.attributes.key === route.params.key
-    );
+    foundProject.value = data.data.find((project: ProjectInterfaceItem) => {
+      return Number(project.id) === Number(route.params.projectId);
+    });
 
     if (foundProject.value) {
       project.value = [
@@ -552,7 +546,6 @@ const fetchProjects = () => {
             id: item.id,
           })
         );
-        console.log(projectTags.value.length, "tagNotInProject");
       });
       inputValue.value = getInputValue.value;
       desc.value = getDesc.value;
@@ -644,14 +637,41 @@ onMounted(() => {
       .tablet {
         gap: 12px;
         display: flex;
+        align-items: center;
         margin-right: 6px;
         position: absolute;
         right: 16px;
+
+        i.share {
+          @include media_tablet {
+            margin: 0 7px 0 12px;
+          }
+        }
+
+        div {
+          width: 32px;
+          height: 32px;
+          margin-right: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          @include media_mobile {
+            margin: 0;
+          }
+
+          &.active {
+            border-radius: 16px;
+            background: var(--primary_hover);
+          }
+        }
+
         @include media_tablet {
-          margin-right: 10px;
+          margin-right: 0;
+          gap: 0;
+          right: 5px;
         }
         @include media_mobile {
-          margin-right: 3px;
+          right: 10px;
         }
 
         i {
@@ -671,11 +691,6 @@ onMounted(() => {
           display: none;
         }
 
-        .active {
-          border-radius: 16px;
-          background: var(--primary_hover);
-        }
-
         div {
           width: 32px;
           height: 32px;
@@ -683,6 +698,11 @@ onMounted(() => {
           display: flex;
           align-items: center;
           justify-content: center;
+
+          &.active {
+            border-radius: 16px;
+            background: var(--primary_hover);
+          }
         }
 
         i.icon {
@@ -696,7 +716,11 @@ onMounted(() => {
 
       p {
         margin: 0;
-        @include font(16px, 500, 24px, var(--text));
+        @include font(16px, 400, 24px, var(--text));
+
+        &.active {
+          color: var(--accent_hover);
+        }
 
         &.details {
           margin: 0;
@@ -729,6 +753,11 @@ onMounted(() => {
         border-radius: 4px 4px 0 0;
         box-sizing: border-box;
         height: 52px;
+
+        &.close {
+          border-radius: 4px;
+        }
+
         @include media_mobile {
           height: 38px;
           padding: 11px 10px;
@@ -736,7 +765,7 @@ onMounted(() => {
 
         i.arrow {
           position: relative;
-          height: 11px;
+          height: 7px;
           transform: rotate(0);
           @include media_mobile {
             width: 13px;
@@ -751,6 +780,7 @@ onMounted(() => {
       .block-desc {
         padding: 10px 0 16px;
         border: 1px solid var(--primary);
+        border-width: 0 1px 1px 1px;
         border-radius: 0 0 4px 4px;
         @include media_mobile {
           padding: 10px 0;
@@ -778,9 +808,14 @@ onMounted(() => {
               width: 38px;
               height: 38px;
 
-              img.hovered {
+              &:hover {
                 width: 38px;
                 height: 38px;
+              }
+
+              &:not(:hover) {
+                width: 30px;
+                height: 30px;
               }
 
               @include media_mobile {
@@ -816,7 +851,8 @@ onMounted(() => {
             div {
               width: 50%;
               @include media_mobile {
-                width: 65%;
+                width: 100%;
+                left: 0;
               }
             }
           }
@@ -830,12 +866,14 @@ onMounted(() => {
 
           img {
             border-radius: 25px;
-            border: 1px solid var(--primary);
+            border: 1px solid var(--accent);
             z-index: 1;
 
             &:hover {
               z-index: 2;
               cursor: pointer;
+              border-radius: 20px;
+              border: 1px solid var(--accent_hover);
             }
           }
 
@@ -845,12 +883,17 @@ onMounted(() => {
             border: 1px solid var(--accent);
             background: var(--background);
             z-index: 1;
-            width: 38px;
-            height: 38px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-left: -10px;
+            margin: 0 0 0 -10px;
+
+            &:hover {
+              width: 38px;
+              height: 38px;
+            }
 
             @include media_mobile {
               width: 30px;
@@ -962,12 +1005,12 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    width: 100%;
     @include media_tablet {
       margin-bottom: 6px;
-      width: fit-content;
     }
     @include media_mobile {
-      padding: 6px 8px;
+      padding: 0;
       box-sizing: border-box;
       height: 32px;
     }
@@ -981,6 +1024,7 @@ onMounted(() => {
       background: transparent;
       border: none;
       outline: none;
+      width: 100%;
       @include font(24px, 700, 28px, var(--text));
       @include media_mobile {
         font-size: 16px;
@@ -993,11 +1037,16 @@ onMounted(() => {
       border-radius: 4px;
       border: 1px solid var(--accent);
       background: var(--background);
+      box-sizing: border-box;
+      @include media_tablet {
+        height: 48px;
+        width: 83%;
+      }
       @include media_mobile {
         width: 104%;
         height: 38px;
         input {
-          padding: 0;
+          padding: 6px 8px;
         }
       }
     }
@@ -1079,14 +1128,20 @@ onMounted(() => {
     }
   }
 
+  p {
+    @include font(14px, 500, 20px, var(--text));
+    margin: 12px 0 0;
+    padding: 0;
+  }
+
   .text-area {
     &.active {
       textarea {
         padding: 16px 20px;
         border-radius: 4px;
         border: 1px solid var(--accent);
-        margin-bottom: 10px;
-        width: 100%;
+        margin-bottom: 6px;
+        width: 98%;
         @include media_mobile {
           padding: 6px 10px;
         }
@@ -1096,15 +1151,15 @@ onMounted(() => {
 
   textarea {
     @include font(14px, 500, 20px, var(--text));
-    margin: 12px 0 0;
+    margin: 10px 0 0;
     padding: 0;
-    resize: none;
     width: 100%;
     height: auto;
     background: transparent;
     border: none;
     outline: none;
     box-sizing: border-box;
+    resize: vertical;
     @include media_tablet {
       margin: 8px 0 0;
     }
@@ -1120,6 +1175,14 @@ onMounted(() => {
     align-items: center;
     justify-content: flex-end;
     gap: 12px;
+    margin-right: 10px;
+
+    button {
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 20px;
+    }
+
     @include media_tablet {
       margin-bottom: 16px;
     }

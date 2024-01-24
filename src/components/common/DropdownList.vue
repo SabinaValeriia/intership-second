@@ -21,7 +21,7 @@ ul(
   )
     .image-item(v-if="type === 'lead'")
       img.logo(v-if="item.logo", :src="JSON.parse(item.logo.name)", alt="name")
-      img(v-else, :src="require(`@/assets/icons/default_user.svg`)")
+      img.logo(v-else, :src="require(`@/assets/icons/gender.svg`)")
     .image-item(v-if="type === 'menu'")
       i.icon(:class="[item.icon, item.class]")
     button.checkbox(
@@ -154,6 +154,32 @@ ul {
       0px 0px 2px 0px rgba(61, 55, 52, 0.16);
     right: 5px;
     border: 1px solid var(--primary);
+    @include media_mobile {
+      width: 180px;
+      right: 0;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+
+      p {
+        @include font(16px, 400, 24px, var(--text));
+      }
+
+      @include media_mobile {
+        padding: 12px 16px;
+        margin-right: 12px;
+        height: 48px;
+        .image-item {
+          margin-right: 12px;
+        }
+        i {
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
   }
 
   &.name {
@@ -167,7 +193,7 @@ ul {
   }
 
   @include media_mobile {
-    top: 32px;
+    top: 40px;
     max-height: 122px;
   }
 

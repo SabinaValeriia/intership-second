@@ -95,6 +95,7 @@ const toggleInput = () => {
     position: absolute;
     cursor: pointer;
     opacity: 0;
+    width: inherit;
   }
 
   label.details {

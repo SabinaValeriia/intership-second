@@ -367,7 +367,7 @@ const fetchTasks = (filters: string) => {
   noDataShow.value = false;
   return new Promise(() => {
     showTasks(
-      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&filters[$and][0][status][name][$ne]=Archive&filters[$and][0][project][key][$eq]=${route.params.key}${filters}`
+      `pagination[start]=${startIndex.value}&pagination[limit]=${endIndex.value}&filters[$and][0][status][name][$ne]=Archive&filters[$and][0][project][id][$eq]=${route.params.projectId}${filters}`
     ).then((response) => {
       tasks.value = response.data.data;
       totalTasks.value = response.data.meta.pagination.total;
@@ -508,8 +508,8 @@ onMounted(() => {
 });
 
 watch(
-  [() => route.params.key, () => route.params.projectId],
-  ([newKey, newProjectId], [oldKey, oldProjectId]) => {
+  [() => route.params.projectId],
+  ([newProjectId], [oldProjectId]) => {
     fetchTasks("");
   },
   { immediate: true }

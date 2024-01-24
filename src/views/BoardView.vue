@@ -1,6 +1,6 @@
 <template lang="pug">
 .board
-  h3 {{ route.params.key }} board
+  h3(v-for="p in project", :key="p") {{ p.key }} board
   .project-name(v-for="item in project", :key="item.id")
   .board-panel
     form
@@ -418,10 +418,12 @@ const fetchTasks = (filters: string) => {
   isLoader.value = true;
   return showTasks(`&filters[$and][0][status][name][$ne]=Archive${filters}`)
     .then((response) => {
-      tasks.value = response.data.data.filter(
-        (task: ResTasks) =>
-          task.attributes.project.data.attributes.key === route.params.key
-      );
+      tasks.value = response.data.data.filter((task: ResTasks) => {
+        return (
+          Number(task.attributes.project.data.id) ===
+          Number(route.params.projectId)
+        );
+      });
       filteredTasks();
       totalTasks.value = response.data.meta.pagination.total;
     })
@@ -484,14 +486,14 @@ onMounted(() => {
     }));
   });
   showProjects("").then(({ data }) => {
-    foundProject.value = data.data.find(
-      (project: ProjectInterfaceItem) =>
-        project.attributes.key === route.params.key
-    );
+    foundProject.value = data.data.find((project: ProjectInterfaceItem) => {
+      return Number(project.id) === Number(route.params.projectId);
+    });
 
     if (foundProject.value) {
       project.value = [
         {
+          key: foundProject.value.attributes.title,
           name: foundProject.value.attributes.title,
           logo: foundProject.value.attributes.logo,
           members: foundProject.value.attributes.members.data,
