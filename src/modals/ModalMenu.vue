@@ -23,7 +23,7 @@ app-modal.menu
         .block-black
           i.icon.arrow-long
         .hover-block
-      a
+      router-link(:to="{ name: 'projectDetails' }")
         i.icon.details
         p Project details
         .hover-block
@@ -63,10 +63,9 @@ watch(
 );
 onMounted(() => {
   showProjects("").then(({ data }) => {
-    foundProject.value = data.data.find(
-      (project: ProjectInterfaceItem) =>
-        project.attributes.key === route.params.key
-    );
+    foundProject.value = data.data.find((project: ProjectInterfaceItem) => {
+      return Number(project.id) === Number(route.params.projectId);
+    });
 
     if (foundProject.value) {
       project.value = [

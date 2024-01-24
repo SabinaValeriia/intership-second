@@ -1,6 +1,10 @@
 import { AxiosResponse } from "axios";
 import axiosInstance from ".";
-import { ProjectInterface, ResProject } from "@/types/projectApiInterface";
+import {
+  ProjectInterface,
+  ProjectInterfaceItem,
+  ResProject,
+} from "@/types/projectApiInterface";
 
 export const projectPost = (
   payload: ProjectInterface
@@ -20,4 +24,19 @@ export const showProjectById = (
 ): Promise<AxiosResponse<ResProject>> => {
   const url = `projects/${id}`;
   return axiosInstance.get(url);
+};
+
+export const updateProject = (
+  projectId: string,
+  data: ProjectInterfaceItem
+): Promise<AxiosResponse<any>> => {
+  const url = `/projects/${projectId}?populate=*&`;
+  return axiosInstance.put(url, data);
+};
+
+export const deleteProject = (
+  projectId: string
+): Promise<AxiosResponse<any>> => {
+  const url = `/projects/${projectId}?populate=*&`;
+  return axiosInstance.delete(url);
 };

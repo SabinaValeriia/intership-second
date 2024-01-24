@@ -201,6 +201,14 @@
     mask-image: url("@/assets/icons/menu.svg");
   }
 
+  &.share {
+    mask-image: url("@/assets/icons/share.svg");
+  }
+
+  &.trash {
+    mask-image: url("@/assets/icons/trash.svg");
+  }
+
   @include media_mobile {
     width: 16px;
     height: 16px;

@@ -15,6 +15,9 @@
       | Upload a check image (click or drag)
       br
       | JPG, PNG, WEBP (up to 1 mb)
+    label.details
+      .foto
+      | Upload new image
   .image--blocks(v-if="userImage.length && open")
     .image--block(v-for="(image, index) in userImage", :key="index")
       img.image(
@@ -26,9 +29,10 @@
         i.icon.icon-close
   slot(name="errors")
 </template>
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ImageInterface } from "@/types/ImageInterface";
-import { ref, defineEmits, defineProps } from "vue";
+import { defineEmits, defineProps, ref } from "vue";
+
 const props = defineProps({
   type: { type: String },
 });
@@ -72,6 +76,87 @@ const toggleInput = () => {
 </script>
 
 <style lang="scss" scoped>
+.form-group.image.details-image {
+  width: 145px;
+  height: 64px;
+  @include media_tablet {
+    width: 213px;
+  }
+  @include media_mobile {
+    width: 135px;
+    height: 54px;
+  }
+
+  .label-group {
+    display: none;
+  }
+
+  input {
+    position: absolute;
+    cursor: pointer;
+    opacity: 0;
+    width: inherit;
+  }
+
+  label.details {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    @include font(10px, 400, 12px, var(--text));
+  }
+
+  label.label {
+    display: none;
+  }
+
+  .form-item {
+    border-radius: 4px;
+    border: 1px dashed var(--primary);
+    background: var(--white);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 145px;
+    height: 64px;
+    box-sizing: border-box;
+    @include media_tablet {
+      width: 213px;
+    }
+    @include media_mobile {
+      width: 135px;
+      height: 54px;
+    }
+  }
+
+  .foto {
+    background: var(--primary);
+    width: 25px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+
+    &::before {
+      content: "";
+      display: inline-block;
+      background: url("@/assets/icons/foto.svg");
+      background-size: contain;
+      width: 11px;
+      height: 9px;
+
+      @include media_mobile {
+        width: 11px;
+        height: 9px;
+      }
+    }
+  }
+}
+
 .image--blocks {
   display: flex;
   gap: 8px;
@@ -80,11 +165,17 @@ const toggleInput = () => {
       display: none;
     }
   }
+
+  label.details {
+    display: none;
+  }
+
   .image--block {
     position: relative;
     height: 120px;
     width: 120px;
   }
+
   img.image {
     width: 120px;
     height: 120px;
@@ -94,6 +185,7 @@ const toggleInput = () => {
     top: 0;
     left: 0;
   }
+
   button.close {
     border-radius: 16px;
     border: none;
@@ -111,9 +203,11 @@ const toggleInput = () => {
     display: flex;
     align-items: center;
     justify-content: center;
+
     i {
       width: 9px;
       height: 9px;
+
       &.icon-close::before {
         background: var(--primary);
       }
